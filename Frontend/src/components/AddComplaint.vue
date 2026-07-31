@@ -1,6 +1,6 @@
 <template>
   <div class="add-ann-wrapper">
-    <TenantNavBar />
+    <AssociationNavBar />
     <div class="form-card">
       <h2>Add Complaint</h2>
       <form @submit.prevent="submit">
@@ -45,7 +45,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
-import TenantNavBar from './TenantNavBar.vue'
+import AssociationNavBar from './AssociationNavBar.vue'
 import { getApiBase, getAuthHeader } from '../utils/auth'
 
 const router = useRouter()
