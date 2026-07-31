@@ -1,5 +1,4 @@
 import { createWebHistory, createRouter } from "vue-router";
-
 import HomePage from "./components/Home.vue";
 import LoginPage from "./components/LoginPage.vue";
 import RegisterPage from "./components/RegisterPage.vue";
@@ -20,92 +19,139 @@ import TenantComplaintDetails from "./components/TenantComplaintDetails.vue";
 import RaiseComplaint from "./components/AddComplaint.vue";
 
 const routes = [
-  { path: "/", component: HomePage },
-  { path: "/login", component: LoginPage },
-  { path: "/register", component: RegisterPage },
-
-  { path: "/associate_manager", redirect: "/association_manager" },
-  { path: "/admin_dashboard", redirect: "/association_manager" },
-
-  { path: "/association_manager", component: AssociationManager },
-  { path: "/add-announcement", component: AddAnnouncement },
-  { path: "/edit-announcement/:id", component: EditAnnouncement, props: true },
-
-  { path: "/members", component: Members },
-  { path: "/add-member", component: AddMember },
-  { path: "/edit-member/:id", component: EditMember, props: true },
-
-  { path: "/complaints", component: Associationcomplaint },
-  { path: "/complaints/:id", component: ComplaintDetail, props: true },
-  { path: "/add-complaint", component: AddComplaint },
-
-  { path: "/invoices", component: AssociationInvoice },
-  { path: "/invoices/:id/detail", component: InvoiceDetail, props: true },
-
-  { path: "/tenant-dashboard", component: TenantDashboard },
-  { path: "/tenant-complaints", component: TenantComplaint },
+  {
+    path: "/",
+    name: "HomePage",
+    component: HomePage
+  },
+  {
+    path: "/login",
+    name: "LoginPage",
+    component: LoginPage
+  },
+  {
+    path: "/register",
+    name: "RegisterPage",
+    component: RegisterPage
+  },
+  {
+    path: "/associate_manager",
+    redirect: "/association_manager"
+  },
+  {
+    path: "/admin_dashboard",
+    redirect: "/association_manager"
+  },
+  {
+    path: "/association_manager",
+    name: "AssociationManager",
+    component: AssociationManager
+  }
+  ,
+  {
+    path: "/add-announcement",
+    name: "AddAnnouncement",
+    component: AddAnnouncement
+  },
+  {
+    path: "/edit-announcement/:id",
+    name: "EditAnnouncement",
+    component: EditAnnouncement,
+    props: true
+  },
+  {
+    path: "/members",
+    name: "Members",
+    component: Members
+  },
+  {
+    path: "/add-member",
+    name: "AddMember",
+    component: AddMember
+  },
+  {
+    path: "/edit-member/:id",
+    name: "EditMember",
+    component: EditMember,
+    props: true
+  }
+  ,
+  {
+    path: "/complaints",
+    name: "Associationcomplaint",
+    component: Associationcomplaint
+  },
+  {
+    path: "/complaints/:id",
+    name: "ComplaintDetail",
+    component: ComplaintDetail,
+    props: true
+  }
+  ,
+  {
+    path: "/add-complaint",
+    name: "AddComplaint",
+    component: AddComplaint
+  }
+  ,
+  {
+    path: "/invoices",
+    name: "AssociationInvoice",
+    component: AssociationInvoice
+  }
+  ,
+  {
+    path: "/invoices/:id/detail",
+    name: "InvoiceDetail",
+    component: InvoiceDetail,
+    props: true
+  },
+  {
+    path: "/tenant-dashboard",
+    name: "TenantDashboard",
+    component: TenantDashboard
+  },
+  {
+    path: "/tenant-complaints",
+    name: "TenantComplaint",
+    component: TenantComplaint
+  },
   {
     path: "/tenant-complaints/:id",
+    name: "TenantComplaintDetails",
     component: TenantComplaintDetails,
-    props: true,
+    props: true
   },
-  { path: "/raise-complaint", component: RaiseComplaint },
-
-  { path: "/Tenant_dashboard", redirect: "/tenant-dashboard" },
-  { path: "/tenant_dashboard", redirect: "/tenant-dashboard" },
-  { path: "/Tenant_complaints", redirect: "/tenant-complaints" },
-
-  { path: "/payments", redirect: "/tenant-dashboard" },
-  { path: "/info", redirect: "/tenant-dashboard" },
+  {
+    path: "/raise-complaint",
+    name: "RaiseComplaint",
+    component: RaiseComplaint
+  },
+  {
+    path: "/Tenant_dashboard",
+    redirect: "/tenant-dashboard"
+  },
+  {
+    path: "/tenant_dashboard",
+    redirect: "/tenant-dashboard"
+  },
+  {
+    path: "/Tenant_complaints",
+    redirect: "/tenant-complaints"
+  },
+  {
+    path: "/payments",
+    redirect: "/tenant-dashboard"
+  },
+  {
+    path: "/info",
+    redirect: "/tenant-dashboard"
+  }
 ];
 
 const router = createRouter({
   history: createWebHistory(),
-  routes,
-});
-
-router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem("token");
-  const role = localStorage.getItem("role");
-
-  // Allow public pages
-  if (to.path === "/" || to.path === "/login" || to.path === "/register") {
-    return next();
-  }
-
-  // Require login
-  if (!token) {
-    return next("/login");
-  }
-
-  // Admin pages
-  if (
-    to.path.startsWith("/association_manager") ||
-    to.path.startsWith("/members") ||
-    to.path.startsWith("/add-member") ||
-    to.path.startsWith("/edit-member") ||
-    to.path.startsWith("/add-announcement") ||
-    to.path.startsWith("/edit-announcement") ||
-    to.path === "/complaints" ||
-    to.path.startsWith("/invoices")
-  ) {
-    if (role !== "ADMIN" && role !== "SYSTEM_ADMIN") {
-      return next("/tenant-dashboard");
-    }
-  }
-
-  // Tenant pages
-  if (
-    to.path.startsWith("/tenant-dashboard") ||
-    to.path.startsWith("/tenant-complaints") ||
-    to.path.startsWith("/raise-complaint")
-  ) {
-    if (role !== "TENANT" && role !== "OWNER") {
-      return next("/association_manager");
-    }
-  }
-
-  next();
+  routes
 });
 
 export default router;

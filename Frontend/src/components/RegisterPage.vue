@@ -75,12 +75,14 @@
                 required 
               >
                 <option value="">Select a role</option>
+                <option value="ADMIN">Admin</option>
                 <option value="TENANT">Tenant</option>
                 <option value="OWNER">Owner</option>
                 <option value="TREASURER">Treasurer</option>
                 <option value="WORKER">Worker</option>
                 <option value="COMMITTEE_MEMBER">Committee Member</option>
                 <option value="AUDITOR">Auditor</option>
+                <option value="SYSTEM_ADMIN">System Admin</option>
               </select>
             </div>
 

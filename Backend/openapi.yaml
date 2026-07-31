@@ -1,0 +1,1509 @@
+openapi: 3.0.3
+info:
+  title: SocietyEase API
+  description: API specification for SocietyEase backend (Flask). Auth uses JWT bearer tokens.
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+    description: Local development server
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          nullable: true
+        role:
+          type: string
+          enum: [ADMIN,TENANT,OWNER,TREASURER,WORKER,COMMITTEE_MEMBER,AUDITOR,SYSTEM_ADMIN]
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+      required: [id,name,email,role,is_active]
+    RegisterRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        role:
+          type: string
+      required: [name,email,password,role]
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required: [email,password]
+    TokenResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+    Apartment:
+      type: object
+      properties:
+        id:
+          type: integer
+        block:
+          type: string
+          nullable: true
+        flat_number:
+          type: string
+        floor:
+          type: integer
+      required: [id,flat_number]
+    Resident:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        role:
+          type: string
+        is_active:
+          type: boolean
+        apartment_id:
+          type: integer
+        flat_number:
+          type: string
+        block:
+          type: string
+          nullable: true
+        floor:
+          type: integer
+        is_owner:
+          type: boolean
+        move_in_date:
+          type: string
+          nullable: true
+        move_out_date:
+          type: string
+          nullable: true
+    Complaint:
+      type: object
+      properties:
+        id:
+          type: integer
+        raised_by:
+          type: integer
+        raised_by_name:
+          type: string
+        apartment_id:
+          type: integer
+        flat_number:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        category:
+          type: string
+          enum: [PLUMBING,ELECTRICAL,CLEANING,SECURITY,OTHER]
+        priority:
+          type: string
+          enum: [LOW,MEDIUM,HIGH]
+        status:
+          type: string
+          enum: [OPEN,ASSIGNED,IN_PROGRESS,COMPLETED,CLOSED]
+        assigned_worker_id:
+          type: integer
+          nullable: true
+        assigned_worker_name:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+        resolved_at:
+          type: string
+          nullable: true
+    ComplaintCreateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        priority:
+          type: string
+        apartment_id:
+          type: integer
+      required: [title,category,apartment_id]
+    ComplaintUpdate:
+      type: object
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+        remarks:
+          type: string
+        updated_by:
+          type: integer
+        updated_at:
+          type: string
+    Invoice:
+      type: object
+      properties:
+        id:
+          type: integer
+        apartment_id:
+          type: integer
+        flat_number:
+          type: string
+        month:
+          type: integer
+        year:
+          type: integer
+        amount:
+          type: number
+          format: float
+        due_date:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [PAID,UNPAID,OVERDUE]
+        created_at:
+          type: string
+    InvoiceCreateRequest:
+      type: object
+      properties:
+        apartment_id:
+          type: integer
+        month:
+          type: integer
+        year:
+          type: integer
+        amount:
+          type: number
+        due_date:
+          type: string
+      required: [apartment_id,month,year,amount]
+    InvoiceBulkCreateRequest:
+      type: object
+      properties:
+        month:
+          type: integer
+        year:
+          type: integer
+        amount:
+          type: number
+        due_date:
+          type: string
+      required: [month,year,amount]
+    PaymentRequest:
+      type: object
+      properties:
+        payment_method:
+          type: string
+        transaction_reference:
+          type: string
+    Expense:
+      type: object
+      properties:
+        id:
+          type: integer
+        category:
+          type: string
+        description:
+          type: string
+        amount:
+          type: number
+        expense_date:
+          type: string
+        paid_by:
+          type: integer
+        paid_by_name:
+          type: string
+        receipt_url:
+          type: string
+        created_at:
+          type: string
+    ExpenseCreateRequest:
+      type: object
+      properties:
+        category:
+          type: string
+        description:
+          type: string
+        amount:
+          type: number
+        expense_date:
+          type: string
+        paid_by:
+          type: integer
+        receipt_url:
+          type: string
+      required: [category,description,amount,expense_date]
+    Announcement:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        category:
+          type: string
+          enum: [GENERAL,FINANCIAL,MAINTENANCE,EMERGENCY]
+        published_by:
+          type: integer
+        published_by_name:
+          type: string
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+    AnnouncementCreateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        category:
+          type: string
+      required: [title,content]
+    Vote:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        total_votes:
+          type: integer
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/VoteOptionResult'
+    VoteOptionResult:
+      type: object
+      properties:
+        id:
+          type: integer
+        text:
+          type: string
+        votes:
+          type: integer
+        percentage:
+          type: number
+    MaintenanceTask:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        scheduled_date:
+          type: string
+        status:
+          type: string
+        created_by:
+          type: integer
+        assigned_to:
+          type: integer
+        completed_at:
+          type: string
+    Equipment:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        category:
+          type: string
+        last_serviced_date:
+          type: string
+        service_frequency_days:
+          type: integer
+        estimated_service_cost:
+          type: number
+        days_until_due:
+          type: integer
+        risk_level:
+          type: string
+    SocietyHealthScore:
+      type: object
+      properties:
+        id:
+          type: integer
+        month:
+          type: integer
+        year:
+          type: integer
+        payment_score:
+          type: number
+        complaint_score:
+          type: number
+        notice_score:
+          type: number
+        poll_score:
+          type: number
+        maintenance_score:
+          type: number
+        total_score:
+          type: number
+        alert_reason:
+          type: string
+        grade:
+          type: string
+    ConflictReport:
+      type: object
+      properties:
+        id:
+          type: integer
+        reported_by:
+          type: integer
+        reported_by_name:
+          type: string
+        reported_apartment_id:
+          type: integer
+        reported_flat:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        reported_flat_response:
+          type: string
+        status:
+          type: string
+        resolution_note:
+          type: string
+        created_at:
+          type: string
+    ParkingSlot:
+      type: object
+      properties:
+        id:
+          type: integer
+        slot_number:
+          type: string
+        status:
+          type: string
+        occupied_by_apartment_id:
+          type: integer
+        flat_number:
+          type: string
+        visitor_name:
+          type: string
+        visitor_vehicle_number:
+          type: string
+        expected_arrival_time:
+          type: string
+        occupied_since:
+          type: string
+paths:
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: Missing credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/auth/change-password:
+    put:
+      tags: [Auth]
+      summary: Change password
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                old_password:
+                  type: string
+                new_password:
+                  type: string
+              required: [old_password,new_password]
+      responses:
+        '200':
+          description: Password changed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+  /api/members/apartments:
+    get:
+      tags: [Members]
+      summary: List apartments
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Apartment list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Apartment'
+    post:
+      tags: [Members]
+      summary: Create apartment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                flat_number:
+                  type: string
+                block:
+                  type: string
+                floor:
+                  type: integer
+              required: [flat_number]
+      responses:
+        '201':
+          description: Apartment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Apartment'
+        '409':
+          description: Conflict (flat exists)
+  /api/members:
+    get:
+      tags: [Members]
+      summary: List residents/members
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Resident list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Resident'
+    post:
+      tags: [Members]
+      summary: Add a resident (and user)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                email: { type: string }
+                password: { type: string }
+                role: { type: string }
+                apartment_id: { type: integer }
+                is_owner: { type: boolean }
+                move_in_date: { type: string }
+              required: [name,email,password,role,apartment_id]
+      responses:
+        '201':
+          description: Resident created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Resident'
+        '409':
+          description: Email already registered
+    
+  /api/members/{resident_id}:
+    put:
+      tags: [Members]
+      summary: Update resident
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: resident_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                phone: { type: string }
+                is_owner: { type: boolean }
+                move_in_date: { type: string }
+                move_out_date: { type: string }
+      responses:
+        '200':
+          description: Resident updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Resident'
+    delete:
+      tags: [Members]
+      summary: Deactivate member
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: resident_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Member deactivated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+    get:
+      tags: [Members]
+      summary: Get single resident
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: resident_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Resident
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Resident'
+        '404':
+          description: Not found
+  /api/complaints:
+    get:
+      tags: [Complaints]
+      summary: List complaints (admin: all, resident: own)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Complaints list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Complaint'
+    post:
+      tags: [Complaints]
+      summary: Raise a complaint
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ComplaintCreateRequest'
+      responses:
+        '201':
+          description: Complaint created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Complaint'
+  /api/complaints/{cid}:
+    get:
+      tags: [Complaints]
+      summary: Get complaint detail
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cid
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Complaint detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Complaint'
+    delete:
+      tags: [Complaints]
+      summary: Delete complaint
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cid
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+  /api/complaints/{cid}/assign:
+    put:
+      tags: [Complaints]
+      summary: Assign worker to complaint
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cid
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                worker_id: { type: integer }
+                remarks: { type: string }
+      responses:
+        '200':
+          description: Assigned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Complaint'
+  /api/complaints/{cid}/status:
+    put:
+      tags: [Complaints]
+      summary: Update complaint status
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cid
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status: { type: string }
+                remarks: { type: string }
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Complaint'
+  /api/invoices:
+    get:
+      tags: [Invoices]
+      summary: List invoices (admin: all, resident: own)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Invoices list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Invoice'
+    post:
+      tags: [Invoices]
+      summary: Create invoice
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoiceCreateRequest'
+      responses:
+        '201':
+          description: Invoice created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+  /api/invoices/bulk:
+    post:
+      tags: [Invoices]
+      summary: Bulk generate invoices for all apartments
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoiceBulkCreateRequest'
+      responses:
+        '201':
+          description: Bulk created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  flats:
+                    type: array
+                    items: { type: string }
+  /api/invoices/{inv_id}/pay:
+    put:
+      tags: [Invoices]
+      summary: Mark invoice as paid
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: inv_id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+      responses:
+        '200':
+          description: Payment recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  invoice: { $ref: '#/components/schemas/Invoice' }
+                  receipt: { type: object }
+  /api/invoices/{inv_id}/receipt:
+    get:
+      tags: [Invoices]
+      summary: Get receipt for an invoice
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: inv_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Receipt
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Invoice not paid
+  /api/invoices/pending:
+    get:
+      tags: [Invoices]
+      summary: List pending invoices
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Pending invoices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Invoice'
+  /api/expenses:
+    get:
+      tags: [Expenses]
+      summary: List expenses
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Expense' }
+    post:
+      tags: [Expenses]
+      summary: Create expense
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExpenseCreateRequest'
+      responses:
+        '201':
+          description: Expense created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Expense' }
+  /api/expenses/{exp_id}:
+    put:
+      tags: [Expenses]
+      summary: Update expense
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: exp_id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                description: { type: string }
+                amount: { type: number }
+                category: { type: string }
+                receipt_url: { type: string }
+      responses:
+        '200':
+          description: Expense updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Expense' }
+    delete:
+      tags: [Expenses]
+      summary: Delete expense
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: exp_id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Deleted
+  /api/expenses/summary:
+    get:
+      tags: [Expenses]
+      summary: Monthly P&L summary
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: month
+          in: query
+          schema: { type: integer }
+        - name: year
+          in: query
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_income: { type: number }
+                  total_expense: { type: number }
+                  net_balance: { type: number }
+                  by_category: { type: object }
+  /api/notices:
+    get:
+      tags: [Notices]
+      summary: List active notices
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Announcement' }
+    post:
+      tags: [Notices]
+      summary: Create notice
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnnouncementCreateRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Announcement' }
+  /api/notices/{nid}:
+    put:
+      tags: [Notices]
+      summary: Update notice
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: nid
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                content: { type: string }
+                category: { type: string }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Announcement' }
+    delete:
+      tags: [Notices]
+      summary: Soft-delete (deactivate) notice
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: nid
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Deactivated
+  /api/polls:
+    get:
+      tags: [Polls]
+      summary: List polls
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Vote' }
+    post:
+      tags: [Polls]
+      summary: Create poll
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                description: { type: string }
+                options:
+                  type: array
+                  items: { type: string }
+      responses:
+        '201':
+          description: Poll created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Vote' }
+  /api/polls/{pid}:
+    get:
+      tags: [Polls]
+      summary: Get poll + results
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: pid
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Vote' }
+    delete:
+      tags: [Polls]
+      summary: Delete poll
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Deleted
+  /api/polls/{pid}/vote:
+    post:
+      tags: [Polls]
+      summary: Cast a vote
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: pid
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                option_id: { type: integer }
+      responses:
+        '200':
+          description: Voted
+  /api/polls/{pid}/close:
+    put:
+      tags: [Polls]
+      summary: Close poll
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Closed
+  /api/maintenance:
+    get:
+      tags: [Maintenance]
+      summary: List maintenance tasks
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/MaintenanceTask' }
+    post:
+      tags: [Maintenance]
+      summary: Create task
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                category: { type: string }
+                scheduled_date: { type: string }
+      responses:
+        '201':
+          description: Created
+  /api/maintenance/{tid}/complete:
+    put:
+      tags: [Maintenance]
+      summary: Mark task complete
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Completed
+  /api/equipment:
+    get:
+      tags: [Equipment]
+      summary: List equipment with risk info
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Equipment' }
+    post:
+      tags: [Equipment]
+      summary: Add equipment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                category: { type: string }
+                last_serviced_date: { type: string }
+                service_frequency_days: { type: integer }
+                estimated_service_cost: { type: number }
+      responses:
+        '201':
+          description: Created
+  /api/equipment/forecast:
+    get:
+      tags: [Equipment]
+      summary: 30-day maintenance forecast
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Forecast
+  /api/equipment/{eid}/service:
+    put:
+      tags: [Equipment]
+      summary: Mark equipment serviced today and log
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: eid
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cost: { type: number }
+                vendor_name: { type: string }
+                notes: { type: string }
+      responses:
+        '200':
+          description: Serviced
+  /api/health/calculate:
+    get:
+      tags: [Health]
+      summary: Calculate & save society health score
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: month
+          in: query
+          schema: { type: integer }
+        - name: year
+          in: query
+          schema: { type: integer }
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SocietyHealthScore' }
+  /api/health/history:
+    get:
+      tags: [Health]
+      summary: Last 6 months health scores
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/SocietyHealthScore' }
+  /api/conflicts:
+    get:
+      tags: [Conflicts]
+      summary: List conflicts (admin: all, resident: own)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/ConflictReport' }
+    post:
+      tags: [Conflicts]
+      summary: Raise a conflict report
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reported_apartment_id: { type: integer }
+                category: { type: string }
+                description: { type: string }
+      responses:
+        '201':
+          description: Report created
+  /api/conflicts/{rid}/respond:
+    put:
+      tags: [Conflicts]
+      summary: Reported flat submits response
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                response: { type: string }
+  /api/conflicts/{rid}/resolve:
+    put:
+      tags: [Conflicts]
+      summary: Secretary resolves conflict
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                resolution_note: { type: string }
+  /api/parking:
+    get:
+      tags: [Parking]
+      summary: List parking slots
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/ParkingSlot' }
+    post:
+      tags: [Parking]
+      summary: Add parking slot
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                slot_number: { type: string }
+              required: [slot_number]
+      responses:
+        '201':
+          description: Slot created
+  /api/parking/available:
+    get:
+      tags: [Parking]
+      summary: List available slots
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/ParkingSlot' }
+  /api/parking/{sid}/reserve:
+    put:
+      tags: [Parking]
+      summary: Reserve slot for visitor
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sid
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                visitor_name: { type: string }
+                visitor_vehicle_number: { type: string }
+                expected_arrival_time: { type: string }
+      responses:
+        '200':
+          description: Reserved
+  /api/parking/{sid}/occupy:
+    put:
+      tags: [Parking]
+      summary: Mark slot occupied
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                visitor_name: { type: string }
+                visitor_vehicle_number: { type: string }
+      responses:
+        '200':
+          description: Occupied
+  /api/parking/{sid}/release:
+    put:
+      tags: [Parking]
+      summary: Release slot (available)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Released
+
+security:
+  - bearerAuth: []
