@@ -45,6 +45,44 @@ export function clean(payload) {
   return out
 }
 
+/**
+ * Emergency-contact service types.
+ * Single source of truth for the frontend — imported by both EmergencyPage and
+ * the ResidentDashboard quick-dial card so the icon/colour map is not duplicated.
+ * Must stay in step with ENUMS["service_type"] in Backend/utils.py.
+ */
+export const SERVICE_TYPES = [
+  'PLUMBER', 'ELECTRICIAN', 'SECURITY', 'FIRE',
+  'AMBULANCE', 'POLICE', 'LIFT', 'WATER', 'OTHER',
+]
+
+const SERVICE_META = {
+  PLUMBER:     { icon: 'fa-faucet',            badge: 'badge-open',    label: 'Plumber' },
+  ELECTRICIAN: { icon: 'fa-bolt',              badge: 'badge-medium',  label: 'Electrician' },
+  SECURITY:    { icon: 'fa-shield-halved',     badge: 'badge-progress',label: 'Security' },
+  FIRE:        { icon: 'fa-fire-extinguisher', badge: 'badge-urgent',  label: 'Fire' },
+  AMBULANCE:   { icon: 'fa-truck-medical',     badge: 'badge-urgent',  label: 'Ambulance' },
+  POLICE:      { icon: 'fa-building-shield',   badge: 'badge-urgent',  label: 'Police' },
+  LIFT:        { icon: 'fa-elevator',          badge: 'badge-low',     label: 'Lift / Elevator' },
+  WATER:       { icon: 'fa-droplet',           badge: 'badge-open',    label: 'Water Supply' },
+  OTHER:       { icon: 'fa-circle-info',       badge: 'badge-low',     label: 'Other' },
+}
+
+/** Icon + badge class + friendly label for a service type. Null-safe. */
+export function serviceMeta(type) {
+  return SERVICE_META[type] || { icon: 'fa-circle-info', badge: 'badge-low', label: label(type) }
+}
+
+/**
+ * Build a dialable href. Strips spaces/dashes/brackets so `tel:` works on
+ * mobile, and returns null for a missing number so we never emit `tel:null`.
+ */
+export function telHref(phone) {
+  if (!phone) return null
+  const cleaned = String(phone).replace(/[^\d+]/g, '')
+  return cleaned ? `tel:${cleaned}` : null
+}
+
 /** Today's date as YYYY-MM-DD, for date inputs and defaults. */
 export function today() {
   const d = new Date()

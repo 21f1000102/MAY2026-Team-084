@@ -64,6 +64,7 @@ existing one. Roles: `ADMIN`, `TREASURER`, `COMMITTEE_MEMBER` (admin views), `TE
 * **Society Health Score** — monthly composite score
 * **Neighbour Conflict Resolver** — anonymous reporting
 * **Live Visitor Parking** — slot availability
+* **Emergency Contacts** — one-tap directory for plumbers, electricians, security and services
 
 ## API
 
@@ -85,6 +86,7 @@ All endpoints live under `/api/*` and (except register/login) require an
 | `health` | `/api/health` | society health score |
 | `conflicts` | `/api/conflicts` | anonymous neighbour-conflict resolver |
 | `parking` | `/api/parking` | live visitor parking slots |
+| `emergency` | `/api/emergency` | emergency contact directory (admin manages, all roles read) |
 
 ---
 

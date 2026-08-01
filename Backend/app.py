@@ -24,6 +24,7 @@ from api.equipment import equipment_bp
 from api.health import health_bp
 from api.conflicts import conflicts_bp
 from api.parking import parking_bp
+from api.emergency import emergency_bp
 
 
 def create_app():
@@ -49,6 +50,7 @@ def create_app():
     app.register_blueprint(health_bp,      url_prefix="/api/health")
     app.register_blueprint(conflicts_bp,   url_prefix="/api/conflicts")
     app.register_blueprint(parking_bp,     url_prefix="/api/parking")
+    app.register_blueprint(emergency_bp,   url_prefix="/api/emergency")
 
     _register_error_handlers(app)
 
