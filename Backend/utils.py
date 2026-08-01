@@ -120,6 +120,10 @@ ENUMS = {
     "conflict_category": ["NOISE", "PARKING", "GARBAGE", "COMMON_AREA_MISUSE", "PETS", "OTHER"],
     "conflict_status": ["OPEN", "UNDER_REVIEW", "RESOLVED"],
     "parking_status": ["AVAILABLE", "OCCUPIED", "RESERVED"],
+    # EmergencyContact.service_type is a free-text String(50); validating here
+    # keeps the stored values consistent without needing a schema migration.
+    "service_type": ["PLUMBER", "ELECTRICIAN", "SECURITY", "FIRE",
+                     "AMBULANCE", "POLICE", "LIFT", "WATER", "OTHER"],
 }
 
 

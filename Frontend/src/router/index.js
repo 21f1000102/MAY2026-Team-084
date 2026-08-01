@@ -18,6 +18,7 @@ import EquipmentPage from '../componenets/EquipmentPage.vue'
 import HealthScorePage from '../componenets/HealthScorePage.vue'
 import ConflictsPage from '../componenets/ConflictsPage.vue'
 import ParkingPage from '../componenets/ParkingPage.vue'
+import EmergencyPage from '../componenets/EmergencyPage.vue'
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -43,6 +44,7 @@ const routes = [
       { path: 'health', component: HealthScorePage, meta: { adminOnly: true } },
       { path: 'conflicts', component: ConflictsPage },
       { path: 'parking', component: ParkingPage },
+      { path: 'emergency', component: EmergencyPage },
     ]
   }
 ]

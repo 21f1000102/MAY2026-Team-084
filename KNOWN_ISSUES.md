@@ -92,5 +92,16 @@ spelled `Frontend/src/components/` holds an older, dead flow, and
 
 ## 11. `openapi.yaml` is out of date  🟡 docs
 
-It predates this round of fixes and does not document `GET /api/members/workers`,
-the new `has_voted`/`my_option_id` poll fields, or the new 403/409 responses.
+It predates the recent work and does not document `GET /api/members/workers`, the
+`/api/emergency` endpoints, the new `has_voted`/`my_option_id` poll fields, or the
+403/409 responses added by the role and validation layers.
+
+## 12. Emergency-contact service types are validated in two places  🟡 maintainability
+
+`EmergencyContact.service_type` is a free-text `String(50)` in the database. The
+allowed values are enforced at the application layer instead — `ENUMS["service_type"]`
+in `Backend/utils.py` (validation) and `SERVICE_TYPES` in `Frontend/src/utils/format.js`
+(labels and icons). **Adding a service type means editing both lists.**
+
+This avoids a schema migration, which the project has no tooling for (see #6). If
+Alembic is adopted later, promote the column to a real `Enum` and drop the duplication.

@@ -24,12 +24,14 @@
           <router-link class="nav-item" to="/app/health"><i class="fas fa-heartbeat"></i> Health Score</router-link>
           <router-link class="nav-item" to="/app/conflicts"><i class="fas fa-handshake"></i> Conflicts</router-link>
           <router-link class="nav-item" to="/app/parking"><i class="fas fa-parking"></i> Parking</router-link>
+          <router-link class="nav-item" to="/app/emergency"><i class="fas fa-phone-alt"></i> Emergency</router-link>
         </template>
         <!-- Worker nav -->
         <template v-else-if="isWorker">
           <router-link class="nav-item" to="/app/worker"><i class="fas fa-hard-hat"></i> My Tasks</router-link>
           <router-link class="nav-item" to="/app/notices"><i class="fas fa-bullhorn"></i> Notices</router-link>
           <router-link class="nav-item" to="/app/parking"><i class="fas fa-parking"></i> Parking</router-link>
+          <router-link class="nav-item" to="/app/emergency"><i class="fas fa-phone-alt"></i> Emergency</router-link>
         </template>
 
         <!-- Resident nav -->
@@ -41,6 +43,7 @@
           <router-link class="nav-item" to="/app/polls"><i class="fas fa-poll"></i> Polls</router-link>
           <router-link class="nav-item" to="/app/conflicts"><i class="fas fa-handshake"></i> Conflicts</router-link>
           <router-link class="nav-item" to="/app/parking"><i class="fas fa-parking"></i> Parking</router-link>
+          <router-link class="nav-item" to="/app/emergency"><i class="fas fa-phone-alt"></i> Emergency</router-link>
         </template>
       </nav>
       <div class="sidebar-footer">
@@ -109,6 +112,7 @@ const titles = {
   '/app/health': 'Society Health Score',
   '/app/conflicts': 'Conflict Resolver',
   '/app/parking': 'Visitor Parking',
+  '/app/emergency': 'Emergency Contacts',
 }
 
 const pageTitle = computed(() => titles[route.path] || 'SocietyEase')

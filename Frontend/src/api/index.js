@@ -109,6 +109,14 @@ export const noticesAPI = {
   delete: (id) => api.delete(`/notices/${id}`)
 }
 
+// ── EMERGENCY CONTACTS ────────────────────────────────────────
+export const emergencyAPI = {
+  getAll: () => api.get('/emergency/'),
+  add: (data) => api.post('/emergency/', data),
+  update: (id, data) => api.put(`/emergency/${id}`, data),
+  remove: (id) => api.delete(`/emergency/${id}`)
+}
+
 // ── POLLS ─────────────────────────────────────────────────────
 export const pollsAPI = {
   getAll: () => api.get('/polls/'),
