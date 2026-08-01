@@ -2,6 +2,8 @@
   <div>
     <div v-if="loading" class="spinner"></div>
     <div v-else>
+      <div v-if="msg" class="alert-custom alert-error">{{ msg }}</div>
+
       <!-- Stats Row -->
       <div class="row g-3 mb-4">
         <div class="col-6 col-md-3">
@@ -56,16 +58,18 @@
               <i class="fas fa-check-circle" style="color:#0E7C7B;"></i>
               <p>No complaints!</p>
             </div>
-            <table v-else class="table-custom">
+            <div v-else class="table-responsive">
+            <table class="table-custom">
               <thead><tr><th>Title</th><th>Flat</th><th>Status</th></tr></thead>
               <tbody>
                 <tr v-for="c in recentComplaints" :key="c.id">
                   <td>{{ c.title }}</td>
                   <td>{{ c.flat_number }}</td>
-                  <td><span class="badge-custom" :class="`badge-${c.status.toLowerCase().replace('_','-')}`">{{ c.status }}</span></td>
+                  <td><span class="badge-custom" :class="badgeClass(c.status)">{{ label(c.status) }}</span></td>
                 </tr>
               </tbody>
             </table>
+            </div>
           </div>
         </div>
       </div>
@@ -75,28 +79,50 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { membersAPI, complaintsAPI, invoicesAPI, pollsAPI } from '../api/index'
+import { membersAPI, complaintsAPI, invoicesAPI, pollsAPI, errText } from '../api/index'
+import { badgeClass, label, num } from '../utils/format'
 
 const loading = ref(true)
+const msg = ref('')
 const stats = ref({ members: 0, openComplaints: 0, unpaidInvoices: 0, activePolls: 0 })
 const collected = ref(0)
 const pending = ref(0)
 const recentComplaints = ref([])
 
 onMounted(async () => {
-  try {
-    const [members, complaints, invoices, polls] = await Promise.all([
-      membersAPI.getAll(), complaintsAPI.getAll(), invoicesAPI.getAll(), pollsAPI.getAll()
-    ])
-    stats.value.members = members.data.filter(m => m.is_active).length
-    stats.value.openComplaints = complaints.data.filter(c => ['OPEN','ASSIGNED','IN_PROGRESS'].includes(c.status)).length
-    stats.value.unpaidInvoices = invoices.data.filter(i => i.status === 'UNPAID').length
-    stats.value.activePolls = polls.data.filter(p => p.status === 'ACTIVE').length
+  // allSettled, not all: one failing endpoint used to reject the whole batch and
+  // leave every stat at 0 / "No complaints!", which reads as an empty society
+  // rather than a broken request. Render whatever came back and name what didn't.
+  const sections = ['Members', 'Complaints', 'Invoices', 'Polls']
+  const results = await Promise.allSettled([
+    membersAPI.getAll(), complaintsAPI.getAll(), invoicesAPI.getAll(), pollsAPI.getAll()
+  ])
+  const [members, complaints, invoices, polls] = results.map(r =>
+    r.status === 'fulfilled' && Array.isArray(r.value?.data) ? r.value.data : null
+  )
 
-    collected.value = invoices.data.filter(i => i.status === 'PAID').reduce((s, i) => s + i.amount, 0).toLocaleString('en-IN')
-    pending.value = invoices.data.filter(i => i.status !== 'PAID').reduce((s, i) => s + i.amount, 0).toLocaleString('en-IN')
-    recentComplaints.value = complaints.data.slice(0, 5)
-  } catch(e) {}
+  if (members) stats.value.members = members.filter(m => m.is_active).length
+  if (complaints) {
+    stats.value.openComplaints = complaints.filter(c => ['OPEN','ASSIGNED','IN_PROGRESS'].includes(c.status)).length
+    recentComplaints.value = complaints.slice(0, 5)
+  }
+  if (invoices) {
+    stats.value.unpaidInvoices = invoices.filter(i => i.status === 'UNPAID').length
+    // num(): a null amount used to poison the whole sum into "₹NaN".
+    collected.value = invoices.filter(i => i.status === 'PAID')
+      .reduce((s, i) => s + num(i.amount), 0).toLocaleString('en-IN')
+    pending.value = invoices.filter(i => i.status !== 'PAID')
+      .reduce((s, i) => s + num(i.amount), 0).toLocaleString('en-IN')
+  }
+  if (polls) stats.value.activePolls = polls.filter(p => p.status === 'ACTIVE').length
+
+  const failed = results
+    .map((r, i) => (r.status === 'rejected' ? sections[i] : null))
+    .filter(Boolean)
+  if (failed.length) {
+    const first = results.find(r => r.status === 'rejected')
+    msg.value = `Could not load ${failed.join(', ')}. ${errText(first.reason)}`
+  }
   loading.value = false
 })
 </script>

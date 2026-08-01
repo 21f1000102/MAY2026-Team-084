@@ -1,14 +1,17 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, MaintenanceTask
 from datetime import datetime
+
+from auth.roles import active_user_required, admin_required, current_user
+from utils import (ApiError, get_body, parse_date, parse_enum, parse_int,
+                   require)
 
 maintenance_bp = Blueprint("maintenance", __name__)
 
 
 # GET /api/maintenance — all tasks
 @maintenance_bp.route("/", methods=["GET"])
-@jwt_required()
+@active_user_required
 def get_tasks():
     tasks = MaintenanceTask.query.order_by(MaintenanceTask.scheduled_date).all()
     return jsonify([_task_dict(t) for t in tasks]), 200
@@ -16,23 +19,27 @@ def get_tasks():
 
 # POST /api/maintenance — add new task
 @maintenance_bp.route("/", methods=["POST"])
-@jwt_required()
+@admin_required
 def add_task():
-    user_id = int(get_jwt_identity())
-    data = request.get_json()
+    user = current_user()
+    data = get_body(request)
 
-    required = ["title", "category", "scheduled_date"]
-    for f in required:
-        if not data.get(f):
-            return jsonify({"error": f"{f} is required"}), 400
+    require(data, "title", "category", "scheduled_date")
+
+    # Both used to go into the row raw: a bad category poisoned later reads and
+    # a date string raised a TypeError at flush time.
+    category = parse_enum(data.get("category"), "task_category", required=True)
+    scheduled_date = parse_date(data.get("scheduled_date"), "scheduled_date",
+                                required=True)
+    assigned_to = parse_int(data.get("assigned_to"), "assigned_to", min_value=1)
 
     task = MaintenanceTask(
         title=data["title"],
         description=data.get("description"),
-        category=data["category"],
-        scheduled_date=data["scheduled_date"],
-        created_by=user_id,
-        assigned_to=data.get("assigned_to")
+        category=category,
+        scheduled_date=scheduled_date,
+        created_by=user.id,
+        assigned_to=assigned_to
     )
     db.session.add(task)
     db.session.commit()
@@ -41,9 +48,12 @@ def add_task():
 
 # PUT /api/maintenance/<id>/complete — mark task complete
 @maintenance_bp.route("/<int:tid>/complete", methods=["PUT"])
-@jwt_required()
+@admin_required
 def complete_task(tid):
     task = MaintenanceTask.query.get_or_404(tid)
+    if task.status == "COMPLETED":
+        raise ApiError("Task is already completed", 409)
+
     task.status = "COMPLETED"
     task.completed_at = datetime.utcnow()
     db.session.commit()
@@ -52,22 +62,42 @@ def complete_task(tid):
 
 # PUT /api/maintenance/<id> — update task
 @maintenance_bp.route("/<int:tid>", methods=["PUT"])
-@jwt_required()
+@admin_required
 def update_task(tid):
     task = MaintenanceTask.query.get_or_404(tid)
-    data = request.get_json()
-    task.title = data.get("title", task.title)
+    data = get_body(request)
+
+    if data.get("title"):
+        task.title = data["title"]
     task.description = data.get("description", task.description)
-    task.scheduled_date = data.get("scheduled_date", task.scheduled_date)
-    task.assigned_to = data.get("assigned_to", task.assigned_to)
-    task.status = data.get("status", task.status)
+
+    if "category" in data:
+        task.category = parse_enum(data.get("category"), "task_category",
+                                   required=True)
+    if "scheduled_date" in data:
+        task.scheduled_date = parse_date(data.get("scheduled_date"),
+                                         "scheduled_date", required=True)
+    if "assigned_to" in data:
+        task.assigned_to = parse_int(data.get("assigned_to"), "assigned_to",
+                                     min_value=1)
+
+    if "status" in data:
+        status = parse_enum(data.get("status"), "task_status", required=True)
+        task.status = status
+        # This path used to leave COMPLETED tasks with completed_at = null.
+        if status == "COMPLETED":
+            if not task.completed_at:
+                task.completed_at = datetime.utcnow()
+        else:
+            task.completed_at = None
+
     db.session.commit()
     return jsonify(_task_dict(task)), 200
 
 
 # DELETE /api/maintenance/<id> — delete task
 @maintenance_bp.route("/<int:tid>", methods=["DELETE"])
-@jwt_required()
+@admin_required
 def delete_task(tid):
     task = MaintenanceTask.query.get_or_404(tid)
     db.session.delete(task)

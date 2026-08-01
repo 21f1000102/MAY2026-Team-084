@@ -1,8 +1,15 @@
-from flask import Flask
+import logging
+import traceback
+
+from flask import Flask, jsonify
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from werkzeug.exceptions import HTTPException
+
 from config import Config
 from models import db
+from utils import ApiError
 
 # ── imports all route blueprints ──────────────────────────────
 from auth.routes import auth_bp
@@ -23,6 +30,8 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
+    logging.basicConfig(level=logging.INFO)
+
     db.init_app(app)
     JWTManager(app)
     CORS(app)
@@ -41,10 +50,56 @@ def create_app():
     app.register_blueprint(conflicts_bp,   url_prefix="/api/conflicts")
     app.register_blueprint(parking_bp,     url_prefix="/api/parking")
 
+    _register_error_handlers(app)
+
     with app.app_context():
         db.create_all()
 
     return app
+
+
+def _register_error_handlers(app):
+    """Always answer the SPA with JSON.
+
+    Without these, any DB violation or bad input produced an HTML 500, which the
+    frontend rendered as an undefined error message ("nothing happened").
+    """
+
+    @app.errorhandler(ApiError)
+    def _api_error(err):
+        return jsonify({"error": err.message}), err.status
+
+    @app.errorhandler(IntegrityError)
+    def _integrity_error(err):
+        db.session.rollback()
+        detail = str(getattr(err, "orig", err))
+        if "UNIQUE" in detail.upper():
+            field = detail.rsplit(".", 1)[-1].strip() if "." in detail else "value"
+            message = f"That {field} is already in use"
+        elif "NOT NULL" in detail.upper():
+            field = detail.rsplit(".", 1)[-1].strip() if "." in detail else "field"
+            message = f"{field} is required"
+        else:
+            message = "That change conflicts with existing data"
+        app.logger.warning("IntegrityError: %s", detail)
+        return jsonify({"error": message}), 409
+
+    @app.errorhandler(SQLAlchemyError)
+    def _db_error(err):
+        db.session.rollback()
+        app.logger.error("Database error: %s\n%s", err, traceback.format_exc())
+        return jsonify({"error": "Database error"}), 500
+
+    @app.errorhandler(HTTPException)
+    def _http_error(err):
+        # Keeps 404/405/415 etc. as JSON rather than Werkzeug's HTML pages.
+        return jsonify({"error": err.description}), err.code
+
+    @app.errorhandler(Exception)
+    def _unhandled(err):
+        db.session.rollback()
+        app.logger.error("Unhandled error: %s\n%s", err, traceback.format_exc())
+        return jsonify({"error": "Internal server error"}), 500
 
 
 app = create_app()

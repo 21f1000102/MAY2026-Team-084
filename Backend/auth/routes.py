@@ -1,7 +1,9 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask_jwt_extended import create_access_token
+
 from models import db, User
+from utils import ApiError, get_body, require, parse_enum, clean_phone
+from auth.roles import current_user, active_user_required
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -9,26 +11,29 @@ auth_bp = Blueprint("auth", __name__)
 # ── POST /api/auth/register ────────────────────────────────────
 @auth_bp.route("/register", methods=["POST"])
 def register():
-    data = request.get_json()
-    required = ["name", "email", "password", "role"]
-    for field in required:
-        if not data.get(field):
-            return jsonify({"error": f"{field} is required"}), 400
+    data = get_body(request)
+    require(data, "name", "email", "password", "role")
 
-    if User.query.filter_by(email=data["email"]).first():
-        return jsonify({"error": "Email already registered"}), 409
+    email = data["email"].strip().lower()
+    # phone is UNIQUE: blank must become NULL, otherwise the second blank-phone
+    # signup collides with the first. This is what broke registration.
+    phone = clean_phone(data.get("phone"))
 
-    valid_roles = ["ADMIN", "TENANT", "OWNER", "TREASURER",
-                   "WORKER", "COMMITTEE_MEMBER", "AUDITOR", "SYSTEM_ADMIN"]
-    if data["role"] not in valid_roles:
-        return jsonify({"error": f"Invalid role. Choose from {valid_roles}"}), 400
+    if User.query.filter_by(email=email).first():
+        raise ApiError("Email already registered", 409)
+    if phone and User.query.filter_by(phone=phone).first():
+        raise ApiError("Phone number already registered", 409)
+
+    # NOTE: role is still client-supplied so the team can self-serve test
+    # accounts. See KNOWN_ISSUES.md — must be locked down before production.
+    role = parse_enum(data["role"], "role", required=True)
 
     user = User(
-        name=data["name"],
-        email=data["email"],
-        phone=data.get("phone"),
-        password_hash=generate_password_hash(data["password"]),
-        role=data["role"]
+        name=data["name"].strip(),
+        email=email,
+        phone=phone,
+        password_hash=_hash(data["password"]),
+        role=role,
     )
     db.session.add(user)
     db.session.commit()
@@ -44,12 +49,11 @@ def register():
 # ── POST /api/auth/login ───────────────────────────────────────
 @auth_bp.route("/login", methods=["POST"])
 def login():
-    data = request.get_json()
-    if not data.get("email") or not data.get("password"):
-        return jsonify({"error": "Email and password required"}), 400
+    data = get_body(request)
+    require(data, "email", "password")
 
-    user = User.query.filter_by(email=data["email"]).first()
-    if not user or not check_password_hash(user.password_hash, data["password"]):
+    user = User.query.filter_by(email=data["email"].strip().lower()).first()
+    if not user or not _check(user.password_hash, data["password"]):
         return jsonify({"error": "Invalid email or password"}), 401
 
     if not user.is_active:
@@ -65,32 +69,41 @@ def login():
 
 # ── GET /api/auth/me ───────────────────────────────────────────
 @auth_bp.route("/me", methods=["GET"])
-@jwt_required()
+@active_user_required
 def me():
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-    return jsonify(_user_dict(user)), 200
+    return jsonify(_user_dict(current_user())), 200
 
 
-# ── PUT /api/auth/change-password ─────────────────────────────
+# ── PUT /api/auth/change-password ──────────────────────────────
 @auth_bp.route("/change-password", methods=["PUT"])
-@jwt_required()
+@active_user_required
 def change_password():
-    user_id = get_jwt_identity()
-    user = User.query.get(user_id)
-    data = request.get_json()
+    user = current_user()
+    data = get_body(request)
+    require(data, "old_password", "new_password")   # was data["new_password"] -> KeyError 500
 
-    if not check_password_hash(user.password_hash, data.get("old_password", "")):
+    if not _check(user.password_hash, data["old_password"]):
         return jsonify({"error": "Old password is incorrect"}), 400
 
-    user.password_hash = generate_password_hash(data["new_password"])
+    if len(data["new_password"]) < 6:
+        raise ApiError("New password must be at least 6 characters")
+
+    user.password_hash = _hash(data["new_password"])
     db.session.commit()
     return jsonify({"message": "Password changed successfully"}), 200
 
 
-# ── helper ────────────────────────────────────────────────────
+# ── helpers ────────────────────────────────────────────────────
+def _hash(password):
+    from werkzeug.security import generate_password_hash
+    return generate_password_hash(password)
+
+
+def _check(hashed, password):
+    from werkzeug.security import check_password_hash
+    return check_password_hash(hashed, password)
+
+
 def _user_dict(u):
     return {
         "id": u.id,

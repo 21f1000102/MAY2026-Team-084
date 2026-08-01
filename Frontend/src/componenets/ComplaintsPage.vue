@@ -2,13 +2,15 @@
   <div>
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div class="d-flex gap-2">
-        <select v-model="filterStatus" class="form-control-custom" style="width:160px;">
+        <select v-model="filterStatus" class="form-control-custom" style="width:100%;max-width:160px;">
           <option value="">All Status</option>
           <option>OPEN</option><option>ASSIGNED</option><option>IN_PROGRESS</option><option>COMPLETED</option><option>CLOSED</option>
         </select>
       </div>
-      <button class="btn-primary-custom" @click="showAdd=true"><i class="fas fa-plus me-2"></i>Raise Complaint</button>
+      <button class="btn-primary-custom" @click="openAdd"><i class="fas fa-plus me-2"></i>Raise Complaint</button>
     </div>
+
+    <div v-if="pageMsg" class="alert-custom alert-error">{{ pageMsg }}</div>
 
     <div v-if="loading" class="spinner"></div>
     <div v-else>
@@ -17,8 +19,8 @@
         <div class="d-flex justify-content-between align-items-start">
           <div>
             <div class="d-flex gap-2 mb-2 flex-wrap">
-              <span class="badge-custom" :class="`badge-${c.status.toLowerCase().replace('_','-')}`">{{ c.status }}</span>
-              <span class="badge-custom" :class="`badge-${c.priority.toLowerCase()}`">{{ c.priority }}</span>
+              <span class="badge-custom" :class="badgeClass(c.status)">{{ c.status }}</span>
+              <span class="badge-custom" :class="badgeClass(c.priority)">{{ c.priority }}</span>
               <span class="badge-custom badge-low">{{ c.category }}</span>
             </div>
             <h6 class="mb-1 fw-bold">{{ c.title }}</h6>
@@ -89,12 +91,24 @@
           <button @click="showAssign=false" class="btn btn-sm btn-light"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
-          <div class="form-group"><label class="form-label">Worker Name</label><input v-model="assignForm.workerName" class="form-control-custom" placeholder="e.g. Raju Watchman"/></div>
+          <div v-if="assignMsg" class="alert-custom alert-error">{{ assignMsg }}</div>
+          <div class="form-group">
+            <label class="form-label">Worker *</label>
+            <select v-model="assignForm.worker_id" class="form-control-custom">
+              <option value="">Select a worker</option>
+              <option v-for="w in workers" :key="w.id" :value="w.id">{{ w.name }}</option>
+            </select>
+            <small v-if="workers.length===0" class="text-muted">
+              No maintenance workers exist yet. Create a user with the WORKER role first.
+            </small>
+          </div>
           <div class="form-group"><label class="form-label">Remarks</label><input v-model="assignForm.remarks" class="form-control-custom"/></div>
         </div>
         <div class="modal-footer">
-          <button @click="showAssign=false" class="btn btn-light">Cancel</button>
-          <button @click="doAssign" class="btn-primary-custom">Assign</button>
+          <button @click="closeAssign" class="btn btn-light">Cancel</button>
+          <button @click="doAssign" class="btn-primary-custom" :disabled="assigning">
+            <span v-if="assigning"><i class="fas fa-spinner fa-spin me-1"></i></span>Assign
+          </button>
         </div>
       </div>
     </div>
@@ -103,66 +117,94 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { complaintsAPI, membersAPI } from '../api/index'
+import { complaintsAPI, membersAPI, errText } from '../api/index'
 import { authStore } from '../store/auth'
+import { badgeClass } from '../utils/format'
 
 const complaints = ref([])
 const apartments = ref([])
+const workers = ref([])
 const loading = ref(true)
 const saving = ref(false)
+const assigning = ref(false)
 const showAdd = ref(false)
 const showAssign = ref(false)
 const selectedComplaint = ref(null)
 const filterStatus = ref('')
 const msg = ref(null)
-const form = ref({ title:'', description:'', category:'ELECTRICAL', priority:'MEDIUM', apartment_id:'' })
-const assignForm = ref({ workerName:'', remarks:'' })
-const isAdmin = authStore.isAdmin
+const pageMsg = ref('')
+const assignMsg = ref('')
+const emptyForm = () => ({ title:'', description:'', category:'ELECTRICAL', priority:'MEDIUM', apartment_id:'' })
+const form = ref(emptyForm())
+const assignForm = ref({ worker_id:'', remarks:'' })
+const isAdmin = computed(() => authStore.isAdmin)
 
 const filtered = computed(() =>
   complaints.value.filter(c => !filterStatus.value || c.status === filterStatus.value)
 )
 
 onMounted(async () => {
-  try {
-    const [c, a] = await Promise.all([complaintsAPI.getAll(), membersAPI.getApartments()])
-    complaints.value = c.data
-    apartments.value = a.data
-  } catch(e) {}
+  const [c, a] = await Promise.allSettled([complaintsAPI.getAll(), membersAPI.getApartments()])
+  if (c.status === 'fulfilled') complaints.value = c.value.data
+  else pageMsg.value = errText(c.reason)
+  if (a.status === 'fulfilled') apartments.value = a.value.data
+
+  // Workers are admin-only; ignore the 403 for residents.
+  if (authStore.isAdmin) {
+    try { workers.value = (await membersAPI.getWorkers()).data } catch (e) { /* optional */ }
+  }
   loading.value = false
 })
 
+function openAdd() { msg.value = null; form.value = emptyForm(); showAdd.value = true }
+
 async function raiseComplaint() {
+  if (!form.value.title?.trim()) { msg.value = { type:'error', text:'Title is required' }; return }
+  if (!form.value.apartment_id) { msg.value = { type:'error', text:'Please select a flat' }; return }
   saving.value = true
   msg.value = null
   try {
     const res = await complaintsAPI.raise(form.value)
     complaints.value.unshift(res.data)
     showAdd.value = false
-    form.value = { title:'', description:'', category:'ELECTRICAL', priority:'MEDIUM', apartment_id:'' }
+    form.value = emptyForm()
   } catch(e) {
-    msg.value = { type:'error', text: e.response?.data?.error || 'Failed' }
+    msg.value = { type:'error', text: errText(e) }
   }
   saving.value = false
 }
 
-function openAssign(c) { selectedComplaint.value = c; showAssign.value = true }
+function openAssign(c) {
+  selectedComplaint.value = c
+  assignForm.value = { worker_id:'', remarks:'' }   // was persisting between complaints
+  assignMsg.value = ''
+  showAssign.value = true
+}
+
+function closeAssign() { showAssign.value = false; assignMsg.value = '' }
 
 async function doAssign() {
+  // Previously always sent worker_id: null, so nothing was ever really assigned.
+  if (!assignForm.value.worker_id) { assignMsg.value = 'Please select a worker'; return }
+  assigning.value = true
+  assignMsg.value = ''
   try {
     const res = await complaintsAPI.assign(selectedComplaint.value.id, {
-      worker_id: null, remarks: assignForm.value.remarks
+      worker_id: assignForm.value.worker_id,
+      remarks: assignForm.value.remarks,
     })
     updateLocal(res.data)
     showAssign.value = false
-  } catch(e) {}
+  } catch(e) { assignMsg.value = errText(e) }
+  assigning.value = false
 }
 
 async function updateStatus(c, status) {
+  pageMsg.value = ''
   try {
     const res = await complaintsAPI.updateStatus(c.id, { status })
     updateLocal(res.data)
-  } catch(e) {}
+  } catch(e) { pageMsg.value = errText(e) }
 }
 
 function updateLocal(updated) {
@@ -172,9 +214,10 @@ function updateLocal(updated) {
 
 async function deleteComplaint(id) {
   if (!confirm('Delete this complaint?')) return
+  pageMsg.value = ''
   try {
     await complaintsAPI.delete(id)
     complaints.value = complaints.value.filter(c => c.id !== id)
-  } catch(e) {}
+  } catch(e) { pageMsg.value = errText(e) }
 }
 </script>

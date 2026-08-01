@@ -1,17 +1,14 @@
-from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Numeric
 from datetime import datetime
 
- 
 db = SQLAlchemy()
- 
-app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///societyease.db"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
- 
-db.init_app(app)
- 
+
+# NOTE: this module used to build its own second Flask app and run
+# db.create_all() at import time, against a different relative DB path than the
+# real app. Importing models for a script or test therefore created/opened a
+# stray database. The app is created once in app.py via create_app().
+
 
 # USER
 
@@ -784,10 +781,6 @@ class ParkingSlot(db.Model):
     updater = db.relationship("User", foreign_keys=[updated_by])
 
 
-with app.app_context():
-    db.create_all()
-    print("Database created!")
- 
 
 
 

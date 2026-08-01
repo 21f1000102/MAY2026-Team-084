@@ -5,8 +5,16 @@ export const authStore = reactive({
   token: localStorage.getItem('token') || null,
 
   get isLoggedIn() { return !!this.token },
-  get isAdmin() { return ['ADMIN','TREASURER','COMMITTEE_MEMBER'].includes(this.user?.role) },
+
+  // Nav-level admin: who may SEE the management sections.
+  get isAdmin() { return ['ADMIN','SYSTEM_ADMIN','TREASURER','COMMITTEE_MEMBER'].includes(this.user?.role) },
+
+  // Action-level admin for money: the finance endpoints only accept these roles,
+  // so a COMMITTEE_MEMBER shown those buttons just collects 403s.
+  get isFinanceAdmin() { return ['ADMIN','SYSTEM_ADMIN','TREASURER'].includes(this.user?.role) },
+
   get isResident() { return ['TENANT','OWNER'].includes(this.user?.role) },
+  get isWorker() { return this.user?.role === 'WORKER' },
 
   login(token, user) {
     this.token = token

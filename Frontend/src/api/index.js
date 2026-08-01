@@ -12,18 +12,46 @@ api.interceptors.request.use(config => {
   return config
 })
 
-// redirect to login on 401
+// Redirect to login when a *session* expires.
+// The auth endpoints are excluded: a wrong password also returns 401, and
+// reloading the page there tore the component down before its error banner
+// could render, so a failed login looked like a silent no-op.
+const AUTH_PATHS = ['/auth/login', '/auth/register']
+
 api.interceptors.response.use(
   res => res,
   err => {
-    if (err.response?.status === 401) {
+    const url = err.config?.url || ''
+    const isAuthAttempt = AUTH_PATHS.some(p => url.includes(p))
+    if (err.response?.status === 401 && !isAuthAttempt) {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
-      window.location.href = '/login'
+      if (!window.location.pathname.startsWith('/login')) {
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(err)
   }
 )
+
+/**
+ * Human-readable message for any axios failure.
+ * Handles JSON {error}, HTML error pages, and network failures — pages used to
+ * render `e.response.data.error` which is undefined for non-JSON responses.
+ */
+export function errText(e, fallback = 'Something went wrong. Please try again.') {
+  if (e?.response) {
+    const { status, data } = e.response
+    if (data && typeof data === 'object' && data.error) return data.error
+    if (typeof data === 'string' && data && !data.trim().startsWith('<')) return data
+    if (status === 403) return 'You are not allowed to perform this action.'
+    if (status === 404) return 'Not found.'
+    if (status === 409) return 'That conflicts with existing data.'
+    return `Server error (${status}). Please try again.`
+  }
+  if (e?.request) return 'Cannot reach the server. Is the backend running?'
+  return fallback
+}
 
 // ── AUTH ──────────────────────────────────────────────────────
 export const authAPI = {
@@ -41,6 +69,7 @@ export const membersAPI = {
   deactivate: (id) => api.delete(`/members/${id}`),
   getApartments: () => api.get('/members/apartments'),
   addApartment: (data) => api.post('/members/apartments', data),
+  getWorkers: () => api.get('/members/workers'),
 }
 
 // ── COMPLAINTS ────────────────────────────────────────────────

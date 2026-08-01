@@ -1,7 +1,9 @@
 <template>
   <div>
+    <div v-if="msg" class="alert-custom alert-error">{{ msg }}</div>
+
     <div class="d-flex justify-content-end mb-4">
-      <button class="btn-primary-custom" @click="showAdd=true"><i class="fas fa-plus me-2"></i>Report Concern</button>
+      <button class="btn-primary-custom" @click="openAdd"><i class="fas fa-plus me-2"></i>Report Concern</button>
     </div>
 
     <div v-if="loading" class="spinner"></div>
@@ -39,19 +41,22 @@
         <!-- Admin resolve button -->
         <div v-if="isAdmin && c.status !== 'RESOLVED'" class="mt-3 d-flex gap-2">
           <input v-model="resolveNote[c.id]" class="form-control-custom" placeholder="Resolution note..." style="flex:1;"/>
-          <button @click="resolve(c.id)" class="btn-primary-custom">Resolve</button>
+          <button @click="resolve(c.id)" class="btn-primary-custom" :disabled="resolving === c.id">
+            <span v-if="resolving === c.id"><i class="fas fa-spinner fa-spin me-1"></i></span>Resolve
+          </button>
         </div>
       </div>
     </div>
 
     <!-- Report Concern Modal -->
-    <div class="modal-overlay" v-if="showAdd" @click.self="showAdd=false">
+    <div class="modal-overlay" v-if="showAdd" @click.self="closeAdd">
       <div class="modal-box">
         <div class="modal-header">
           <h6 class="mb-0 fw-bold">Report a Concern</h6>
-          <button @click="showAdd=false" class="btn btn-sm btn-light"><i class="fas fa-times"></i></button>
+          <button @click="closeAdd" class="btn btn-sm btn-light"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
+          <div v-if="msg" class="alert-custom alert-error">{{ msg }}</div>
           <div class="alert-custom alert-info mb-3">
             <i class="fas fa-shield-alt me-2"></i>Your identity will be kept anonymous from the reported flat.
           </div>
@@ -73,7 +78,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button @click="showAdd=false" class="btn btn-light">Cancel</button>
+          <button @click="closeAdd" class="btn btn-light">Cancel</button>
           <button @click="raiseConflict" class="btn-primary-custom" :disabled="saving">
             <span v-if="saving"><i class="fas fa-spinner fa-spin me-1"></i></span>Submit
           </button>
@@ -85,45 +90,72 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { conflictsAPI, membersAPI } from '../api/index'
+import { conflictsAPI, membersAPI, errText } from '../api/index'
 import { authStore } from '../store/auth'
 
 const conflicts = ref([])
 const apartments = ref([])
 const loading = ref(true)
 const saving = ref(false)
+const resolving = ref(null)
+const msg = ref('')
 const showAdd = ref(false)
 const resolveNote = ref({})
 const isAdmin = authStore.isAdmin
-const form = ref({ reported_apartment_id:'', category:'NOISE', description:'' })
+const blankForm = () => ({ reported_apartment_id:'', category:'NOISE', description:'' })
+const form = ref(blankForm())
 
 onMounted(async () => {
-  try {
-    const [c, a] = await Promise.all([conflictsAPI.getAll(), membersAPI.getApartments()])
-    conflicts.value = c.data
-    apartments.value = a.data
-  } catch(e) {}
+  const [c, a] = await Promise.allSettled([conflictsAPI.getAll(), membersAPI.getApartments()])
+  if (c.status === 'fulfilled' && Array.isArray(c.value.data)) conflicts.value = c.value.data
+  if (a.status === 'fulfilled' && Array.isArray(a.value.data)) apartments.value = a.value.data
+  if (c.status === 'rejected') msg.value = errText(c.reason)
+  else if (a.status === 'rejected') msg.value = `Could not load the flat list. ${errText(a.reason)}`
   loading.value = false
 })
 
+function openAdd() {
+  form.value = blankForm()
+  msg.value = ''
+  showAdd.value = true
+}
+
+function closeAdd() {
+  showAdd.value = false
+  msg.value = ''
+}
+
 async function raiseConflict() {
+  if (saving.value) return
+  const description = form.value.description.trim()
+  if (!form.value.reported_apartment_id) { msg.value = 'Please select the flat this concern is about.'; return }
+  if (!form.value.category) { msg.value = 'Please choose a category.'; return }
+  if (!description) { msg.value = 'Please describe the concern.'; return }
+
   saving.value = true
+  msg.value = ''
   try {
-    await conflictsAPI.raise(form.value)
+    await conflictsAPI.raise({ ...form.value, description })
     const res = await conflictsAPI.getAll()
     conflicts.value = res.data
     showAdd.value = false
-    form.value = { reported_apartment_id:'', category:'NOISE', description:'' }
-  } catch(e) {}
+    form.value = blankForm()
+  } catch(e) { msg.value = errText(e) }
   saving.value = false
 }
 
 async function resolve(id) {
+  if (resolving.value) return
+  resolving.value = id
+  msg.value = ''
   try {
-    await conflictsAPI.resolve(id, { resolution_note: resolveNote.value[id] || 'Resolved by secretary' })
+    const note = (resolveNote.value[id] || '').trim()
+    await conflictsAPI.resolve(id, { resolution_note: note || 'Resolved by secretary' })
     const res = await conflictsAPI.getAll()
     conflicts.value = res.data
-  } catch(e) {}
+    delete resolveNote.value[id]
+  } catch(e) { msg.value = errText(e) }
+  resolving.value = null
 }
 
 function statusClass(s) {

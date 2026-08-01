@@ -1,7 +1,9 @@
 <template>
   <div>
+    <div v-if="msg" class="alert-custom alert-error">{{ msg }}</div>
+
     <div class="d-flex justify-content-end mb-4" v-if="isAdmin">
-      <button class="btn-primary-custom" @click="showAdd=true"><i class="fas fa-bullhorn me-2"></i>Post Notice</button>
+      <button class="btn-primary-custom" @click="openAdd"><i class="fas fa-bullhorn me-2"></i>Post Notice</button>
     </div>
     <div v-if="loading" class="spinner"></div>
     <div v-else>
@@ -22,13 +24,14 @@
     </div>
 
     <!-- Post Notice Modal -->
-    <div class="modal-overlay" v-if="showAdd" @click.self="showAdd=false">
+    <div class="modal-overlay" v-if="showAdd" @click.self="closeAdd">
       <div class="modal-box">
         <div class="modal-header">
           <h6 class="mb-0 fw-bold">Post Notice</h6>
-          <button @click="showAdd=false" class="btn btn-sm btn-light"><i class="fas fa-times"></i></button>
+          <button @click="closeAdd" class="btn btn-sm btn-light"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
+          <div v-if="msg" class="alert-custom alert-error">{{ msg }}</div>
           <div class="form-group"><label class="form-label">Title *</label><input v-model="form.title" class="form-control-custom" placeholder="e.g. Water Shutdown Notice"/></div>
           <div class="form-group">
             <label class="form-label">Message *</label>
@@ -42,7 +45,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button @click="showAdd=false" class="btn btn-light">Cancel</button>
+          <button @click="closeAdd" class="btn btn-light">Cancel</button>
           <button @click="postNotice" class="btn-primary-custom" :disabled="saving">
             <span v-if="saving"><i class="fas fa-spinner fa-spin me-1"></i></span>Post Notice
           </button>
@@ -54,38 +57,64 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { noticesAPI } from '../api/index'
+import { noticesAPI, errText } from '../api/index'
 import { authStore } from '../store/auth'
 
 const notices = ref([])
 const loading = ref(true)
 const saving = ref(false)
+const msg = ref('')
 const showAdd = ref(false)
 const isAdmin = authStore.isAdmin
-const form = ref({ title:'', content:'', category:'GENERAL' })
+const blankForm = () => ({ title:'', content:'', category:'GENERAL' })
+const form = ref(blankForm())
 
 onMounted(async () => {
-  try { notices.value = (await noticesAPI.getAll()).data } catch(e) {}
+  try {
+    const res = await noticesAPI.getAll()
+    notices.value = Array.isArray(res.data) ? res.data : []
+  } catch(e) { msg.value = errText(e) }
   loading.value = false
 })
 
+function openAdd() {
+  form.value = blankForm()
+  msg.value = ''
+  showAdd.value = true
+}
+
+function closeAdd() {
+  showAdd.value = false
+  msg.value = ''
+}
+
 async function postNotice() {
+  if (saving.value) return
+  // The backend rejects a blank title/content; without this the button just
+  // flashed and nothing was posted.
+  const title = form.value.title.trim()
+  const content = form.value.content.trim()
+  if (!title) { msg.value = 'Title is required.'; return }
+  if (!content) { msg.value = 'Message is required.'; return }
+
   saving.value = true
+  msg.value = ''
   try {
-    const res = await noticesAPI.add(form.value)
+    const res = await noticesAPI.add({ ...form.value, title, content })
     notices.value.unshift(res.data)
     showAdd.value = false
-    form.value = { title:'', content:'', category:'GENERAL' }
-  } catch(e) {}
+    form.value = blankForm()
+  } catch(e) { msg.value = errText(e) }
   saving.value = false
 }
 
 async function deleteNotice(id) {
-  if (!confirm('Remove this notice?')) return
+  if (!confirm('Remove this notice? This cannot be undone.')) return
+  msg.value = ''
   try {
     await noticesAPI.delete(id)
     notices.value = notices.value.filter(n => n.id !== id)
-  } catch(e) {}
+  } catch(e) { msg.value = errText(e) }
 }
 
 function categoryClass(cat) {

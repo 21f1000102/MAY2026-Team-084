@@ -66,7 +66,8 @@ async function register() {
   try {
     const res = await authAPI.register(form.value)
     authStore.login(res.data.token, res.data.user)
-    router.push(authStore.isAdmin ? '/app/dashboard' : '/app/home')
+    router.push(authStore.isAdmin ? '/app/dashboard'
+      : authStore.isWorker ? '/app/worker' : '/app/home')
   } catch (e) {
     error.value = e.response?.data?.error || 'Registration failed'
   } finally {

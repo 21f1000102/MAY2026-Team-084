@@ -7,6 +7,8 @@
       </button>
     </div>
 
+    <div v-if="msg" class="alert-custom alert-error">{{ msg }}</div>
+
     <div v-if="loading" class="spinner"></div>
     <div v-else>
       <!-- Current Score -->
@@ -18,7 +20,7 @@
               <div style="font-size:0.9rem;font-weight:400;">/100</div>
             </div>
             <h5 class="mt-3 fw-bold">{{ current.month }}/{{ current.year }}</h5>
-            <span class="badge-custom" :class="`badge-${current.grade.toLowerCase()}`">{{ current.grade }}</span>
+            <span class="badge-custom" :class="badgeClass(current.grade)">{{ label(current.grade) }}</span>
           </div>
           <div class="col-md-8">
             <h6 class="fw-bold mb-3">Score Breakdown</h6>
@@ -41,6 +43,7 @@
       <!-- History -->
       <div class="card p-4" v-if="history.length > 0">
         <h6 class="fw-bold mb-3">📈 6-Month Trend</h6>
+        <div class="table-responsive">
         <table class="table-custom">
           <thead><tr><th>Month</th><th>Year</th><th>Score</th><th>Grade</th><th>Alert</th></tr></thead>
           <tbody>
@@ -48,11 +51,12 @@
               <td>{{ s.month }}</td>
               <td>{{ s.year }}</td>
               <td><strong>{{ s.total_score }}/100</strong></td>
-              <td><span class="badge-custom" :class="`badge-${s.grade.toLowerCase()}`">{{ s.grade }}</span></td>
+              <td><span class="badge-custom" :class="badgeClass(s.grade)">{{ label(s.grade) }}</span></td>
               <td style="font-size:0.8rem;color:#718096;">{{ s.alert_reason }}</td>
             </tr>
           </tbody>
         </table>
+        </div>
       </div>
 
       <div v-if="!current && history.length === 0" class="empty-state card p-4">
@@ -65,28 +69,32 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { healthAPI } from '../api/index'
+import { healthAPI, errText } from '../api/index'
+import { badgeClass, label } from '../utils/format'
 
 const current = ref(null)
 const history = ref([])
 const loading = ref(true)
 const calculating = ref(false)
+const msg = ref('')
 
 onMounted(async () => {
-  try { history.value = (await healthAPI.history()).data } catch(e) {}
+  try { history.value = (await healthAPI.history()).data }
+  catch(e) { msg.value = errText(e) }
   if (history.value.length > 0) current.value = history.value[0]
   loading.value = false
 })
 
 async function calculate() {
   calculating.value = true
+  msg.value = ''
   try {
     const now = new Date()
     const res = await healthAPI.calculate(now.getMonth()+1, now.getFullYear())
     current.value = res.data
     const h = await healthAPI.history()
     history.value = h.data
-  } catch(e) {}
+  } catch(e) { msg.value = errText(e) }
   calculating.value = false
 }
 
