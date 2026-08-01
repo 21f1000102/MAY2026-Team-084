@@ -1,0 +1,3457 @@
+openapi: 3.0.3
+info:
+  title: SocietyEase API
+  description: API specification for the SocietyEase backend (Flask). Authentication uses JWT Bearer tokens. Each API endpoint is mapped to its corresponding user story using the x-user-story extension for traceability between the implementation and the project requirements.
+  version: 4.0.0
+servers:
+  - url: http://localhost:5000
+    description: Local development server
+tags:
+  - name: Auth
+    description: Registration, login, and account/password management
+  - name: Members
+    description: Apartment and resident (member) management
+  - name: Complaints
+    description: Resident complaints and their status updates
+  - name: Invoices
+    description: Maintenance invoice generation and payment tracking
+  - name: Expenses
+    description: Society expense logging and income/expense summaries
+  - name: Notices
+    description: Announcements and notices published to residents
+  - name: Polls
+    description: Community polls and voting
+  - name: Maintenance
+    description: Scheduled maintenance task tracking
+  - name: Equipment
+    description: Society equipment inventory, servicing, and maintenance forecasting
+  - name: Health
+    description: Society Health Score calculation and history
+  - name: Conflicts
+    description: Anonymous neighbour conflict reporting and resolution
+  - name: Parking
+    description: Live visitor parking slot availability
+paths:
+  /api/auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Register a new user
+      description:
+        Creates a new user account (and returns a JWT access token immediately). Open endpoint — no authentication
+        required. `role` must be one of the eight defined roles. **User Story — US-08**
+      x-user-story: US-08
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: User registered successfully; JWT token issued.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+        "400":
+          description: A required field (name, email, password, role) is missing, or role is not one of the valid roles.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: A user with this email is already registered.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Log in
+      description:
+        Authenticates a user with email and password and returns a JWT access token. Open endpoint — no authentication
+        required. **User Story — US-08**
+      x-user-story: US-08
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful; JWT token issued.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+        "400":
+          description: email or password missing from the request body.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Email/password combination is incorrect.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: The account is deactivated and may not log in.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/auth/me:
+    get:
+      tags:
+        - Auth
+      summary: Get current user profile
+      description: Returns the profile of the currently authenticated user, resolved from the JWT identity. **User Story — US-08**
+      x-user-story: US-08
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current user's profile.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: The user referenced by the JWT no longer exists.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/auth/change-password:
+    put:
+      tags:
+        - Auth
+      summary: Change password
+      description: Changes the authenticated user's password after verifying the supplied old password. **User Story — US-08**
+      x-user-story: US-08
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                old_password:
+                  type: string
+                new_password:
+                  type: string
+              required:
+                - old_password
+                - new_password
+      responses:
+        "200":
+          description: Password changed successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "400":
+          description: old_password does not match the account's current password.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/members/apartments:
+    get:
+      tags:
+        - Members
+      summary: List apartments
+      description: Returns every apartment/flat registered in the society. **User Story — US-09**
+      x-user-story: US-09
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of apartments.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Apartment"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Members
+      summary: Add apartment
+      description: Registers a new apartment/flat. `flat_number` must be unique across the society. **User Story — US-09**
+      x-user-story: US-09
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                flat_number:
+                  type: string
+                block:
+                  type: string
+                floor:
+                  type: integer
+              required:
+                - flat_number
+      responses:
+        "201":
+          description: Apartment created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Apartment"
+        "400":
+          description: flat_number is missing.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: An apartment with this flat_number already exists.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/members/apartments/{apt_id}:
+    put:
+      tags:
+        - Members
+      summary: Update apartment
+      description: Updates the block and/or floor of an existing apartment. **User Story — US-09**
+      x-user-story: US-09
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: apt_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                block:
+                  type: string
+                floor:
+                  type: integer
+      responses:
+        "200":
+          description: Apartment updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Apartment"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No apartment with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - Members
+      summary: Delete apartment
+      description:
+        Deletes an apartment and (via cascade) its residents, invoices, and complaints. This is destructive and
+        irreversible. **User Story — US-09**
+      x-user-story: US-09
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: apt_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Apartment deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No apartment with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/members:
+    get:
+      tags:
+        - Members
+      summary: List members
+      description:
+        Returns every resident (with their linked user account and flat details). Visible to any authenticated
+        user. **User Story — US-09**
+      x-user-story: US-09
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of members.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Resident"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Members
+      summary: Add member
+      description:
+        Creates a new user account and links it to an apartment as a resident, in one call. Intended for association-manager
+        use. **User Story — US-09**
+      x-user-story: US-09
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                role:
+                  type: string
+                apartment_id:
+                  type: integer
+                phone:
+                  type: string
+                is_owner:
+                  type: boolean
+                move_in_date:
+                  type: string
+              required:
+                - name
+                - email
+                - password
+                - role
+                - apartment_id
+      responses:
+        "201":
+          description: Member (user + resident record) created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Resident"
+        "400":
+          description: A required field is missing.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: apartment_id does not match an existing apartment.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: A user with this email is already registered.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/members/{resident_id}:
+    get:
+      tags:
+        - Members
+      summary: Get member detail
+      description: Returns a single resident's profile and flat details. **User Story — US-09**
+      x-user-story: US-09
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: resident_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Member detail.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Resident"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No resident with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags:
+        - Members
+      summary: Update member
+      description: Updates a resident's name, phone, ownership flag, and move-in/move-out dates. **User Story — US-09**
+      x-user-story: US-09
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: resident_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                phone:
+                  type: string
+                is_owner:
+                  type: boolean
+                move_in_date:
+                  type: string
+                move_out_date:
+                  type: string
+      responses:
+        "200":
+          description: Member updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Resident"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No resident with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - Members
+      summary: Deactivate member
+      description:
+        Soft-deletes a member by setting the linked user account's is_active flag to false. The resident record
+        itself is not deleted. **User Story — US-09**
+      x-user-story: US-09
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: resident_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Member deactivated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No resident with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/complaints:
+    get:
+      tags:
+        - Complaints
+      summary: List complaints
+      description:
+        ADMIN, TREASURER, and COMMITTEE_MEMBER roles see every complaint; all other roles see only the complaints
+        they personally raised. **User Story — US-03**
+      x-user-story: US-03
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Complaints list, most recent first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Complaint"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Complaints
+      summary: Raise complaint
+      description: Raises a new maintenance/society complaint against an apartment. **User Story — US-02**
+      x-user-story: US-02
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ComplaintCreateRequest"
+      responses:
+        "201":
+          description: Complaint created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Complaint"
+        "400":
+          description: title, category, or apartment_id is missing.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/complaints/{cid}:
+    get:
+      tags:
+        - Complaints
+      summary: Get complaint detail
+      description: Returns full complaint details, including its status-update history (who changed what, and when). **User Story — US-03**
+      x-user-story: US-03
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cid
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Complaint detail, including its status update history.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Complaint"
+                  - type: object
+                    properties:
+                      updates:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/ComplaintUpdate"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No complaint with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - Complaints
+      summary: Delete complaint
+      description: Permanently deletes a complaint and its update history. **User Story — US-03**
+      x-user-story: US-03
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cid
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Complaint deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No complaint with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/complaints/{cid}/assign:
+    put:
+      tags:
+        - Complaints
+      summary: Assign worker to complaint
+      description:
+        Assigns a maintenance worker to a complaint and moves its status to ASSIGNED, logging the change in the
+        complaint's update history. **User Story — US-04**
+      x-user-story: US-04
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cid
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                worker_id:
+                  type: integer
+                remarks:
+                  type: string
+      responses:
+        "200":
+          description: Complaint assigned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Complaint"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No complaint with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/complaints/{cid}/status:
+    put:
+      tags:
+        - Complaints
+      summary: Update complaint status
+      description:
+        Updates a complaint's status (OPEN, ASSIGNED, IN_PROGRESS, COMPLETED, or CLOSED) and logs the change. Sets
+        resolved_at automatically when moved to COMPLETED or CLOSED. **User Story — US-03**
+      x-user-story: US-03
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cid
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum:
+                    - OPEN
+                    - ASSIGNED
+                    - IN_PROGRESS
+                    - COMPLETED
+                    - CLOSED
+                remarks:
+                  type: string
+              required:
+                - status
+      responses:
+        "200":
+          description: Complaint status updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Complaint"
+        "400":
+          description: status is missing or is not one of the valid statuses.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No complaint with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/invoices:
+    get:
+      tags:
+        - Invoices
+      summary: List invoices
+      description: ADMIN and TREASURER roles see every invoice; all other roles see only invoices for their own apartment. **User Story — US-05, US-06**
+      x-user-story: US-05, US-06
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Invoices list, most recent first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Invoice"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Invoices
+      summary: Create invoice
+      description: Generates a single maintenance invoice for one apartment for a given month/year. **User Story — US-01**
+      x-user-story: US-01
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvoiceCreateRequest"
+      responses:
+        "201":
+          description: Invoice created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+        "400":
+          description: apartment_id, month, year, or amount is missing.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/invoices/bulk:
+    post:
+      tags:
+        - Invoices
+      summary: Bulk-generate invoices
+      description:
+        Generates an invoice of the given amount for every apartment in the society for the given month/year, in
+        a single call. Apartments that already have an invoice for that month/year are skipped. **User Story — US-01**
+      x-user-story: US-01
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvoiceBulkCreateRequest"
+      responses:
+        "201":
+          description: Invoices generated for all eligible flats.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  flats:
+                    type: array
+                    items:
+                      type: string
+        "400":
+          description: month, year, or amount is missing.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/invoices/pending:
+    get:
+      tags:
+        - Invoices
+      summary: List all pending invoices
+      description:
+        Returns every invoice across the society whose status is not PAID (i.e. UNPAID or OVERDUE). Intended for
+        treasurer/admin dues tracking. **User Story — US-01**
+      x-user-story: US-01
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Pending invoices, across all apartments.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Invoice"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/invoices/{inv_id}/pay:
+    put:
+      tags:
+        - Invoices
+      summary: Mark invoice paid
+      description:
+        Marks an invoice as PAID and records a corresponding payment/receipt entry against the resident of its
+        apartment. **User Story — US-01**
+      x-user-story: US-01
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: inv_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentRequest"
+      responses:
+        "200":
+          description: Invoice marked as paid; receipt generated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  invoice:
+                    $ref: "#/components/schemas/Invoice"
+                  receipt:
+                    type: object
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No invoice with this id, or no resident is linked to the invoice's apartment.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/invoices/{inv_id}/receipt:
+    get:
+      tags:
+        - Invoices
+      summary: Get payment receipt
+      description: Returns the payment receipt for an invoice. The invoice must already be marked PAID. **User Story — US-06**
+      x-user-story: US-06
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: inv_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Payment receipt.
+          content:
+            application/json:
+              schema:
+                type: object
+        "400":
+          description: The invoice has not been paid yet.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No invoice with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/expenses:
+    get:
+      tags:
+        - Expenses
+      summary: List expenses
+      description: Returns every logged society expense, most recent first. **User Story — US-14**
+      x-user-story: US-14
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Expense list.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Expense"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Expenses
+      summary: Log expense
+      description: Logs a new society expense (e.g. salary, maintenance, utilities). **User Story — US-14**
+      x-user-story: US-14
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpenseCreateRequest"
+      responses:
+        "201":
+          description: Expense logged.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+        "400":
+          description: category, description, amount, or expense_date is missing.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/expenses/{exp_id}:
+    put:
+      tags:
+        - Expenses
+      summary: Update expense
+      description: Updates the description, amount, category, or receipt URL of an existing expense. **User Story — US-14**
+      x-user-story: US-14
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: exp_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                description:
+                  type: string
+                amount:
+                  type: number
+                category:
+                  type: string
+                receipt_url:
+                  type: string
+      responses:
+        "200":
+          description: Expense updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No expense with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - Expenses
+      summary: Delete expense
+      description: Permanently deletes a logged expense. **User Story — US-14**
+      x-user-story: US-14
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: exp_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Expense deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No expense with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/expenses/summary:
+    get:
+      tags:
+        - Expenses
+      summary: Monthly income/expense summary
+      description:
+        Returns total income (from paid invoices), total expense, net balance, and a per-category expense breakdown.
+        Optionally filtered to a specific month/year via query params. **User Story — US-14**
+      x-user-story: US-14
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: month
+          in: query
+          schema:
+            type: integer
+        - name: year
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Income/expense summary for the given (or all-time) period.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_income:
+                    type: number
+                  total_expense:
+                    type: number
+                  net_balance:
+                    type: number
+                  by_category:
+                    type: object
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/notices:
+    get:
+      tags:
+        - Notices
+      summary: List active notices
+      description: Returns all currently active announcements/notices, most recent first. **User Story — US-10**
+      x-user-story: US-10
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Active announcements/notices, most recent first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Announcement"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Notices
+      summary: Post notice
+      description: Publishes a new announcement/notice to residents. **User Story — US-10**
+      x-user-story: US-10
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnnouncementCreateRequest"
+      responses:
+        "201":
+          description: Notice posted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Announcement"
+        "400":
+          description: title or content is missing.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/notices/{nid}:
+    put:
+      tags:
+        - Notices
+      summary: Update notice
+      description: Updates the title, content, or category of an existing notice. **User Story — US-10**
+      x-user-story: US-10
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: nid
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+                category:
+                  type: string
+      responses:
+        "200":
+          description: Notice updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Announcement"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No notice with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - Notices
+      summary: Remove notice
+      description: Soft-deletes a notice by setting is_active to false; the record itself is retained. **User Story — US-10**
+      x-user-story: US-10
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: nid
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Notice removed.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No notice with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/polls:
+    get:
+      tags:
+        - Polls
+      summary: List polls
+      description: Returns every poll, most recent first, with live vote counts and percentages per option. **User Story — US-13**
+      x-user-story: US-13
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: All polls, most recent first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Vote"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Polls
+      summary: Create poll
+      description: Creates a new poll with at least two options; the poll is immediately set to ACTIVE. **User Story — US-13**
+      x-user-story: US-13
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                start_date:
+                  type: string
+                end_date:
+                  type: string
+                options:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - title
+                - options
+      responses:
+        "201":
+          description: Poll created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vote"
+        "400":
+          description: title/options missing, or fewer than 2 options were given.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/polls/{pid}:
+    get:
+      tags:
+        - Polls
+      summary: Get poll and results
+      description: Returns a single poll along with its live vote counts and percentages per option. **User Story — US-13**
+      x-user-story: US-13
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: pid
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Poll detail with live vote counts.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Vote"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No poll with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - Polls
+      summary: Delete poll
+      description: Permanently deletes a poll along with its options and recorded responses. **User Story — US-13**
+      x-user-story: US-13
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: pid
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Poll deleted successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No poll with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/polls/{pid}/vote:
+    post:
+      tags:
+        - Polls
+      summary: Cast vote
+      description: Casts the authenticated user's vote for one option in an active poll. Each user may vote once per poll. **User Story — US-13**
+      x-user-story: US-13
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: pid
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                option_id:
+                  type: integer
+              required:
+                - option_id
+      responses:
+        "200":
+          description: Vote cast successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  poll:
+                    $ref: "#/components/schemas/Vote"
+        "400":
+          description: The poll is not ACTIVE, or option_id does not match a valid option on this poll.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No poll with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: This user has already voted on this poll.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/polls/{pid}/close:
+    put:
+      tags:
+        - Polls
+      summary: Close poll
+      description: Closes an active poll, preventing further votes from being cast. **User Story — US-13**
+      x-user-story: US-13
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: pid
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Poll closed successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  poll:
+                    $ref: "#/components/schemas/Vote"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No poll with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/maintenance:
+    get:
+      tags:
+        - Maintenance
+      summary: List maintenance tasks
+      description: Returns every scheduled maintenance task (e.g. generator service, cleaning), ordered by scheduled date. **User Story — US-11**
+      x-user-story: US-11
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Maintenance task list.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MaintenanceTask"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Maintenance
+      summary: Add maintenance task
+      description: Schedules a new maintenance task. **User Story — US-11**
+      x-user-story: US-11
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                category:
+                  type: string
+                scheduled_date:
+                  type: string
+                assigned_to:
+                  type: integer
+              required:
+                - title
+                - category
+                - scheduled_date
+      responses:
+        "201":
+          description: Task created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaintenanceTask"
+        "400":
+          description: title, category, or scheduled_date is missing.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/maintenance/{tid}:
+    put:
+      tags:
+        - Maintenance
+      summary: Update maintenance task
+      description: Updates a task's title, description, scheduled date, assignee, and/or status. **User Story — US-11**
+      x-user-story: US-11
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tid
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                scheduled_date:
+                  type: string
+                assigned_to:
+                  type: integer
+                status:
+                  type: string
+      responses:
+        "200":
+          description: Task updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaintenanceTask"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No task with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - Maintenance
+      summary: Delete maintenance task
+      description: Permanently deletes a scheduled maintenance task. **User Story — US-11**
+      x-user-story: US-11
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tid
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Task deleted successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No task with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/maintenance/{tid}/complete:
+    put:
+      tags:
+        - Maintenance
+      summary: Mark task complete
+      description: Marks a maintenance task as COMPLETED and records the completion timestamp. **User Story — US-11**
+      x-user-story: US-11
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tid
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Task marked as completed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaintenanceTask"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No task with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/equipment:
+    get:
+      tags:
+        - Equipment
+      summary: List equipment
+      description:
+        Returns every piece of society equipment (generators, water tanks, lifts, etc.), each annotated with a
+        computed days-until-due and risk level (LOW/MEDIUM/HIGH) based on its service schedule. **User Story — US-15**
+      x-user-story: US-15
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Equipment list with computed risk levels.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Equipment"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Equipment
+      summary: Add equipment
+      description: Registers a new piece of equipment with its service schedule. **User Story — US-15**
+      x-user-story: US-15
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                category:
+                  type: string
+                last_serviced_date:
+                  type: string
+                service_frequency_days:
+                  type: integer
+                estimated_service_cost:
+                  type: number
+              required:
+                - name
+                - category
+                - last_serviced_date
+                - service_frequency_days
+      responses:
+        "201":
+          description: Equipment created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Equipment"
+        "400":
+          description: name, category, last_serviced_date, or service_frequency_days is missing.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/equipment/{eid}/service:
+    put:
+      tags:
+        - Equipment
+      summary: Mark equipment serviced
+      description: Marks equipment as serviced today, updates its last_serviced_date, and records a service log entry. **User Story — US-15**
+      x-user-story: US-15
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: eid
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cost:
+                  type: number
+                vendor_name:
+                  type: string
+                notes:
+                  type: string
+      responses:
+        "200":
+          description: Equipment marked as serviced and service log recorded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  equipment:
+                    $ref: "#/components/schemas/Equipment"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No equipment with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/equipment/forecast:
+    get:
+      tags:
+        - Equipment
+      summary: 30-day maintenance forecast
+      description:
+        Returns all equipment due for service within the next 30 days, along with the total estimated servicing
+        cost. **User Story — US-15**
+      x-user-story: US-15
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Equipment due for service within 30 days, plus total estimated cost.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  due_in_30_days:
+                    type: array
+                    items:
+                      type: object
+                  total_estimated_cost:
+                    type: number
+                  count:
+                    type: integer
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/equipment/{eid}/history:
+    get:
+      tags:
+        - Equipment
+      summary: Get equipment service history
+      description: Returns the full service log history for one piece of equipment, most recent first. **User Story — US-15**
+      x-user-story: US-15
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: eid
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Service log history, most recent first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EquipmentServiceLog"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No equipment with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/equipment/{eid}:
+    delete:
+      tags:
+        - Equipment
+      summary: Delete equipment
+      description: Permanently deletes a piece of equipment along with its service log history. **User Story — US-15**
+      x-user-story: US-15
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: eid
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Equipment deleted successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No equipment with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/health/calculate:
+    get:
+      tags:
+        - Health
+      summary: Calculate and save society health score
+      description:
+        Calculates the Society Health Score (payment, complaint-resolution, notice-engagement, poll-participation,
+        and maintenance sub-scores out of 100) for the given month/year and upserts it into the database. Defaults to the
+        current month/year if not supplied. **User Story — US-17**
+      x-user-story: US-17
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: month
+          in: query
+          schema:
+            type: integer
+        - name: year
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Calculated society health score for the given month/year.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SocietyHealthScore"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/health/history:
+    get:
+      tags:
+        - Health
+      summary: Get health score history
+      description: Returns the 6 most recently calculated monthly health scores. **User Story — US-17**
+      x-user-story: US-17
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: The most recent 6 monthly health scores.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SocietyHealthScore"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/conflicts:
+    get:
+      tags:
+        - Conflicts
+      summary: List conflict reports
+      description:
+        ADMIN, TREASURER, and COMMITTEE_MEMBER roles see every conflict report with the reporter's identity revealed;
+        all other roles see only the reports they personally raised, with reporter identity hidden. **User Story — US-16**
+      x-user-story: US-16
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Conflict reports (all reports for admin/committee, own reports for residents).
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConflictReport"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Conflicts
+      summary: Raise conflict report
+      description:
+        Raises an anonymous conflict report (noise, parking, garbage, etc.) against another flat. The reported
+        flat is notified of the category and description only — the reporter's identity is withheld from them. **User Story — US-16**
+      x-user-story: US-16
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reported_apartment_id:
+                  type: integer
+                category:
+                  type: string
+                description:
+                  type: string
+              required:
+                - reported_apartment_id
+                - category
+                - description
+      responses:
+        "201":
+          description: Conflict report submitted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  report_id:
+                    type: integer
+        "400":
+          description: reported_apartment_id, category, or description is missing.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/conflicts/{rid}/respond:
+    put:
+      tags:
+        - Conflicts
+      summary: Submit response to conflict report
+      description: Lets the reported flat submit their side of the story. Moves the report's status to UNDER_REVIEW. **User Story — US-16**
+      x-user-story: US-16
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: rid
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                response:
+                  type: string
+              required:
+                - response
+      responses:
+        "200":
+          description: Response submitted; report moved to UNDER_REVIEW.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "400":
+          description: response text is missing.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No conflict report with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/conflicts/{rid}/resolve:
+    put:
+      tags:
+        - Conflicts
+      summary: Resolve conflict report
+      description:
+        Lets the secretary/committee close out a conflict report with a resolution note. Moves the report's status
+        to RESOLVED. **User Story — US-16**
+      x-user-story: US-16
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: rid
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                resolution_note:
+                  type: string
+      responses:
+        "200":
+          description: Conflict marked resolved.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  report:
+                    $ref: "#/components/schemas/ConflictReport"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No conflict report with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/conflicts/pending:
+    get:
+      tags:
+        - Conflicts
+      summary: List pending conflict reports
+      description:
+        Returns all conflict reports whose status is OPEN or UNDER_REVIEW (i.e. awaiting a response or resolution),
+        with reporter identity revealed. Intended for secretary/committee triage. **User Story — US-16**
+      x-user-story: US-16
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Conflict reports with status OPEN or UNDER_REVIEW.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConflictReport"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/parking:
+    get:
+      tags:
+        - Parking
+      summary: List parking slots
+      description: Returns every visitor parking slot with its live status (AVAILABLE, RESERVED, or OCCUPIED). **User Story — US-12**
+      x-user-story: US-12
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Parking slot list with current status.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ParkingSlot"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Parking
+      summary: Add parking slot
+      description: Registers a new visitor parking slot. slot_number must be unique. **User Story — US-12**
+      x-user-story: US-12
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                slot_number:
+                  type: string
+              required:
+                - slot_number
+      responses:
+        "201":
+          description: Slot created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ParkingSlot"
+        "400":
+          description: slot_number is missing.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: A slot with this slot_number already exists.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/parking/available:
+    get:
+      tags:
+        - Parking
+      summary: List available parking slots
+      description: Returns only the visitor parking slots currently in AVAILABLE status — useful for a live availability display. **User Story — US-12**
+      x-user-story: US-12
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Parking slots currently available.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ParkingSlot"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/parking/{sid}/reserve:
+    put:
+      tags:
+        - Parking
+      summary: Reserve slot for visitor
+      description: Lets a resident pre-book an available slot for an expected visitor. The slot must currently be AVAILABLE. **User Story — US-12**
+      x-user-story: US-12
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sid
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                visitor_name:
+                  type: string
+                visitor_vehicle_number:
+                  type: string
+                expected_arrival_time:
+                  type: string
+      responses:
+        "200":
+          description: Slot reserved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  slot:
+                    $ref: "#/components/schemas/ParkingSlot"
+        "400":
+          description: The slot is not currently AVAILABLE.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No slot with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/parking/{sid}/occupy:
+    put:
+      tags:
+        - Parking
+      summary: Mark slot occupied
+      description: Lets a security guard mark a slot as OCCUPIED once the visitor has actually arrived. **User Story — US-12**
+      x-user-story: US-12
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sid
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                visitor_name:
+                  type: string
+                visitor_vehicle_number:
+                  type: string
+      responses:
+        "200":
+          description: Slot marked occupied.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  slot:
+                    $ref: "#/components/schemas/ParkingSlot"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No slot with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/parking/{sid}/release:
+    put:
+      tags:
+        - Parking
+      summary: Release slot
+      description: Clears all visitor details from a slot and returns it to AVAILABLE status. **User Story — US-12**
+      x-user-story: US-12
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sid
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Slot released and marked available again.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  slot:
+                    $ref: "#/components/schemas/ParkingSlot"
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No slot with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/parking/{sid}:
+    delete:
+      tags:
+        - Parking
+      summary: Remove parking slot
+      description: Permanently deletes a parking slot. **User Story — US-12**
+      x-user-story: US-12
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sid
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Slot removed successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "401":
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No slot with this id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          nullable: true
+        role:
+          type: string
+          enum:
+            - ADMIN
+            - TENANT
+            - OWNER
+            - TREASURER
+            - WORKER
+            - COMMITTEE_MEMBER
+            - AUDITOR
+            - SYSTEM_ADMIN
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+      required:
+        - id
+        - name
+        - email
+        - role
+        - is_active
+    RegisterRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        role:
+          type: string
+      required:
+        - name
+        - email
+        - password
+        - role
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+        - email
+        - password
+    TokenResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+    Apartment:
+      type: object
+      properties:
+        id:
+          type: integer
+        block:
+          type: string
+          nullable: true
+        flat_number:
+          type: string
+        floor:
+          type: integer
+      required:
+        - id
+        - flat_number
+    Resident:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        role:
+          type: string
+        is_active:
+          type: boolean
+        apartment_id:
+          type: integer
+        flat_number:
+          type: string
+        block:
+          type: string
+          nullable: true
+        floor:
+          type: integer
+        is_owner:
+          type: boolean
+        move_in_date:
+          type: string
+          nullable: true
+        move_out_date:
+          type: string
+          nullable: true
+    Complaint:
+      type: object
+      properties:
+        id:
+          type: integer
+        raised_by:
+          type: integer
+        raised_by_name:
+          type: string
+        apartment_id:
+          type: integer
+        flat_number:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        category:
+          type: string
+          enum:
+            - PLUMBING
+            - ELECTRICAL
+            - CLEANING
+            - SECURITY
+            - OTHER
+        priority:
+          type: string
+          enum:
+            - LOW
+            - MEDIUM
+            - HIGH
+        status:
+          type: string
+          enum:
+            - OPEN
+            - ASSIGNED
+            - IN_PROGRESS
+            - COMPLETED
+            - CLOSED
+        assigned_worker_id:
+          type: integer
+          nullable: true
+        assigned_worker_name:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+        resolved_at:
+          type: string
+          nullable: true
+    ComplaintCreateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        priority:
+          type: string
+        apartment_id:
+          type: integer
+      required:
+        - title
+        - category
+        - apartment_id
+    ComplaintUpdate:
+      type: object
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+        remarks:
+          type: string
+        updated_by:
+          type: integer
+        updated_at:
+          type: string
+    Invoice:
+      type: object
+      properties:
+        id:
+          type: integer
+        apartment_id:
+          type: integer
+        flat_number:
+          type: string
+        month:
+          type: integer
+        year:
+          type: integer
+        amount:
+          type: number
+          format: float
+        due_date:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum:
+            - PAID
+            - UNPAID
+            - OVERDUE
+        created_at:
+          type: string
+    InvoiceCreateRequest:
+      type: object
+      properties:
+        apartment_id:
+          type: integer
+        month:
+          type: integer
+        year:
+          type: integer
+        amount:
+          type: number
+        due_date:
+          type: string
+      required:
+        - apartment_id
+        - month
+        - year
+        - amount
+    InvoiceBulkCreateRequest:
+      type: object
+      properties:
+        month:
+          type: integer
+        year:
+          type: integer
+        amount:
+          type: number
+        due_date:
+          type: string
+      required:
+        - month
+        - year
+        - amount
+    PaymentRequest:
+      type: object
+      properties:
+        payment_method:
+          type: string
+        transaction_reference:
+          type: string
+    Expense:
+      type: object
+      properties:
+        id:
+          type: integer
+        category:
+          type: string
+        description:
+          type: string
+        amount:
+          type: number
+        expense_date:
+          type: string
+        paid_by:
+          type: integer
+        paid_by_name:
+          type: string
+        receipt_url:
+          type: string
+        created_at:
+          type: string
+    ExpenseCreateRequest:
+      type: object
+      properties:
+        category:
+          type: string
+        description:
+          type: string
+        amount:
+          type: number
+        expense_date:
+          type: string
+        paid_by:
+          type: integer
+        receipt_url:
+          type: string
+      required:
+        - category
+        - description
+        - amount
+        - expense_date
+    Announcement:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        category:
+          type: string
+          enum:
+            - GENERAL
+            - FINANCIAL
+            - MAINTENANCE
+            - EMERGENCY
+        published_by:
+          type: integer
+        published_by_name:
+          type: string
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+    AnnouncementCreateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        category:
+          type: string
+      required:
+        - title
+        - content
+    Vote:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        total_votes:
+          type: integer
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/VoteOptionResult"
+    VoteOptionResult:
+      type: object
+      properties:
+        id:
+          type: integer
+        text:
+          type: string
+        votes:
+          type: integer
+        percentage:
+          type: number
+    MaintenanceTask:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        scheduled_date:
+          type: string
+        status:
+          type: string
+        created_by:
+          type: integer
+        assigned_to:
+          type: integer
+        completed_at:
+          type: string
+    Equipment:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        category:
+          type: string
+        last_serviced_date:
+          type: string
+        service_frequency_days:
+          type: integer
+        estimated_service_cost:
+          type: number
+        days_until_due:
+          type: integer
+        risk_level:
+          type: string
+    EquipmentServiceLog:
+      type: object
+      properties:
+        id:
+          type: integer
+        serviced_date:
+          type: string
+        cost:
+          type: number
+          nullable: true
+        vendor_name:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        logged_by_name:
+          type: string
+          nullable: true
+    SocietyHealthScore:
+      type: object
+      properties:
+        id:
+          type: integer
+        month:
+          type: integer
+        year:
+          type: integer
+        payment_score:
+          type: number
+        complaint_score:
+          type: number
+        notice_score:
+          type: number
+        poll_score:
+          type: number
+        maintenance_score:
+          type: number
+        total_score:
+          type: number
+        alert_reason:
+          type: string
+        grade:
+          type: string
+    ConflictReport:
+      type: object
+      properties:
+        id:
+          type: integer
+        reported_by:
+          type: integer
+        reported_by_name:
+          type: string
+        reported_apartment_id:
+          type: integer
+        reported_flat:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        reported_flat_response:
+          type: string
+        status:
+          type: string
+        resolution_note:
+          type: string
+        created_at:
+          type: string
+    ParkingSlot:
+      type: object
+      properties:
+        id:
+          type: integer
+        slot_number:
+          type: string
+        status:
+          type: string
+        occupied_by_apartment_id:
+          type: integer
+        flat_number:
+          type: string
+        visitor_name:
+          type: string
+        visitor_vehicle_number:
+          type: string
+        expected_arrival_time:
+          type: string
+        occupied_since:
+          type: string
