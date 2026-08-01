@@ -1,15 +1,17 @@
 <template>
   <div>
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-      <select v-model="filterStatus" class="form-control-custom" style="width:160px;">
+      <select v-model="filterStatus" class="form-control-custom" style="width:100%;max-width:160px;">
         <option value="">All Status</option>
         <option>PAID</option><option>UNPAID</option><option>OVERDUE</option>
       </select>
       <div class="d-flex gap-2" v-if="isAdmin">
         <button class="btn-accent" @click="showBulk=true"><i class="fas fa-bolt me-2"></i>Bulk Generate</button>
-        <button class="btn-primary-custom" @click="showAdd=true"><i class="fas fa-plus me-2"></i>Single Invoice</button>
+        <button class="btn-primary-custom" @click="addMsg=''; showAdd=true"><i class="fas fa-plus me-2"></i>Single Invoice</button>
       </div>
     </div>
+
+    <div v-if="pageMsg" class="alert-custom alert-error">{{ pageMsg }}</div>
 
     <div v-if="loading" class="spinner"></div>
     <div v-else>
@@ -18,7 +20,7 @@
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
           <div>
             <div class="d-flex gap-2 mb-1">
-              <span class="badge-custom" :class="`badge-${inv.status.toLowerCase()}`">{{ inv.status }}</span>
+              <span class="badge-custom" :class="badgeClass(inv.status)">{{ inv.status }}</span>
             </div>
             <h6 class="fw-bold mb-1">🏠 {{ inv.flat_number }}</h6>
             <small class="text-muted">{{ inv.month }}/{{ inv.year }} · Due: {{ inv.due_date }}</small>
@@ -84,6 +86,7 @@
           <button @click="showAdd=false" class="btn btn-sm btn-light"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
+          <div v-if="addMsg" class="alert-custom alert-error">{{ addMsg }}</div>
           <div class="form-group"><label class="form-label">Apartment</label>
             <select v-model="addForm.apartment_id" class="form-control-custom">
               <option value="">Select Flat</option>
@@ -132,10 +135,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { invoicesAPI, membersAPI } from '../api/index'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { invoicesAPI, membersAPI, errText } from '../api/index'
 import { authStore } from '../store/auth'
+import { badgeClass, orNull } from '../utils/format'
 
+const pageMsg = ref('')
+const addMsg = ref('')
 const invoices = ref([])
 const apartments = ref([])
 const loading = ref(true)
@@ -145,7 +151,9 @@ const showAdd = ref(false)
 const receipt = ref(null)
 const bulkMsg = ref(null)
 const filterStatus = ref('')
-const isAdmin = authStore.isAdmin
+// Finance actions are ADMIN/SYSTEM_ADMIN/TREASURER only; a COMMITTEE_MEMBER
+// used to see these buttons and get a 403 on click.
+const isAdmin = computed(() => authStore.isFinanceAdmin)
 const now = new Date()
 const bulkForm = ref({ month: now.getMonth()+1, year: now.getFullYear(), amount: 1500, due_date:'' })
 const addForm = ref({ apartment_id:'', month: now.getMonth()+1, year: now.getFullYear(), amount: 1500, due_date:'' })
@@ -154,52 +162,72 @@ const filtered = computed(() =>
   invoices.value.filter(i => !filterStatus.value || i.status === filterStatus.value)
 )
 
+let bulkTimer = null
+onUnmounted(() => clearTimeout(bulkTimer))
+
 onMounted(async () => {
-  try {
-    const [inv, apt] = await Promise.all([invoicesAPI.getAll(), membersAPI.getApartments()])
-    invoices.value = inv.data
-    apartments.value = apt.data
-  } catch(e) {}
+  const [inv, apt] = await Promise.allSettled([invoicesAPI.getAll(), membersAPI.getApartments()])
+  if (inv.status === 'fulfilled') invoices.value = inv.value.data
+  else pageMsg.value = errText(inv.reason)
+  if (apt.status === 'fulfilled') apartments.value = apt.value.data
   loading.value = false
 })
 
 async function doBulk() {
   saving.value = true; bulkMsg.value = null
   try {
-    const res = await invoicesAPI.bulkGenerate(bulkForm.value)
+    // due_date was sent as '' which the backend could not parse into a Date.
+    const res = await invoicesAPI.bulkGenerate({
+      ...bulkForm.value,
+      amount: Number(bulkForm.value.amount),
+      due_date: orNull(bulkForm.value.due_date),
+    })
     bulkMsg.value = { type:'success', text: res.data.message }
     const fresh = await invoicesAPI.getAll()
     invoices.value = fresh.data
-    setTimeout(() => { showBulk.value = false; bulkMsg.value = null }, 2000)
+    clearTimeout(bulkTimer)
+    bulkTimer = setTimeout(() => { showBulk.value = false; bulkMsg.value = null }, 2000)
   } catch(e) {
-    bulkMsg.value = { type:'error', text: e.response?.data?.error || 'Failed' }
+    bulkMsg.value = { type:'error', text: errText(e) }
   }
   saving.value = false
 }
 
 async function doAdd() {
+  if (!addForm.value.apartment_id) { addMsg.value = 'Please select a flat'; return }
+  if (!addForm.value.amount) { addMsg.value = 'Amount is required'; return }
   saving.value = true
+  addMsg.value = ''
   try {
-    const res = await invoicesAPI.create(addForm.value)
+    const res = await invoicesAPI.create({
+      ...addForm.value,
+      amount: Number(addForm.value.amount),
+      due_date: orNull(addForm.value.due_date),   // '' previously broke every create
+    })
     invoices.value.unshift(res.data)
     showAdd.value = false
-  } catch(e) {}
+    addForm.value = { apartment_id:'', month: now.getMonth()+1, year: now.getFullYear(), amount: 1500, due_date:'' }
+  } catch(e) { addMsg.value = errText(e) }
   saving.value = false
 }
 
 async function markPaid(id, mode) {
+  // Irreversible: there is no un-pay endpoint.
+  if (!confirm(`Mark this invoice as PAID via ${mode}? This cannot be undone.`)) return
+  pageMsg.value = ''
   try {
     const res = await invoicesAPI.markPaid(id, { payment_method: mode })
     const idx = invoices.value.findIndex(i => i.id === id)
     if (idx > -1) invoices.value[idx] = res.data.invoice
     receipt.value = res.data.receipt
-  } catch(e) {}
+  } catch(e) { pageMsg.value = errText(e) }
 }
 
 async function viewReceipt(inv) {
+  pageMsg.value = ''
   try {
     const res = await invoicesAPI.getReceipt(inv.id)
     receipt.value = res.data
-  } catch(e) {}
+  } catch(e) { pageMsg.value = errText(e) }
 }
 </script>

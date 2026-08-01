@@ -1,7 +1,10 @@
 <template>
-  <div style="display:flex;">
+  <div>
+    <!-- Backdrop: only present while the mobile drawer is open -->
+    <div v-if="sidebarOpen" class="sidebar-backdrop" @click="sidebarOpen = false"></div>
+
     <!-- SIDEBAR -->
-    <aside class="sidebar">
+    <aside class="sidebar" :class="{ 'is-open': sidebarOpen }">
       <div class="sidebar-brand">
         <h4><i class="fas fa-building me-2" style="color:#F2A541;"></i>SocietyEase</h4>
         <small>{{ authStore.user?.role }}</small>
@@ -53,7 +56,12 @@
     <!-- MAIN CONTENT -->
     <div class="main-content">
       <div class="topbar">
-        <h5 style="margin:0;font-weight:600;color:#1B2A4A;">{{ pageTitle }}</h5>
+        <div style="display:flex;align-items:center;min-width:0;">
+          <button class="sidebar-toggle" aria-label="Toggle navigation" @click="sidebarOpen = !sidebarOpen">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h5 style="margin:0;font-weight:600;color:#1B2A4A;">{{ pageTitle }}</h5>
+        </div>
         <div style="font-size:0.85rem;color:#718096;">
           <i class="fas fa-calendar me-1"></i>{{ today }}
         </div>
@@ -66,12 +74,22 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { authStore } from '../store/auth'
 
 const route = useRoute()
 const router = useRouter()
+
+// Mobile drawer state (the sidebar is off-canvas at <=768px)
+const sidebarOpen = ref(false)
+watch(() => route.path, () => { sidebarOpen.value = false })   // close after navigating
+
+function onKeydown(e) {
+  if (e.key === 'Escape') sidebarOpen.value = false
+}
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 const today = new Date().toLocaleDateString('en-IN', { weekday:'long', year:'numeric', month:'long', day:'numeric' })
 const isWorker = authStore.user?.role === 'WORKER'

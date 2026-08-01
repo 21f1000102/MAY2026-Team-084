@@ -2,6 +2,8 @@
   <div>
     <div v-if="loading" class="spinner"></div>
     <div v-else>
+      <div v-if="msg" class="alert-custom alert-error">{{ msg }}</div>
+
       <!-- Due Alert -->
       <div v-if="unpaidInvoices.length > 0" class="alert-custom alert-error mb-4">
         <i class="fas fa-exclamation-triangle me-2"></i>
@@ -50,7 +52,7 @@
             <div v-for="c in myComplaints.slice(0,4)" :key="c.id" class="p-3" style="border-bottom:1px solid #f1f5f9;">
               <div class="d-flex justify-content-between align-items-center">
                 <p class="mb-0 fw-semibold">{{ c.title }}</p>
-                <span class="badge-custom" :class="`badge-${c.status.toLowerCase().replace('_','-')}`">{{ c.status }}</span>
+                <span class="badge-custom" :class="badgeClass(c.status)">{{ label(c.status) }}</span>
               </div>
               <small class="text-muted">{{ c.created_at?.slice(0,10) }}</small>
             </div>
@@ -63,25 +65,43 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { invoicesAPI, complaintsAPI, noticesAPI } from '../api/index'
-import { authStore } from '../store/auth'
+import { invoicesAPI, complaintsAPI, noticesAPI, errText } from '../api/index'
+import { badgeClass, label, num } from '../utils/format'
 
 const loading = ref(true)
+const msg = ref('')
 const unpaidInvoices = ref([])
 const unpaidTotal = ref(0)
 const myComplaints = ref([])
 const notices = ref([])
 
 onMounted(async () => {
-  try {
-    const [inv, comp, not] = await Promise.all([
-      invoicesAPI.getAll(), complaintsAPI.getAll(), noticesAPI.getAll()
-    ])
-    unpaidInvoices.value = inv.data.filter(i => i.status !== 'PAID')
-    unpaidTotal.value = unpaidInvoices.value.reduce((s, i) => s + i.amount, 0).toLocaleString('en-IN')
-    myComplaints.value = comp.data
-    notices.value = not.data
-  } catch(e) {}
+  // allSettled, not all: a single failing endpoint used to zero out every panel,
+  // which is indistinguishable from having nothing due and no complaints.
+  const sections = ['Invoices', 'Complaints', 'Notices']
+  const results = await Promise.allSettled([
+    invoicesAPI.getAll(), complaintsAPI.getAll(), noticesAPI.getAll()
+  ])
+  const [inv, comp, not] = results.map(r =>
+    r.status === 'fulfilled' && Array.isArray(r.value?.data) ? r.value.data : null
+  )
+
+  if (inv) {
+    unpaidInvoices.value = inv.filter(i => i.status !== 'PAID')
+    // num(): a null amount used to render the dues total as "₹NaN".
+    unpaidTotal.value = unpaidInvoices.value
+      .reduce((s, i) => s + num(i.amount), 0).toLocaleString('en-IN')
+  }
+  if (comp) myComplaints.value = comp
+  if (not) notices.value = not
+
+  const failed = results
+    .map((r, i) => (r.status === 'rejected' ? sections[i] : null))
+    .filter(Boolean)
+  if (failed.length) {
+    const first = results.find(r => r.status === 'rejected')
+    msg.value = `Could not load ${failed.join(', ')}. ${errText(first.reason)}`
+  }
   loading.value = false
 })
 </script>

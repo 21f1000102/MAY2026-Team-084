@@ -1,23 +1,23 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { authStore } from '../store/auth'
 
-import LoginPage from '../components/LoginPage.vue'
-import RegisterPage from '../components/RegisterPage.vue'
-import DashboardLayout from '../components/DashboardLayout.vue'
-import SecretaryDashboard from '../components/SecretaryDashboard.vue'
-import ResidentDashboard from '../components/ResidentDashboard.vue'
-import WorkerDashboard from '../components/WorkerDashboard.vue'
-import MembersPage from '../components/MembersPage.vue'
-import ComplaintsPage from '../components/ComplaintsPage.vue'
-import InvoicesPage from '../components/InvoicesPage.vue'
-import ExpensesPage from '../components/ExpensesPage.vue'
-import NoticesPage from '../components/NoticesPage.vue'
-import PollsPage from '../components/PollsPage.vue'
-import MaintenancePage from '../components/MaintenancePage.vue'
-import EquipmentPage from '../components/EquipmentPage.vue'
-import HealthScorePage from '../components/HealthScorePage.vue'
-import ConflictsPage from '../components/ConflictsPage.vue'
-import ParkingPage from '../components/ParkingPage.vue'
+import LoginPage from '../componenets/LoginPage.vue'
+import RegisterPage from '../componenets/RegisterPage.vue'
+import DashboardLayout from '../componenets/DashboardLayout.vue'
+import SecretaryDashboard from '../componenets/SecretaryDashboard.vue'
+import ResidentDashboard from '../componenets/ResidentDashboard.vue'
+import WorkerDashboard from '../componenets/WorkerDashboard.vue'
+import MembersPage from '../componenets/MembersPage.vue'
+import ComplaintsPage from '../componenets/ComplaintsPage.vue'
+import InvoicesPage from '../componenets/InvoicesPage.vue'
+import ExpensesPage from '../componenets/ExpensesPage.vue'
+import NoticesPage from '../componenets/NoticesPage.vue'
+import PollsPage from '../componenets/PollsPage.vue'
+import MaintenancePage from '../componenets/MaintenancePage.vue'
+import EquipmentPage from '../componenets/EquipmentPage.vue'
+import HealthScorePage from '../componenets/HealthScorePage.vue'
+import ConflictsPage from '../componenets/ConflictsPage.vue'
+import ParkingPage from '../componenets/ParkingPage.vue'
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -52,31 +52,32 @@ const router = createRouter({ history: createWebHistory(), routes })
 router.beforeEach((to, from, next) => {
   const loggedIn = authStore.isLoggedIn
   const isAdmin = authStore.isAdmin
-  const isWorker = authStore.user?.role === 'WORKER'
+  const isWorker = authStore.isWorker
   const isResident = authStore.isResident
+
+  // The landing route for whatever role is logged in. Roles that match none of
+  // the three dashboards (AUDITOR, ...) get a route with no role restriction —
+  // sending them to a guarded one would bounce them straight back here.
+  const homeFor = () => {
+    if (isAdmin) return '/app/dashboard'
+    if (isWorker) return '/app/worker'
+    if (isResident) return '/app/home'
+    return '/app/notices'
+  }
 
   if (to.meta.requiresAuth && !loggedIn) return next('/login')
 
   // redirect after login based on role
-  if (to.meta.guest && loggedIn) {
-    if (isAdmin) return next('/app/dashboard')
-    if (isWorker) return next('/app/worker')
-    return next('/app/home')
-  }
+  if (to.meta.guest && loggedIn) return next(homeFor())
 
-  if (to.meta.adminOnly && !isAdmin) {
-    if (isWorker) return next('/app/worker')
-    return next('/app/home')
-  }
-  if (to.meta.residentOnly && !isResident) {
-    if (isAdmin) return next('/app/dashboard')
-    if (isWorker) return next('/app/worker')
-  }
-  if (to.meta.workerOnly && !isWorker) {
-    if (isAdmin) return next('/app/dashboard')
-    return next('/app/home')
-  }
-  next()
+  // Every branch below terminates with a next(): the residentOnly guard used to
+  // fall through when the user was neither admin nor worker nor resident, which
+  // let unrelated roles land on the resident dashboard.
+  if (to.meta.adminOnly && !isAdmin) return next(homeFor())
+  if (to.meta.residentOnly && !isResident) return next(homeFor())
+  if (to.meta.workerOnly && !isWorker) return next(homeFor())
+
+  return next()
 })
 
 export default router

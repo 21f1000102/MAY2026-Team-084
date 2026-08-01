@@ -1,5 +1,7 @@
 <template>
   <div>
+    <div v-if="msg && !showAdd" class="alert-custom alert-error">{{ msg }}</div>
+
     <div class="row g-3 mb-4" v-if="summary">
       <div class="col-md-4">
         <div class="stat-card"><div class="stat-icon" style="background:#0E7C7B;"><i class="fas fa-arrow-down"></i></div>
@@ -19,13 +21,14 @@
     </div>
 
     <div class="d-flex justify-content-end mb-3">
-      <button class="btn-primary-custom" @click="showAdd=true"><i class="fas fa-plus me-2"></i>Log Expense</button>
+      <button class="btn-primary-custom" @click="openAdd"><i class="fas fa-plus me-2"></i>Log Expense</button>
     </div>
 
     <div v-if="loading" class="spinner"></div>
     <div v-else class="card">
       <div v-if="expenses.length===0" class="empty-state p-4"><i class="fas fa-receipt"></i><p>No expenses logged</p></div>
-      <table v-else class="table-custom">
+      <div v-else class="table-responsive">
+      <table class="table-custom">
         <thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th>Paid By</th><th>Actions</th></tr></thead>
         <tbody>
           <tr v-for="e in expenses" :key="e.id">
@@ -40,27 +43,29 @@
           </tr>
         </tbody>
       </table>
+      </div>
     </div>
 
     <!-- Add Expense Modal -->
-    <div class="modal-overlay" v-if="showAdd" @click.self="showAdd=false">
+    <div class="modal-overlay" v-if="showAdd" @click.self="closeAdd">
       <div class="modal-box">
         <div class="modal-header">
           <h6 class="mb-0 fw-bold">Log Expense</h6>
-          <button @click="showAdd=false" class="btn btn-sm btn-light"><i class="fas fa-times"></i></button>
+          <button @click="closeAdd" class="btn btn-sm btn-light"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
+          <div v-if="msg" class="alert-custom alert-error">{{ msg }}</div>
           <div class="form-group"><label class="form-label">Category *</label>
             <select v-model="form.category" class="form-control-custom">
               <option>SALARY</option><option>MAINTENANCE</option><option>UTILITIES</option><option>CONSUMABLES</option><option>MISCELLANEOUS</option>
             </select>
           </div>
           <div class="form-group"><label class="form-label">Description *</label><input v-model="form.description" class="form-control-custom" placeholder="e.g. Watchman salary June"/></div>
-          <div class="form-group"><label class="form-label">Amount (₹) *</label><input v-model="form.amount" type="number" class="form-control-custom"/></div>
+          <div class="form-group"><label class="form-label">Amount (₹) *</label><input v-model="form.amount" type="number" min="0" class="form-control-custom"/></div>
           <div class="form-group"><label class="form-label">Date *</label><input v-model="form.expense_date" type="date" class="form-control-custom"/></div>
         </div>
         <div class="modal-footer">
-          <button @click="showAdd=false" class="btn btn-light">Cancel</button>
+          <button @click="closeAdd" class="btn btn-light">Cancel</button>
           <button @click="addExpense" class="btn-primary-custom" :disabled="saving">
             <span v-if="saving"><i class="fas fa-spinner fa-spin me-1"></i></span>Save
           </button>
@@ -72,47 +77,80 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { expensesAPI } from '../api/index'
+import { expensesAPI, errText } from '../api/index'
+import { orNull, today } from '../utils/format'
+
+const emptyForm = () => ({ category:'MAINTENANCE', description:'', amount:'', expense_date: today() })
 
 const expenses = ref([])
 const summary = ref(null)
 const loading = ref(true)
 const saving = ref(false)
 const showAdd = ref(false)
-const form = ref({ category:'MAINTENANCE', description:'', amount:'', expense_date:'' })
+const msg = ref('')
+const form = ref(emptyForm())
 
 onMounted(async () => {
   try {
-    const now = new Date()
-    const [e, s] = await Promise.all([
-      expensesAPI.getAll(),
-      expensesAPI.summary(now.getMonth() + 1, now.getFullYear())
-    ])
-    expenses.value = e.data
-    summary.value = s.data
-  } catch(e) {}
+    expenses.value = (await expensesAPI.getAll()).data
+  } catch(e) { msg.value = errText(e) }
+  await loadSummary()
   loading.value = false
 })
 
+// The totals cards are derived data — every mutation has to refresh them or
+// they keep showing a stale Net Balance.
+async function loadSummary() {
+  try {
+    const now = new Date()
+    summary.value = (await expensesAPI.summary(now.getMonth() + 1, now.getFullYear())).data
+  } catch(e) { msg.value = errText(e) }
+}
+
+function openAdd() { msg.value = ''; showAdd.value = true }
+function closeAdd() { msg.value = ''; showAdd.value = false }
+
 async function addExpense() {
+  if (saving.value) return
+  msg.value = ''
+
+  const description = String(form.value.description || '').trim()
+  if (!description) { msg.value = 'Description is required.'; return }
+
+  const amount = Number(form.value.amount)
+  if (form.value.amount === '' || !Number.isFinite(amount) || amount < 0) {
+    msg.value = 'Amount must be a number of 0 or more.'
+    return
+  }
+
   saving.value = true
   try {
-    const res = await expensesAPI.add(form.value)
+    const res = await expensesAPI.add({
+      category: form.value.category,
+      description,
+      amount,
+      // expense_date is a NOT NULL date column — never send ''.
+      expense_date: orNull(form.value.expense_date) || today()
+    })
     expenses.value.unshift(res.data)
+    form.value = emptyForm()
     showAdd.value = false
-    form.value = { category:'MAINTENANCE', description:'', amount:'', expense_date:'' }
-    const now2 = new Date()
-    const s = await expensesAPI.summary(now2.getMonth() + 1, now2.getFullYear())
-    summary.value = s.data
-  } catch(e) {}
+  } catch(e) {
+    msg.value = errText(e)
+    saving.value = false
+    return
+  }
+  await loadSummary()
   saving.value = false
 }
 
 async function deleteExp(id) {
   if (!confirm('Delete this expense?')) return
+  msg.value = ''
   try {
     await expensesAPI.delete(id)
     expenses.value = expenses.value.filter(e => e.id !== id)
-  } catch(e) {}
+  } catch(e) { msg.value = errText(e); return }
+  await loadSummary()
 }
 </script>

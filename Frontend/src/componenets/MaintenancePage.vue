@@ -1,7 +1,9 @@
 <template>
   <div>
+    <div v-if="msg && !showAdd" class="alert-custom alert-error">{{ msg }}</div>
+
     <div class="d-flex justify-content-end mb-4">
-      <button class="btn-primary-custom" @click="showAdd=true"><i class="fas fa-plus me-2"></i>Add Task</button>
+      <button class="btn-primary-custom" @click="openAdd"><i class="fas fa-plus me-2"></i>Add Task</button>
     </div>
     <div v-if="loading" class="spinner"></div>
     <div v-else>
@@ -27,13 +29,14 @@
     </div>
 
     <!-- Add Task Modal -->
-    <div class="modal-overlay" v-if="showAdd" @click.self="showAdd=false">
+    <div class="modal-overlay" v-if="showAdd" @click.self="closeAdd">
       <div class="modal-box">
         <div class="modal-header">
           <h6 class="mb-0 fw-bold">Add Maintenance Task</h6>
-          <button @click="showAdd=false" class="btn btn-sm btn-light"><i class="fas fa-times"></i></button>
+          <button @click="closeAdd" class="btn btn-sm btn-light"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
+          <div v-if="msg" class="alert-custom alert-error">{{ msg }}</div>
           <div class="form-group"><label class="form-label">Title *</label><input v-model="form.title" class="form-control-custom" placeholder="e.g. Water tank cleaning"/></div>
           <div class="form-group"><label class="form-label">Description</label><textarea v-model="form.description" class="form-control-custom" rows="2"></textarea></div>
           <div class="form-group"><label class="form-label">Category *</label>
@@ -44,7 +47,7 @@
           <div class="form-group"><label class="form-label">Scheduled Date *</label><input v-model="form.scheduled_date" type="date" class="form-control-custom"/></div>
         </div>
         <div class="modal-footer">
-          <button @click="showAdd=false" class="btn btn-light">Cancel</button>
+          <button @click="closeAdd" class="btn btn-light">Cancel</button>
           <button @click="addTask" class="btn-primary-custom" :disabled="saving">
             <span v-if="saving"><i class="fas fa-spinner fa-spin me-1"></i></span>Add Task
           </button>
@@ -56,43 +59,66 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { maintenanceAPI } from '../api/index'
+import { maintenanceAPI, errText } from '../api/index'
+import { orNull, today } from '../utils/format'
+
+const emptyForm = () => ({ title:'', description:'', category:'GENERATOR', scheduled_date: today() })
 
 const tasks = ref([])
 const loading = ref(true)
 const saving = ref(false)
 const showAdd = ref(false)
-const form = ref({ title:'', description:'', category:'GENERATOR', scheduled_date:'' })
+const msg = ref('')
+const form = ref(emptyForm())
 
 onMounted(async () => {
-  try { tasks.value = (await maintenanceAPI.getAll()).data } catch(e) {}
+  try { tasks.value = (await maintenanceAPI.getAll()).data }
+  catch(e) { msg.value = errText(e) }
   loading.value = false
 })
 
+function openAdd() { msg.value = ''; showAdd.value = true }
+function closeAdd() { msg.value = ''; showAdd.value = false }
+
 async function addTask() {
+  if (saving.value) return
+  msg.value = ''
+
+  const title = String(form.value.title || '').trim()
+  if (!title) { msg.value = 'Title is required.'; return }
+
   saving.value = true
   try {
-    const res = await maintenanceAPI.add(form.value)
+    const res = await maintenanceAPI.add({
+      title,
+      // description is optional — '' would be stored as a blank string.
+      description: orNull(form.value.description),
+      category: form.value.category,
+      // scheduled_date is a NOT NULL date column — never send ''.
+      scheduled_date: orNull(form.value.scheduled_date) || today()
+    })
     tasks.value.push(res.data)
+    form.value = emptyForm()
     showAdd.value = false
-    form.value = { title:'', description:'', category:'GENERATOR', scheduled_date:'' }
-  } catch(e) {}
+  } catch(e) { msg.value = errText(e) }
   saving.value = false
 }
 
 async function complete(id) {
+  msg.value = ''
   try {
     const res = await maintenanceAPI.complete(id)
     const idx = tasks.value.findIndex(t => t.id===id)
     if (idx > -1) tasks.value[idx] = res.data
-  } catch(e) {}
+  } catch(e) { msg.value = errText(e) }
 }
 
 async function deleteTask(id) {
   if (!confirm('Delete this task?')) return
+  msg.value = ''
   try {
     await maintenanceAPI.delete(id)
     tasks.value = tasks.value.filter(t => t.id !== id)
-  } catch(e) {}
+  } catch(e) { msg.value = errText(e) }
 }
 </script>

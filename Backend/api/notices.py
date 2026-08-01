@@ -1,13 +1,15 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, Announcement
+
+from auth.roles import active_user_required, admin_required, current_user
+from utils import get_body, parse_enum, require
 
 notices_bp = Blueprint("notices", __name__)
 
 
 # GET /api/notices — all active notices
 @notices_bp.route("/", methods=["GET"])
-@jwt_required()
+@active_user_required
 def get_notices():
     notices = Announcement.query.filter_by(is_active=True)\
                 .order_by(Announcement.created_at.desc()).all()
@@ -16,19 +18,21 @@ def get_notices():
 
 # POST /api/notices — post new notice
 @notices_bp.route("/", methods=["POST"])
-@jwt_required()
+@admin_required
 def add_notice():
-    user_id = int(get_jwt_identity())
-    data = request.get_json()
+    user = current_user()
+    data = get_body(request)
 
-    if not data.get("title") or not data.get("content"):
-        return jsonify({"error": "title and content are required"}), 400
+    require(data, "title", "content")
+    # An unknown category used to commit and then break every later read.
+    category = parse_enum(data.get("category"), "announcement_category",
+                          field="category", default="GENERAL")
 
     notice = Announcement(
         title=data["title"],
         content=data["content"],
-        category=data.get("category", "GENERAL"),
-        published_by=user_id
+        category=category,
+        published_by=user.id
     )
     db.session.add(notice)
     db.session.commit()
@@ -37,20 +41,26 @@ def add_notice():
 
 # PUT /api/notices/<id> — update notice
 @notices_bp.route("/<int:nid>", methods=["PUT"])
-@jwt_required()
+@admin_required
 def update_notice(nid):
     notice = Announcement.query.get_or_404(nid)
-    data = request.get_json()
-    notice.title = data.get("title", notice.title)
-    notice.content = data.get("content", notice.content)
-    notice.category = data.get("category", notice.category)
+    data = get_body(request)
+
+    if data.get("title"):
+        notice.title = data["title"]
+    if data.get("content"):
+        notice.content = data["content"]
+    if "category" in data:
+        notice.category = parse_enum(data.get("category"), "announcement_category",
+                                     field="category", default=notice.category)
+
     db.session.commit()
     return jsonify(_notice_dict(notice)), 200
 
 
 # DELETE /api/notices/<id> — soft delete (deactivate)
 @notices_bp.route("/<int:nid>", methods=["DELETE"])
-@jwt_required()
+@admin_required
 def delete_notice(nid):
     notice = Announcement.query.get_or_404(nid)
     notice.is_active = False

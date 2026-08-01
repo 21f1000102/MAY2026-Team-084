@@ -59,7 +59,8 @@ async function login() {
   try {
     const res = await authAPI.login(form.value)
     authStore.login(res.data.token, res.data.user)
-    router.push(authStore.isAdmin ? '/app/dashboard' : '/app/home')
+    router.push(authStore.isAdmin ? '/app/dashboard'
+      : authStore.isWorker ? '/app/worker' : '/app/home')
   } catch (e) {
     error.value = e.response?.data?.error || 'Login failed'
   } finally {

@@ -17,13 +17,15 @@ body {
 /* ── SIDEBAR ──────────────────────────────────────── */
 .sidebar {
   width: var(--sidebar-w);
-  min-height: 100vh;
+  height: 100vh;          /* was min-height: nav + logout were clipped on short laptops */
+  overflow-y: auto;       /* tall nav (12 admin items) now scrolls instead of being cut off */
   background: var(--primary);
   position: fixed;
   top: 0; left: 0;
   display: flex;
   flex-direction: column;
   z-index: 100;
+  transition: transform 0.25s ease;  /* only animates on mobile, where transform changes */
 }
 
 .sidebar-brand {
@@ -69,12 +71,40 @@ body {
 .sidebar-footer {
   padding: 16px 20px;
   border-top: 1px solid rgba(255,255,255,0.1);
+  /* Pinned to the bottom of the sidebar's scroll area so Logout stays reachable
+     when the nav is taller than the viewport. No effect when the nav fits. */
+  position: sticky;
+  bottom: 0;
+  background: var(--primary);   /* same colour as .sidebar - no visual change */
 }
 
 /* ── MAIN LAYOUT ──────────────────────────────────── */
 .main-content {
   margin-left: var(--sidebar-w);
   min-height: 100vh;
+  min-width: 0;   /* overflow guard: stops wide children forcing the page sideways */
+}
+
+/* Hamburger — hidden on desktop, revealed only in the mobile media query below */
+.sidebar-toggle {
+  display: none;
+  background: none;
+  border: none;
+  padding: 0 12px 0 0;
+  font-size: 1.15rem;
+  color: var(--primary);
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* Backdrop behind the mobile drawer (element is only rendered while the drawer is open) */
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 90;              /* under .sidebar (100), over everything else */
+  border: none;
+  padding: 0;
 }
 
 .topbar {
@@ -226,10 +256,13 @@ body {
 /* ── LOGIN PAGE ───────────────────────────────────── */
 .login-page {
   min-height: 100vh;
+  min-height: 100dvh;      /* mobile URL-bar aware; ignored by browsers without dvh */
   background: linear-gradient(135deg, #1B2A4A 0%, #2d4270 50%, #0E7C7B 100%);
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 24px 16px;      /* gutter so the card never touches the screen edge */
+  overflow-y: auto;        /* tall forms stay reachable instead of being clipped by centering */
 }
 
 .login-card {
@@ -323,7 +356,29 @@ body {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ── RESPONSIVE ───────────────────────────────────────
+   Everything below only activates where the layout was broken.
+   Desktop (>768px) rendering is unchanged.                        */
+
 @media (max-width: 768px) {
+  /* Sidebar becomes an off-canvas drawer, toggled by the hamburger */
   .sidebar { transform: translateX(-100%); }
+  .sidebar.is-open { transform: translateX(0); box-shadow: 0 0 40px rgba(0,0,0,0.35); }
   .main-content { margin-left: 0; }
+
+  /* Reveal the hamburger only here */
+  .sidebar-toggle { display: inline-flex; align-items: center; }
+
+  /* Tighter chrome so small screens aren't 15% padding */
+  .topbar { padding: 12px 16px; }
+  .page-content { padding: 16px; }
+
+  /* Let toolbar rows (filter + action button) wrap instead of overflowing */
+  .page-content .d-flex.justify-content-between { flex-wrap: wrap; gap: 10px; }
+}
+
+@media (max-width: 480px) {
+  .login-card { padding: 28px 22px; }
+  .page-content { padding: 12px; }
+  .stat-card { padding: 16px; gap: 12px; }
 }

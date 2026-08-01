@@ -1,16 +1,25 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import get_jwt_identity
 from models import db, Equipment, EquipmentServiceLog
-from datetime import date, datetime
+from datetime import date
+
+from utils import get_body, require, parse_date, parse_decimal, parse_enum, parse_int
+from auth.roles import active_user_required, admin_required
 
 equipment_bp = Blueprint("equipment", __name__)
 
 
 def _risk_level(equipment):
     """Calculate risk level based on days since last service."""
+    freq = equipment.service_frequency_days
+    # Rows saved before service_frequency_days was validated could hold 0/NULL,
+    # which raised ZeroDivisionError here and 500'd every read of the page.
+    if not freq or freq <= 0 or not equipment.last_serviced_date:
+        return "HIGH"
+
     today = date.today()
     days_since = (today - equipment.last_serviced_date).days
-    pct = (days_since / equipment.service_frequency_days) * 100
+    pct = (days_since / freq) * 100
 
     if pct >= 100:
         return "HIGH"
@@ -21,14 +30,20 @@ def _risk_level(equipment):
 
 
 def _days_until_due(equipment):
+    freq = equipment.service_frequency_days
+    if not freq or freq <= 0 or not equipment.last_serviced_date:
+        return 0
+
     today = date.today()
     days_since = (today - equipment.last_serviced_date).days
-    return max(0, equipment.service_frequency_days - days_since)
+    # Negative == overdue. The old max(0, ...) collapsed every overdue item to
+    # "due today", so nothing overdue was distinguishable in the UI.
+    return freq - days_since
 
 
 # GET /api/equipment — list all equipment with risk levels
 @equipment_bp.route("/", methods=["GET"])
-@jwt_required()
+@active_user_required
 def get_equipment():
     items = Equipment.query.all()
     return jsonify([_equipment_dict(e) for e in items]), 200
@@ -36,22 +51,29 @@ def get_equipment():
 
 # POST /api/equipment — add equipment
 @equipment_bp.route("/", methods=["POST"])
-@jwt_required()
+@admin_required
 def add_equipment():
     user_id = int(get_jwt_identity())
-    data = request.get_json()
+    data = get_body(request)
 
-    required = ["name", "category", "last_serviced_date", "service_frequency_days"]
-    for f in required:
-        if not data.get(f):
-            return jsonify({"error": f"{f} is required"}), 400
+    require(data, "name")
+
+    category = parse_enum(data.get("category"), "equipment_category", required=True)
+    last_serviced_date = parse_date(data.get("last_serviced_date"), "last_serviced_date", required=True)
+    # min_value=1: 0 used to be accepted and then divided by on every read.
+    service_frequency_days = parse_int(
+        data.get("service_frequency_days"), "service_frequency_days", required=True, min_value=1
+    )
+    estimated_service_cost = parse_decimal(
+        data.get("estimated_service_cost"), "estimated_service_cost", min_value=0
+    )
 
     eq = Equipment(
         name=data["name"],
-        category=data["category"],
-        last_serviced_date=data["last_serviced_date"],
-        service_frequency_days=data["service_frequency_days"],
-        estimated_service_cost=data.get("estimated_service_cost"),
+        category=category,
+        last_serviced_date=last_serviced_date,
+        service_frequency_days=service_frequency_days,
+        estimated_service_cost=estimated_service_cost,
         created_by=user_id
     )
     db.session.add(eq)
@@ -59,23 +81,26 @@ def add_equipment():
     return jsonify(_equipment_dict(eq)), 201
 
 
-# PUT /api/equipment/<id>/service — mark serviced today
+# PUT /api/equipment/<id>/service — mark serviced (today by default)
 @equipment_bp.route("/<int:eid>/service", methods=["PUT"])
-@jwt_required()
+@admin_required
 def mark_serviced(eid):
     user_id = int(get_jwt_identity())
     eq = Equipment.query.get_or_404(eid)
-    data = request.get_json()
+    data = get_body(request)
+
+    # optional serviced_date so a service done last week can still be logged
+    serviced_date = parse_date(data.get("serviced_date"), "serviced_date") or date.today()
+    cost = parse_decimal(data.get("cost"), "cost", min_value=0)
 
     # update last serviced date
-    today = date.today()
-    eq.last_serviced_date = today
+    eq.last_serviced_date = serviced_date
 
     # log the service
     log = EquipmentServiceLog(
         equipment_id=eq.id,
-        serviced_date=today,
-        cost=data.get("cost"),
+        serviced_date=serviced_date,
+        cost=cost,
         vendor_name=data.get("vendor_name"),
         notes=data.get("notes"),
         logged_by=user_id
@@ -91,13 +116,14 @@ def mark_serviced(eid):
 
 # GET /api/equipment/forecast — 30-day maintenance forecast
 @equipment_bp.route("/forecast", methods=["GET"])
-@jwt_required()
+@active_user_required
 def forecast():
     items = Equipment.query.all()
     due_in_30 = []
 
     for eq in items:
         days_left = _days_until_due(eq)
+        # days_left is negative when overdue, so overdue items stay in the list
         if days_left <= 30:
             due_in_30.append({
                 "id": eq.id,
@@ -119,7 +145,7 @@ def forecast():
 
 # GET /api/equipment/<id>/history — service log history
 @equipment_bp.route("/<int:eid>/history", methods=["GET"])
-@jwt_required()
+@active_user_required
 def get_history(eid):
     eq = Equipment.query.get_or_404(eid)
     logs = EquipmentServiceLog.query.filter_by(equipment_id=eid)\
@@ -129,7 +155,7 @@ def get_history(eid):
 
 # DELETE /api/equipment/<id> — delete equipment
 @equipment_bp.route("/<int:eid>", methods=["DELETE"])
-@jwt_required()
+@admin_required
 def delete_equipment(eid):
     eq = Equipment.query.get_or_404(eid)
     db.session.delete(eq)

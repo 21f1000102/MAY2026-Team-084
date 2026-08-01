@@ -1,26 +1,32 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, Invoice, Payment, Apartment, Resident
-from datetime import datetime, date
+from datetime import datetime
+
+from utils import ApiError, get_body, require, parse_date, parse_decimal, parse_int
+from auth.roles import current_user, is_admin, active_user_required, finance_required
 
 invoices_bp = Blueprint("invoices", __name__)
 
 
+def _own_apartment_id(user):
+    """The apartment this user lives in, or None."""
+    resident = Resident.query.filter_by(user_id=user.id).first()
+    return resident.apartment_id if resident else None
+
+
 # GET /api/invoices — all invoices (admin) or own (resident)
 @invoices_bp.route("/", methods=["GET"])
-@jwt_required()
+@active_user_required
 def get_invoices():
-    user_id = int(get_jwt_identity())
-    from models import User
-    user = User.query.get(user_id)
+    user = current_user()
 
-    if user.role in ["ADMIN", "TREASURER"]:
+    if is_admin(user):
         invoices = Invoice.query.order_by(Invoice.created_at.desc()).all()
     else:
-        resident = Resident.query.filter_by(user_id=user_id).first()
-        if not resident:
+        apartment_id = _own_apartment_id(user)
+        if not apartment_id:
             return jsonify([]), 200
-        invoices = Invoice.query.filter_by(apartment_id=resident.apartment_id)\
+        invoices = Invoice.query.filter_by(apartment_id=apartment_id)\
                     .order_by(Invoice.created_at.desc()).all()
 
     return jsonify([_invoice_dict(i) for i in invoices]), 200
@@ -28,23 +34,32 @@ def get_invoices():
 
 # POST /api/invoices — generate single invoice
 @invoices_bp.route("/", methods=["POST"])
-@jwt_required()
+@finance_required
 def create_invoice():
-    user_id = int(get_jwt_identity())
-    data = request.get_json()
+    user = current_user()
+    data = get_body(request)
+    require(data, "apartment_id", "month", "year", "amount")
 
-    required = ["apartment_id", "month", "year", "amount"]
-    for f in required:
-        if not data.get(f):
-            return jsonify({"error": f"{f} is required"}), 400
+    apartment_id = parse_int(data.get("apartment_id"), "apartment_id", required=True)
+    month = parse_int(data.get("month"), "month", required=True, min_value=1, max_value=12)
+    year = parse_int(data.get("year"), "year", required=True, min_value=2000, max_value=2200)
+    amount = parse_decimal(data.get("amount"), "amount", required=True, min_value=0)
+    due_date = parse_date(data.get("due_date"), "due_date")
+
+    if not Apartment.query.get(apartment_id):
+        raise ApiError("Apartment not found", 404)
+
+    # bulk already guarded against duplicates; the single route did not.
+    if Invoice.query.filter_by(apartment_id=apartment_id, month=month, year=year).first():
+        raise ApiError("An invoice already exists for this flat and month", 409)
 
     invoice = Invoice(
-        apartment_id=data["apartment_id"],
-        generated_by=user_id,
-        month=data["month"],
-        year=data["year"],
-        amount=data["amount"],
-        due_date=data.get("due_date")
+        apartment_id=apartment_id,
+        generated_by=user.id,
+        month=month,
+        year=year,
+        amount=amount,
+        due_date=due_date,
     )
     db.session.add(invoice)
     db.session.commit()
@@ -53,38 +68,34 @@ def create_invoice():
 
 # POST /api/invoices/bulk — generate invoices for ALL flats in one click
 @invoices_bp.route("/bulk", methods=["POST"])
-@jwt_required()
+@finance_required
 def bulk_generate():
-    user_id = int(get_jwt_identity())
-    data = request.get_json()
+    user = current_user()
+    data = get_body(request)
+    require(data, "month", "year", "amount")
 
-    required = ["month", "year", "amount"]
-    for f in required:
-        if not data.get(f):
-            return jsonify({"error": f"{f} is required"}), 400
+    month = parse_int(data.get("month"), "month", required=True, min_value=1, max_value=12)
+    year = parse_int(data.get("year"), "year", required=True, min_value=2000, max_value=2200)
+    amount = parse_decimal(data.get("amount"), "amount", required=True, min_value=0)
+    due_date = parse_date(data.get("due_date"), "due_date")
 
-    apartments = Apartment.query.all()
     created = []
-
-    for apt in apartments:
+    for apt in Apartment.query.all():
         # skip if invoice already exists for this month/year
         exists = Invoice.query.filter_by(
-            apartment_id=apt.id,
-            month=data["month"],
-            year=data["year"]
+            apartment_id=apt.id, month=month, year=year
         ).first()
         if exists:
             continue
 
-        invoice = Invoice(
+        db.session.add(Invoice(
             apartment_id=apt.id,
-            generated_by=user_id,
-            month=data["month"],
-            year=data["year"],
-            amount=data["amount"],
-            due_date=data.get("due_date")
-        )
-        db.session.add(invoice)
+            generated_by=user.id,
+            month=month,
+            year=year,
+            amount=amount,
+            due_date=due_date,
+        ))
         created.append(apt.flat_number)
 
     db.session.commit()
@@ -96,11 +107,15 @@ def bulk_generate():
 
 # PUT /api/invoices/<id>/pay — mark invoice as paid
 @invoices_bp.route("/<int:inv_id>/pay", methods=["PUT"])
-@jwt_required()
+@finance_required
 def mark_paid(inv_id):
-    user_id = int(get_jwt_identity())
     invoice = Invoice.query.get_or_404(inv_id)
-    data = request.get_json()
+    data = get_body(request)
+
+    # Was not idempotent: paying twice inserted a second Payment row while the
+    # receipt kept showing the first.
+    if invoice.status == "PAID":
+        raise ApiError("This invoice is already paid", 409)
 
     resident = Resident.query.filter_by(apartment_id=invoice.apartment_id).first()
     if not resident:
@@ -114,7 +129,7 @@ def mark_paid(inv_id):
         amount=invoice.amount,
         payment_method=data.get("payment_method", "CASH"),
         transaction_reference=data.get("transaction_reference"),
-        payment_date=datetime.utcnow()
+        payment_date=datetime.utcnow(),
     )
     db.session.add(payment)
     db.session.commit()
@@ -128,22 +143,40 @@ def mark_paid(inv_id):
 
 # GET /api/invoices/<id>/receipt — download receipt data
 @invoices_bp.route("/<int:inv_id>/receipt", methods=["GET"])
-@jwt_required()
+@active_user_required
 def get_receipt(inv_id):
+    user = current_user()
     invoice = Invoice.query.get_or_404(inv_id)
+
+    # Residents may only read receipts for their own flat.
+    if not is_admin(user) and invoice.apartment_id != _own_apartment_id(user):
+        raise ApiError("You are not allowed to view this receipt", 403)
+
     if invoice.status != "PAID":
         return jsonify({"error": "Invoice not paid yet"}), 400
 
     payment = Payment.query.filter_by(invoice_id=inv_id).first()
+    if not payment:
+        raise ApiError("No payment record found for this invoice", 404)
+
     return jsonify(_receipt_dict(payment, invoice)), 200
 
 
-# GET /api/invoices/pending — all unpaid invoices
+# GET /api/invoices/pending — unpaid invoices (own flat unless admin)
 @invoices_bp.route("/pending", methods=["GET"])
-@jwt_required()
+@active_user_required
 def get_pending():
-    invoices = Invoice.query.filter(Invoice.status != "PAID").all()
-    return jsonify([_invoice_dict(i) for i in invoices]), 200
+    user = current_user()
+    query = Invoice.query.filter(Invoice.status != "PAID")
+
+    # Previously leaked every flat's outstanding dues to any logged-in user.
+    if not is_admin(user):
+        apartment_id = _own_apartment_id(user)
+        if not apartment_id:
+            return jsonify([]), 200
+        query = query.filter_by(apartment_id=apartment_id)
+
+    return jsonify([_invoice_dict(i) for i in query.all()]), 200
 
 
 # ── helpers ───────────────────────────────────────────────────
@@ -159,6 +192,7 @@ def _invoice_dict(i):
         "status": i.status,
         "created_at": str(i.created_at)
     }
+
 
 def _receipt_dict(p, i):
     return {
