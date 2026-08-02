@@ -87,15 +87,20 @@ if (Test-Path $xml) {
         'test_conflicts' = 'Conflict Resolver'; 'test_parking' = 'Visitor Parking'
         'test_emergency' = 'Emergency Contacts'
         'test_regressions' = 'Regression suite (fixed defects)'
+        'test_open_defects' = 'Open defects (EXPECTED to fail)'
     }
 
+    $openDefectFails = 0
     $stats = [ordered]@{}
     foreach ($tc in $suite.testcase) {
         $mod = ($tc.classname -split '\.' | Where-Object { $_ -and $_ -ne 'tests' } | Select-Object -First 1)
         if (-not $mod) { continue }
         if (-not $stats.Contains($mod)) { $stats[$mod] = @{ n = 0; bad = 0; skip = 0 } }
         $stats[$mod].n++
-        if ($tc.failure -or $tc.error) { $stats[$mod].bad++ }
+        if ($tc.failure -or $tc.error) {
+            $stats[$mod].bad++
+            if ($mod -eq 'test_open_defects') { $openDefectFails++ }
+        }
         elseif ($tc.skipped)           { $stats[$mod].skip++ }
     }
 
@@ -108,8 +113,11 @@ if (Test-Path $xml) {
         $s = $stats[$key]
         $name = if ($friendly.ContainsKey($key)) { $friendly[$key] } else { $key }
         $ok = $s.n - $s.bad - $s.skip
-        if ($s.bad -gt 0)       { $status = 'FAILED';     $colour = 'Red' }
-        elseif ($s.skip -gt 0)  { $status = 'passed (1 skipped)'; $colour = 'Yellow' }
+        if ($key -eq 'test_open_defects' -and $s.bad -gt 0) {
+            $status = "$($s.bad) known defects (expected)"; $colour = 'Yellow'
+        }
+        elseif ($s.bad -gt 0)   { $status = 'FAILED';     $colour = 'Red' }
+        elseif ($s.skip -gt 0)  { $status = "passed ($($s.skip) skipped)"; $colour = 'Yellow' }
         else                    { $status = 'all passed'; $colour = 'Green' }
         Write-Host ('  {0,-34} {1,6} {2,7}   ' -f $name, $s.n, $ok) -NoNewline
         Write-Host $status -ForegroundColor $colour
@@ -130,15 +138,23 @@ else {
 }
 
 # ── summary box ───────────────────────────────────────────────
+$regressions = $failed + $errors - $openDefectFails
 Write-Rule
-if ($exitCode -eq 0) { Write-Host '   RESULT:  ALL TESTS PASSED' -ForegroundColor Green }
-else                 { Write-Host '   RESULT:  TESTS FAILED'     -ForegroundColor Red }
+if ($regressions -le 0 -and $openDefectFails -gt 0) {
+    Write-Host '   RESULT:  NO REGRESSIONS' -ForegroundColor Green
+    Write-Host ("            {0} known open defects still failing (expected)" -f $openDefectFails) -ForegroundColor Yellow
+}
+elseif ($regressions -le 0) { Write-Host '   RESULT:  ALL TESTS PASSED' -ForegroundColor Green }
+else { Write-Host ('   RESULT:  {0} REGRESSION(S) - INVESTIGATE' -f $regressions) -ForegroundColor Red }
 Write-Rule
 Write-Host ''
 Write-Host ('   Total test cases : {0}' -f $total)
 Write-Host ('   Passed           : {0}' -f $passed) -ForegroundColor Green
-if ($failed -gt 0)  { Write-Host ('   Failed           : {0}' -f $failed) -ForegroundColor Red }
-else                { Write-Host  '   Failed           : 0' }
+if ($openDefectFails -gt 0) {
+    Write-Host ('   Known defects    : {0}  (tests/test_open_defects.py - fail by design)' -f $openDefectFails) -ForegroundColor Yellow
+}
+if ($regressions -gt 0) { Write-Host ('   Regressions      : {0}' -f $regressions) -ForegroundColor Red }
+else                    { Write-Host  '   Regressions      : 0' -ForegroundColor Green }
 if ($errors  -gt 0) { Write-Host ('   Errors           : {0}' -f $errors) -ForegroundColor Red }
 if ($skipped -gt 0) { Write-Host ('   Skipped          : {0}  (documented open finding)' -f $skipped) -ForegroundColor Yellow }
 Write-Host ('   Duration         : {0:N1}s' -f $elapsed.TotalSeconds)
@@ -157,4 +173,5 @@ Write-Host 'Full case-by-case detail (URL, request, expected vs actual):' -Foreg
 Write-Host '  docs\TEST_CASES.md' -ForegroundColor DarkGray
 Write-Host ''
 
-exit $exitCode
+# Only a regression is a real failure; the open-defect tests fail by design.
+if ($regressions -gt 0) { exit 1 } else { exit 0 }

@@ -49,7 +49,8 @@ MODULES = OrderedDict([
     ("test_conflicts", ("Neighbour Conflict Resolver", "US-16")),
     ("test_parking", ("Visitor Parking", "US-12")),
     ("test_emergency", ("Emergency Contacts", "US-07")),
-    ("test_regressions", ("Regression suite — defects found by testing", "all")),
+    ("test_regressions", ("Regression suite — defects already fixed", "all")),
+    ("test_open_defects", ("Open defects — EXPECTED TO FAIL", "all")),
 ])
 
 
@@ -209,6 +210,9 @@ def main():
     print(f"pytest: {summary}")
 
     passed = totals["tests"] - totals["failures"] - totals["errors"] - totals["skipped"]
+    open_fail = sum(1 for c in cases
+                    if c["module"] == "test_open_defects" and c["status"] == "FAIL")
+    regressions = totals["failures"] + totals["errors"] - open_fail
     now = datetime.now(timezone.utc).strftime("%d %B %Y, %H:%M UTC")
 
     by_module = OrderedDict((m, []) for m in MODULES)
@@ -228,9 +232,17 @@ def main():
 
     w("## 1. Summary\n")
     w(f"| | |\n|---|---|\n| Generated | {now} |\n| Total test cases | **{totals['tests']}** |\n"
-      f"| Passed | **{passed}** |\n| Failed | **{totals['failures'] + totals['errors']}** |\n"
+      f"| Passed | **{passed}** |\n"
+      f"| Failed — known open defects | **{open_fail}** (expected — see section 3) |\n"
+      f"| Failed — regressions | **{regressions}** |\n"
       f"| Skipped | {totals['skipped']} |\n| Duration | {totals['time']:.0f}s |\n"
       f"| Base URL | `{BASE_URL}` |\n")
+    if open_fail:
+        w(f"\n> **{open_fail} tests fail on purpose.** They live in "
+          "`tests/test_open_defects.py` and assert the behaviour the API *should* have. Each is a "
+          "real defect we found and have not fixed yet — leaving the test red keeps it visible. "
+          "Section 3 lists them with expected vs actual. "
+          f"**Regressions (unexpected failures): {regressions}.**\n")
 
     w("\n### How to run\n")
     w("```bash\ncd Backend\npip install -r requirements.txt\npytest -v                 "
@@ -241,7 +253,8 @@ def main():
     for mod, (feature, stories) in MODULES.items():
         rows = by_module.get(mod, [])
         ok = sum(1 for r in rows if r["status"] == "PASS")
-        w(f"| `{mod}.py` | {feature} | {stories} | {len(rows)} | {ok} |")
+        note = " ⚠️ fails by design" if mod == "test_open_defects" else ""
+        w(f"| `{mod}.py` | {feature}{note} | {stories} | {len(rows)} | {ok} |")
     w(f"| | | **Total** | **{totals['tests']}** | **{passed}** |\n")
 
     w("Every module covers the same four axes: **happy path**, **validation** (missing fields, "
@@ -392,11 +405,31 @@ from what the API should have returned. Each now has a permanent regression test
 | D-14 | `POST /api/invoices/` (as TENANT) | any valid body | `403` | **`200`** — invoice created | every mutating endpoint was bare `@jwt_required()`; residents could also mark invoices paid and delete flats | ✅ Fixed |
 | D-15 | `DELETE /api/members/apartments/{id}` | flat still has residents | `409` | **`200`** — cascade silently deleted its residents, invoices, payments and complaints | destructive cascade with no guard | ✅ Fixed |
 
-### Still open
+### Still open — these tests FAIL right now, on purpose
 
-| # | API | Expected | Actual | Assessment |
-|---|-----|----------|--------|------------|
-| **FINDING-10** | any protected endpoint called without a token | `{"error": "..."}` — the envelope `openapi.yaml` documents | `{"msg": "Missing Authorization Header"}` | **Open, low severity.** `flask-jwt-extended` emits its own envelope for auth failures, so 401 bodies differ from every other error in the API. The frontend reads `data.error`, so a session-expiry message falls back to generic text. The fix is a few `@jwt.unauthorized_loader`-style handlers in `create_app()`. Left unfixed pending team sign-off, and documented in the spec so the contract is not misleading. |
+`Backend/tests/test_open_defects.py` asserts the behaviour the API *should* have. Each test below
+currently fails because the code does something else. They are left red deliberately: a failing test
+is a to-do item that cannot be forgotten, whereas a comment can. Every one was reproduced against
+the running API, not inferred from reading the code.
+
+| # | API | Input | Expected | **Actual (today)** | Severity | Fix |
+|---|-----|-------|----------|--------------------|----------|-----|
+| OD-01 | any protected endpoint, no token | — | `{"error": "..."}` — the envelope `openapi.yaml` declares for all 67 protected operations | **`{"msg": "Missing Authorization Header"}`** | Low | Add `@jwt.unauthorized_loader` / `invalid_token_loader` / `expired_token_loader` in `create_app()` (~6 lines) |
+| OD-02 | `POST /api/auth/register` (public) | `{"role": "ADMIN", …}` | `400` / `403` — public signup may only create residents | **`201`** + a working ADMIN token | **HIGH** | Restrict the public endpoint to `TENANT`/`OWNER`; create staff via the admin-only `POST /api/members/` |
+| OD-02b | `GET /api/members/` with that token | — | `403` | **`200`** — the full member directory, proving the escalation is exploitable | **HIGH** | as above |
+| OD-03 | `GET /api/invoices/` | an UNPAID invoice due 60 days ago | status `OVERDUE` | **`UNPAID`** — forever | Medium | Flip past-due unpaid invoices on read, or add a scheduled task |
+| OD-04 | `POST /api/maintenance/` | `{"category": "BOGUS"}` | `"category must be one of: …"` | **`"task_category must be one of: …"`** | Low | Pass `field="category"` to `parse_enum` |
+| OD-04b | `POST /api/equipment/` | `{"category": "BOGUS"}` | `"category must be one of: …"` | **`"equipment_category must be one of: …"`** | Low | as above |
+
+**Why these are still open.** OD-02 is deliberate for now — public ADMIN signup is how the team
+creates test accounts during development (`KNOWN_ISSUES.md` #1) — but it is the single most
+important thing to close before the app touches real data. OD-01 and OD-04 are contract
+inconsistencies with easy fixes. OD-03 is a genuine functional gap in a headline feature: the
+treasurer cannot tell "due next week" from "unpaid since March", and the Society Health Score's
+payment component is blind to lateness.
+
+All six are scheduled for the next sprint. When one is fixed, its test moves from
+`test_open_defects.py` into `test_regressions.py`, where it must pass from then on.
 
 ### What testing bought us
 
