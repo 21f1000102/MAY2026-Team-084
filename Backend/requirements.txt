@@ -4,3 +4,6 @@ flask-jwt-extended
 flask-cors
 sqlalchemy
 werkzeug
+
+# testing
+pytest
