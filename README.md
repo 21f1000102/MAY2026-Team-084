@@ -14,9 +14,9 @@ complaint tracking, managing dues efficiently, and maintaining proper records.
 
 | Path | Contents |
 |------|----------|
-| [`Backend/`](Backend/) | Flask API — `app.py`, `models.py`, `config.py`, `api/` (12 blueprints), `auth/`, `openapi.yaml` |
+| [`Backend/`](Backend/) | Flask API — `app.py`, `models.py`, `config.py`, `api/` (13 blueprints), `tests/`, `seed.py`, `auth/`, `openapi.yaml` |
 | [`Frontend/`](Frontend/) | Vue 3 SPA — `src/` (pages, router, store, API client), `vite.config.js` |
-| [`docs/`](docs/) | Design docs + [development plan](docs/DEVELOPMENT_PLAN.md) + [feature spec template](docs/FEATURE_SPEC_TEMPLATE.md) |
+| [`docs/`](docs/) | Design docs, [user stories](docs/USER_STORIES.md), [test cases](docs/TEST_CASES.md), [development plan](docs/DEVELOPMENT_PLAN.md) |
 | [`diagrams/`](diagrams/) | Python generators (Graphviz + matplotlib) and rendered PNG/SVG diagrams |
 
 ---
@@ -37,6 +37,13 @@ python app.py                   # -> http://127.0.0.1:5000
 ```
 
 The SQLite database is created automatically on first run (it is git-ignored).
+To load a demo society — one user per role, flats, notices, invoices and emergency contacts:
+
+```bash
+python seed.py          # safe to re-run; --reset wipes first
+```
+
+It prints the sign-in table; the admin account is `admin@apt.com` / `Admin@123`.
 
 ### 2. Frontend
 
@@ -89,6 +96,20 @@ All endpoints live under `/api/*` and (except register/login) require an
 | `emergency` | `/api/emergency` | emergency contact directory (admin manages, all roles read) |
 
 ---
+
+## Testing
+
+534 automated API tests covering all 13 blueprints — happy paths, validation, role
+authorization, and business rules, plus a regression suite for every defect testing has caught.
+
+```bash
+cd Backend
+pytest -v                 # run the suite
+python tests/report.py    # regenerate docs/TEST_CASES.md from a real run
+```
+
+**[docs/TEST_CASES.md](docs/TEST_CASES.md)** lists every case with its input, expected output and
+actual output, and documents the defects testing uncovered.
 
 ## Development process
 

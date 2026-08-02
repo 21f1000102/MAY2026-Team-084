@@ -42,3 +42,6 @@ yarn-error.log*
 
 # Local Claude Code tooling (agents, settings)
 .claude/
+
+# pytest JUnit output (transient, used by tests/report.py)
+_junit.xml
