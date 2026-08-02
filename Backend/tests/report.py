@@ -233,7 +233,7 @@ def main():
     w("## 1. Summary\n")
     w(f"| | |\n|---|---|\n| Generated | {now} |\n| Total test cases | **{totals['tests']}** |\n"
       f"| Passed | **{passed}** |\n"
-      f"| Failed — known open defects | **{open_fail}** (expected — see section 3) |\n"
+      f"| Failed — known open defects | **{open_fail}** (expected — see section 4) |\n"
       f"| Failed — regressions | **{regressions}** |\n"
       f"| Skipped | {totals['skipped']} |\n| Duration | {totals['time']:.0f}s |\n"
       f"| Base URL | `{BASE_URL}` |\n")
@@ -241,7 +241,7 @@ def main():
         w(f"\n> **{open_fail} tests fail on purpose.** They live in "
           "`tests/test_open_defects.py` and assert the behaviour the API *should* have. Each is a "
           "real defect we found and have not fixed yet — leaving the test red keeps it visible. "
-          "Section 3 lists them with expected vs actual. "
+          "Section 4 lists them with expected vs actual. "
           f"**Regressions (unexpected failures): {regressions}.**\n")
 
     w("\n### How to run\n")
@@ -261,27 +261,87 @@ def main():
       "bad enums, bad dates, malformed bodies), **authorization** (401 unauthenticated, 403 wrong "
       "role) and **business rules** (duplicates, idempotency, state transitions).\n")
 
-    # ── detailed cases ────────────────────────────────────────
-    w("\n---\n")
-    w("## 2. Test cases\n")
-
+    # ── prepare every case once, so the index and the detail agree ────
+    prepared = OrderedDict()
     counter = 0
     for mod, (feature, stories) in MODULES.items():
         rows = by_module.get(mod, [])
         if not rows:
             continue
-        ok = sum(1 for r in rows if r["status"] == "PASS")
-        w(f"\n---\n\n## {feature}\n")
-        w(f"`Backend/tests/{mod}.py` · {stories} · **{ok}/{len(rows)} passed**\n")
-
+        entries = []
         for case in rows:
             counter += 1
             src = sources.get((case["module"], case["cls"], re.sub(r"\[.*\]$", "", case["name"])))
             made = calls.get(nodeid_for(case), [])
             primary = made[-1] if made else None
-            setup = made[:-1]
 
-            w(f"\n### TC-{counter:03d} · {title_of(case, src)}\n")
+            # Asserts appear in the same order as the calls, so when the counts
+            # line up we can attribute the right expectation to the primary
+            # (last) call instead of listing every code the test ever asserted.
+            exp = (src or {}).get("expected", {"codes": [], "notes": []})
+            exp_codes = exp["codes"]
+            if len(exp_codes) > 1 and made and len(exp_codes) == len(made):
+                exp_codes = [exp_codes[-1]]
+
+            entries.append({
+                "id": f"TC-{counter:03d}",
+                "anchor": f"tc-{counter:03d}",
+                "case": case,
+                "src": src,
+                "made": made,
+                "primary": primary,
+                "setup": made[:-1],
+                "exp": exp,
+                "exp_codes": exp_codes,
+                "title": title_of(case, src),
+            })
+        prepared[mod] = (feature, stories, entries)
+
+    # ── 2. index tables (click an ID to jump to the detail) ───────────
+    w("\n---\n")
+    w("## 2. Test case index\n")
+    w("One row per test case. **Click a test ID** to jump to its full detail — the exact request "
+      "that was sent and the response that came back.\n")
+
+    for mod, (feature, stories, entries) in prepared.items():
+        ok = sum(1 for e in entries if e["case"]["status"] == "PASS")
+        flag = "  ⚠️ *fails by design*" if mod == "test_open_defects" else ""
+        w(f"\n### {feature}{flag}\n")
+        w(f"`Backend/tests/{mod}.py` · {stories} · **{ok}/{len(entries)} passed**\n")
+        w("| ID | Test case | Endpoint | Expected | Actual | Result |")
+        w("|---|---|---|---|---|---|")
+        for e in entries:
+            status = e["case"]["status"]
+            mark = {"PASS": "✅ Pass", "SKIP": "⏭️ Skip"}.get(status, "❌ **Fail**")
+            endpoint = (f"`{e['primary']['method']} {e['primary']['path']}`"
+                        if e["primary"] else "—")
+            expected = (" / ".join(str(c) for c in e["exp_codes"])) or "—"
+            actual = str(e["primary"]["status"]) if e["primary"] else "—"
+            if status == "FAIL" and e["primary"]:
+                actual = f"**{actual}**"
+            title = e["title"].replace("|", "\\|")
+            if len(title) > 78:
+                title = title[:77] + "…"
+            w(f"| [{e['id']}](#{e['anchor']}) | {title} | {endpoint} | {expected} | {actual} | {mark} |")
+        w("")
+
+    # ── 3. detailed cases ─────────────────────────────────────────────
+    w("\n---\n")
+    w("## 3. Test case detail\n")
+
+    for mod, (feature, stories, entries) in prepared.items():
+        ok = sum(1 for e in entries if e["case"]["status"] == "PASS")
+        w(f"\n---\n\n## {feature}\n")
+        w(f"`Backend/tests/{mod}.py` · {stories} · **{ok}/{len(entries)} passed** · "
+          "[↑ back to index](#2-test-case-index)\n")
+
+        for e in entries:
+            case, src, made, primary, setup = (
+                e["case"], e["src"], e["made"], e["primary"], e["setup"])
+            exp, exp_codes = e["exp"], e["exp_codes"]
+
+            w(f'\n<a id="{e["anchor"]}"></a>')
+            w(f"\n### {e['id']} · {e['title']}\n")
 
             if primary:
                 w(f"**Page being tested:** `{primary['method']} {BASE_URL}{primary['path']}`\n")
@@ -307,16 +367,9 @@ def main():
                 w("- _none_")
             w("")
 
-            # Expected. Asserts appear in the same order as the calls, so when the
-            # counts line up we can attribute the right expectation to the primary
-            # (last) call instead of listing every code the test ever asserted.
-            exp = (src or {}).get("expected", {"codes": [], "notes": []})
-            exp_codes = exp["codes"]
-            if len(exp_codes) > 1 and made and len(exp_codes) == len(made):
-                exp_codes = [exp_codes[-1]]
             w("**Expected Output:**\n")
             if case["status"] == "SKIP":
-                w("- _Documented open finding — see section 3._")
+                w("- _Documented open finding — see section 4._")
             elif exp_codes:
                 w(f"- HTTP Status Code: `{' or '.join(str(c) for c in exp_codes)}`")
             elif primary:
@@ -359,6 +412,8 @@ def main():
                 w("```")
                 w("</details>\n")
 
+            w("[↑ back to index](#2-test-case-index)\n")
+
     w(DEFECTS)
 
     w("\n## 4. Test design notes\n")
@@ -381,7 +436,7 @@ def main():
 DEFECTS = """
 ---
 
-## 3. Defects found through testing — where actual differed from expected
+## 4. Defects found through testing — where actual differed from expected
 
 Every entry below is a **real defect testing caught in our own code**: the actual output differed
 from what the API should have returned. Each now has a permanent regression test in

@@ -8,17 +8,17 @@ Test cases for the SocietyEase REST API. For each case this records the **URL th
 
 | | |
 |---|---|
-| Generated | 02 August 2026, 12:01 UTC |
+| Generated | 02 August 2026, 12:22 UTC |
 | Total test cases | **539** |
 | Passed | **533** |
-| Failed — known open defects | **6** (expected — see section 3) |
+| Failed — known open defects | **6** (expected — see section 4) |
 | Failed — regressions | **0** |
 | Skipped | 0 |
-| Duration | 201s |
+| Duration | 254s |
 | Base URL | `http://127.0.0.1:5000` |
 
 
-> **6 tests fail on purpose.** They live in `tests/test_open_defects.py` and assert the behaviour the API *should* have. Each is a real defect we found and have not fixed yet — leaving the test red keeps it visible. Section 3 lists them with expected vs actual. **Regressions (unexpected failures): 0.**
+> **6 tests fail on purpose.** They live in `tests/test_open_defects.py` and assert the behaviour the API *should* have. Each is a real defect we found and have not fixed yet — leaving the test red keeps it visible. Section 4 lists them with expected vs actual. **Regressions (unexpected failures): 0.**
 
 
 ### How to run
@@ -57,15 +57,683 @@ Every module covers the same four axes: **happy path**, **validation** (missing 
 
 ---
 
-## 2. Test cases
+## 2. Test case index
+
+One row per test case. **Click a test ID** to jump to its full detail — the exact request that was sent and the response that came back.
+
+
+### Authentication
+
+`Backend/tests/test_auth.py` · US-08 · **52/52 passed**
+
+| ID | Test case | Endpoint | Expected | Actual | Result |
+|---|---|---|---|---|---|
+| [TC-001](#tc-001) | Register returns 201 with token and user | `POST /api/auth/register` | 201 | 201 | ✅ Pass |
+| [TC-002](#tc-002) | Register lowercases and strips email | `POST /api/auth/register` | 201 | 201 | ✅ Pass |
+| [TC-003](#tc-003) | Register issues a usable token | `GET /api/auth/me` | 200 | 200 | ✅ Pass |
+| [TC-004](#tc-004) | Register missing required field returns 400 | `POST /api/auth/register` | 400 | 400 | ✅ Pass |
+| [TC-005](#tc-005) | Register missing required field returns 400 | `POST /api/auth/register` | 400 | 400 | ✅ Pass |
+| [TC-006](#tc-006) | Register missing required field returns 400 | `POST /api/auth/register` | 400 | 400 | ✅ Pass |
+| [TC-007](#tc-007) | Register missing required field returns 400 | `POST /api/auth/register` | 400 | 400 | ✅ Pass |
+| [TC-008](#tc-008) | Register blank required field returns 400 | `POST /api/auth/register` | 400 | 400 | ✅ Pass |
+| [TC-009](#tc-009) | Register blank required field returns 400 | `POST /api/auth/register` | 400 | 400 | ✅ Pass |
+| [TC-010](#tc-010) | Register unknown role returns 400 | `POST /api/auth/register` | 400 | 400 | ✅ Pass |
+| [TC-011](#tc-011) | Register malformed body returns 400 | `POST /api/auth/register` | 400 | 400 | ✅ Pass |
+| [TC-012](#tc-012) | Register malformed body returns 400 | `POST /api/auth/register` | 400 | 400 | ✅ Pass |
+| [TC-013](#tc-013) | Register malformed body returns 400 | `POST /api/auth/register` | 400 | 400 | ✅ Pass |
+| [TC-014](#tc-014) | Register duplicate email returns 409 | `POST /api/auth/register` | 409 | 409 | ✅ Pass |
+| [TC-015](#tc-015) | Register duplicate email is case insensitive | `POST /api/auth/register` | 409 | 409 | ✅ Pass |
+| [TC-016](#tc-016) | Register duplicate phone returns 409 | `POST /api/auth/register` | 409 | 409 | ✅ Pass |
+| [TC-017](#tc-017) | Blank phone must normalise to NULL — users.phone is UNIQUE | `POST /api/auth/register` | — | 201 | ✅ Pass |
+| [TC-018](#tc-018) | Register blank phone is stored as null | `POST /api/auth/register` | 201 | 201 | ✅ Pass |
+| [TC-019](#tc-019) | Login succeeds for every seeded role | `POST /api/auth/login` | 200 | 200 | ✅ Pass |
+| [TC-020](#tc-020) | Login succeeds for every seeded role | `POST /api/auth/login` | 200 | 200 | ✅ Pass |
+| [TC-021](#tc-021) | Login succeeds for every seeded role | `POST /api/auth/login` | 200 | 200 | ✅ Pass |
+| [TC-022](#tc-022) | Login succeeds for every seeded role | `POST /api/auth/login` | 200 | 200 | ✅ Pass |
+| [TC-023](#tc-023) | Login succeeds for every seeded role | `POST /api/auth/login` | 200 | 200 | ✅ Pass |
+| [TC-024](#tc-024) | Login succeeds for every seeded role | `POST /api/auth/login` | 200 | 200 | ✅ Pass |
+| [TC-025](#tc-025) | Login wrong password returns 401 | `POST /api/auth/login` | 401 | 401 | ✅ Pass |
+| [TC-026](#tc-026) | Login unknown email returns 401 | `POST /api/auth/login` | 401 | 401 | ✅ Pass |
+| [TC-027](#tc-027) | Login missing required field returns 400 | `POST /api/auth/login` | 400 | 400 | ✅ Pass |
+| [TC-028](#tc-028) | Login missing required field returns 400 | `POST /api/auth/login` | 400 | 400 | ✅ Pass |
+| [TC-029](#tc-029) | Login malformed body returns 400 | `POST /api/auth/login` | 400 | 400 | ✅ Pass |
+| [TC-030](#tc-030) | Login malformed body returns 400 | `POST /api/auth/login` | 400 | 400 | ✅ Pass |
+| [TC-031](#tc-031) | Login malformed body returns 400 | `POST /api/auth/login` | 400 | 400 | ✅ Pass |
+| [TC-032](#tc-032) | Login deactivated account returns 403 | `POST /api/auth/login` | 403 | 403 | ✅ Pass |
+| [TC-033](#tc-033) | Me returns the authenticated user | `GET /api/auth/me` | 200 | 200 | ✅ Pass |
+| [TC-034](#tc-034) | Me is open to every role | `GET /api/auth/me` | 200 | 200 | ✅ Pass |
+| [TC-035](#tc-035) | Me is open to every role | `GET /api/auth/me` | 200 | 200 | ✅ Pass |
+| [TC-036](#tc-036) | Me is open to every role | `GET /api/auth/me` | 200 | 200 | ✅ Pass |
+| [TC-037](#tc-037) | Me is open to every role | `GET /api/auth/me` | 200 | 200 | ✅ Pass |
+| [TC-038](#tc-038) | Me without token returns 401 | `GET /api/auth/me` | 401 | 401 | ✅ Pass |
+| [TC-039](#tc-039) | Me with garbage token returns 422 | `GET /api/auth/me` | 401 / 422 | 422 | ✅ Pass |
+| [TC-040](#tc-040) | Change password returns 200 | `PUT /api/auth/change-password` | 200 | 200 | ✅ Pass |
+| [TC-041](#tc-041) | Change password old password stops working | `POST /api/auth/login` | 401 | 401 | ✅ Pass |
+| [TC-042](#tc-042) | Change password new password works | `POST /api/auth/login` | 200 | 200 | ✅ Pass |
+| [TC-043](#tc-043) | Regression: this used to be a KeyError -> HTML 500 | `PUT /api/auth/change-password` | 400 | 400 | ✅ Pass |
+| [TC-044](#tc-044) | Change password missing old password returns 400 | `PUT /api/auth/change-password` | 400 | 400 | ✅ Pass |
+| [TC-045](#tc-045) | Change password wrong old password returns 400 | `PUT /api/auth/change-password` | 400 | 400 | ✅ Pass |
+| [TC-046](#tc-046) | Change password shorter than six chars returns 400 | `PUT /api/auth/change-password` | 400 | 400 | ✅ Pass |
+| [TC-047](#tc-047) | Change password shorter than six chars returns 400 | `PUT /api/auth/change-password` | 400 | 400 | ✅ Pass |
+| [TC-048](#tc-048) | Change password shorter than six chars returns 400 | `PUT /api/auth/change-password` | 400 | 400 | ✅ Pass |
+| [TC-049](#tc-049) | Change password malformed body returns 400 | `PUT /api/auth/change-password` | 400 | 400 | ✅ Pass |
+| [TC-050](#tc-050) | Change password malformed body returns 400 | `PUT /api/auth/change-password` | 400 | 400 | ✅ Pass |
+| [TC-051](#tc-051) | Change password malformed body returns 400 | `PUT /api/auth/change-password` | 400 | 400 | ✅ Pass |
+| [TC-052](#tc-052) | Change password without token returns 401 | `PUT /api/auth/change-password` | 401 | 401 | ✅ Pass |
+
+
+### Members & Apartments
+
+`Backend/tests/test_members.py` · US-09, US-04 · **96/96 passed**
+
+| ID | Test case | Endpoint | Expected | Actual | Result |
+|---|---|---|---|---|---|
+| [TC-053](#tc-053) | List apartments returns seeded flats | `GET /api/members/apartments` | 200 | 200 | ✅ Pass |
+| [TC-054](#tc-054) | List apartments exposes block and floor | `GET /api/members/apartments` | — | 200 | ✅ Pass |
+| [TC-055](#tc-055) | List apartments is open to every role | `GET /api/members/apartments` | 200 | 200 | ✅ Pass |
+| [TC-056](#tc-056) | List apartments is open to every role | `GET /api/members/apartments` | 200 | 200 | ✅ Pass |
+| [TC-057](#tc-057) | List apartments is open to every role | `GET /api/members/apartments` | 200 | 200 | ✅ Pass |
+| [TC-058](#tc-058) | List apartments is open to every role | `GET /api/members/apartments` | 200 | 200 | ✅ Pass |
+| [TC-059](#tc-059) | List apartments without token returns 401 | `GET /api/members/apartments` | 401 | 401 | ✅ Pass |
+| [TC-060](#tc-060) | Create apartment returns 201 | `POST /api/members/apartments` | 201 | 201 | ✅ Pass |
+| [TC-061](#tc-061) | Create apartment accepts a numeric string floor | `POST /api/members/apartments` | 201 | 201 | ✅ Pass |
+| [TC-062](#tc-062) | Create apartment missing flat number returns 400 | `POST /api/members/apartments` | 400 | 400 | ✅ Pass |
+| [TC-063](#tc-063) | Create apartment non numeric floor returns 400 | `POST /api/members/apartments` | 400 | 400 | ✅ Pass |
+| [TC-064](#tc-064) | Create apartment malformed body returns 400 | `POST /api/members/apartments` | 400 | 400 | ✅ Pass |
+| [TC-065](#tc-065) | Create apartment malformed body returns 400 | `POST /api/members/apartments` | 400 | 400 | ✅ Pass |
+| [TC-066](#tc-066) | Create apartment malformed body returns 400 | `POST /api/members/apartments` | 400 | 400 | ✅ Pass |
+| [TC-067](#tc-067) | Create apartment duplicate flat number returns 409 | `POST /api/members/apartments` | 409 | 409 | ✅ Pass |
+| [TC-068](#tc-068) | Create apartment as resident returns 403 | `POST /api/members/apartments` | 403 | 403 | ✅ Pass |
+| [TC-069](#tc-069) | Create apartment as worker returns 403 | `POST /api/members/apartments` | 403 | 403 | ✅ Pass |
+| [TC-070](#tc-070) | Create apartment as treasurer returns 201 | `POST /api/members/apartments` | 201 | 201 | ✅ Pass |
+| [TC-071](#tc-071) | Create apartment without token returns 401 | `POST /api/members/apartments` | 401 | 401 | ✅ Pass |
+| [TC-072](#tc-072) | Update apartment renames the flat | `PUT /api/members/apartments/2` | 200 | 200 | ✅ Pass |
+| [TC-073](#tc-073) | Update apartment updates block and floor | `PUT /api/members/apartments/2` | 200 | 200 | ✅ Pass |
+| [TC-074](#tc-074) | Update apartment blank flat number returns 400 | `PUT /api/members/apartments/2` | 400 | 400 | ✅ Pass |
+| [TC-075](#tc-075) | Update apartment bad floor returns 400 | `PUT /api/members/apartments/2` | 400 | 400 | ✅ Pass |
+| [TC-076](#tc-076) | Update apartment duplicate flat number returns 409 | `PUT /api/members/apartments/2` | 409 | 409 | ✅ Pass |
+| [TC-077](#tc-077) | Update apartment to its own flat number returns 200 | `PUT /api/members/apartments/1` | 200 | 200 | ✅ Pass |
+| [TC-078](#tc-078) | Update unknown apartment returns 404 | `PUT /api/members/apartments/9999` | 404 | 404 | ✅ Pass |
+| [TC-079](#tc-079) | Update apartment as resident returns 403 | `PUT /api/members/apartments/2` | 403 | 403 | ✅ Pass |
+| [TC-080](#tc-080) | Update apartment without token returns 401 | `PUT /api/members/apartments/2` | 401 | 401 | ✅ Pass |
+| [TC-081](#tc-081) | Delete empty apartment returns 200 | `DELETE /api/members/apartments/2` | 200 | 200 | ✅ Pass |
+| [TC-082](#tc-082) | Delete apartment removes it from the list | `GET /api/members/apartments` | — | 200 | ✅ Pass |
+| [TC-083](#tc-083) | Delete apartment with residents returns 409 | `DELETE /api/members/apartments/1` | 409 | 409 | ✅ Pass |
+| [TC-084](#tc-084) | Delete apartment with invoices returns 409 | `DELETE /api/members/apartments/2` | 409 | 409 | ✅ Pass |
+| [TC-085](#tc-085) | Delete unknown apartment returns 404 | `DELETE /api/members/apartments/9999` | 404 | 404 | ✅ Pass |
+| [TC-086](#tc-086) | Delete apartment as resident returns 403 | `DELETE /api/members/apartments/2` | 403 | 403 | ✅ Pass |
+| [TC-087](#tc-087) | Delete apartment without token returns 401 | `DELETE /api/members/apartments/2` | 401 | 401 | ✅ Pass |
+| [TC-088](#tc-088) | List members returns the seeded resident | `GET /api/members/` | 200 | 200 | ✅ Pass |
+| [TC-089](#tc-089) | List members includes flat details | `GET /api/members/` | — | 200 | ✅ Pass |
+| [TC-090](#tc-090) | List members as resident returns 403 | `GET /api/members/` | 403 | 403 | ✅ Pass |
+| [TC-091](#tc-091) | List members as worker returns 403 | `GET /api/members/` | 403 | 403 | ✅ Pass |
+| [TC-092](#tc-092) | List members as treasurer returns 200 | `GET /api/members/` | 200 | 200 | ✅ Pass |
+| [TC-093](#tc-093) | List members without token returns 401 | `GET /api/members/` | 401 | 401 | ✅ Pass |
+| [TC-094](#tc-094) | Create member returns 201 | `POST /api/members/` | 201 | 201 | ✅ Pass |
+| [TC-095](#tc-095) | Create member can log in afterwards | `POST /api/auth/login` | 200 | 200 | ✅ Pass |
+| [TC-096](#tc-096) | Create member appears in the listing | `GET /api/members/` | — | 200 | ✅ Pass |
+| [TC-097](#tc-097) | Create member missing required field returns 400 | `POST /api/members/` | 400 | 400 | ✅ Pass |
+| [TC-098](#tc-098) | Create member missing required field returns 400 | `POST /api/members/` | 400 | 400 | ✅ Pass |
+| [TC-099](#tc-099) | Create member missing required field returns 400 | `POST /api/members/` | 400 | 400 | ✅ Pass |
+| [TC-100](#tc-100) | Create member missing required field returns 400 | `POST /api/members/` | 400 | 400 | ✅ Pass |
+| [TC-101](#tc-101) | Create member missing required field returns 400 | `POST /api/members/` | 400 | 400 | ✅ Pass |
+| [TC-102](#tc-102) | Create member unknown role returns 400 | `POST /api/members/` | 400 | 400 | ✅ Pass |
+| [TC-103](#tc-103) | Create member bad move in date returns 400 | `POST /api/members/` | 400 | 400 | ✅ Pass |
+| [TC-104](#tc-104) | Create member non numeric apartment id returns 400 | `POST /api/members/` | 400 | 400 | ✅ Pass |
+| [TC-105](#tc-105) | Create member zero apartment id returns 400 | `POST /api/members/` | 400 | 400 | ✅ Pass |
+| [TC-106](#tc-106) | Create member unknown apartment returns 404 | `POST /api/members/` | 404 | 404 | ✅ Pass |
+| [TC-107](#tc-107) | Create member malformed body returns 400 | `POST /api/members/` | 400 | 400 | ✅ Pass |
+| [TC-108](#tc-108) | Create member malformed body returns 400 | `POST /api/members/` | 400 | 400 | ✅ Pass |
+| [TC-109](#tc-109) | Create member malformed body returns 400 | `POST /api/members/` | 400 | 400 | ✅ Pass |
+| [TC-110](#tc-110) | Create member duplicate email returns 409 | `POST /api/members/` | 409 | 409 | ✅ Pass |
+| [TC-111](#tc-111) | Create member duplicate phone returns 409 | `POST /api/members/` | 201 / 409 | 409 | ✅ Pass |
+| [TC-112](#tc-112) | Blank phone must normalise to NULL — users.phone is UNIQUE | `POST /api/members/` | — | 201 | ✅ Pass |
+| [TC-113](#tc-113) | Create member as resident returns 403 | `POST /api/members/` | 403 | 403 | ✅ Pass |
+| [TC-114](#tc-114) | Create member without token returns 401 | `POST /api/members/` | 401 | 401 | ✅ Pass |
+| [TC-115](#tc-115) | List workers returns only worker role users | `GET /api/members/workers` | 200 | 200 | ✅ Pass |
+| [TC-116](#tc-116) | complaints.assigned_worker_id points at users.id, never residents.id | `GET /api/members/workers` | — | 200 | ✅ Pass |
+| [TC-117](#tc-117) | List workers returns id name email only | `GET /api/members/workers` | — | 200 | ✅ Pass |
+| [TC-118](#tc-118) | List workers includes newly added workers | `GET /api/members/workers` | — | 200 | ✅ Pass |
+| [TC-119](#tc-119) | List workers as resident returns 403 | `GET /api/members/workers` | 403 | 403 | ✅ Pass |
+| [TC-120](#tc-120) | List workers without token returns 401 | `GET /api/members/workers` | 401 | 401 | ✅ Pass |
+| [TC-121](#tc-121) | Get member returns 200 | `GET /api/members/1` | 200 | 200 | ✅ Pass |
+| [TC-122](#tc-122) | Get member is open to every role | `GET /api/members/1` | 200 | 200 | ✅ Pass |
+| [TC-123](#tc-123) | Get member is open to every role | `GET /api/members/1` | 200 | 200 | ✅ Pass |
+| [TC-124](#tc-124) | Get member is open to every role | `GET /api/members/1` | 200 | 200 | ✅ Pass |
+| [TC-125](#tc-125) | Get member is open to every role | `GET /api/members/1` | 200 | 200 | ✅ Pass |
+| [TC-126](#tc-126) | Get unknown member returns 404 | `GET /api/members/9999` | 404 | 404 | ✅ Pass |
+| [TC-127](#tc-127) | Get member without token returns 401 | `GET /api/members/1` | 401 | 401 | ✅ Pass |
+| [TC-128](#tc-128) | Update member changes name and role | `PUT /api/members/1` | 200 | 200 | ✅ Pass |
+| [TC-129](#tc-129) | Update member changes resident fields | `PUT /api/members/1` | 200 | 200 | ✅ Pass |
+| [TC-130](#tc-130) | Update member blank phone clears it | `PUT /api/members/1` | 200 | 200 | ✅ Pass |
+| [TC-131](#tc-131) | Update member unknown role returns 400 | `PUT /api/members/1` | 400 | 400 | ✅ Pass |
+| [TC-132](#tc-132) | Update member bad move in date returns 400 | `PUT /api/members/1` | 400 | 400 | ✅ Pass |
+| [TC-133](#tc-133) | Update member bad move out date returns 400 | `PUT /api/members/1` | 400 | 400 | ✅ Pass |
+| [TC-134](#tc-134) | Update member duplicate phone returns 409 | `PUT /api/members/1` | 409 | 409 | ✅ Pass |
+| [TC-135](#tc-135) | Update member keeping its own phone returns 200 | `PUT /api/members/1` | 200 | 200 | ✅ Pass |
+| [TC-136](#tc-136) | Update member malformed body returns 400 | `PUT /api/members/1` | 400 | 400 | ✅ Pass |
+| [TC-137](#tc-137) | Update member malformed body returns 400 | `PUT /api/members/1` | 400 | 400 | ✅ Pass |
+| [TC-138](#tc-138) | Update member malformed body returns 400 | `PUT /api/members/1` | 400 | 400 | ✅ Pass |
+| [TC-139](#tc-139) | Update unknown member returns 404 | `PUT /api/members/9999` | 404 | 404 | ✅ Pass |
+| [TC-140](#tc-140) | Update member as resident returns 403 | `PUT /api/members/1` | 403 | 403 | ✅ Pass |
+| [TC-141](#tc-141) | Update member without token returns 401 | `PUT /api/members/1` | 401 | 401 | ✅ Pass |
+| [TC-142](#tc-142) | Deactivate member returns 200 | `DELETE /api/members/1` | 200 | 200 | ✅ Pass |
+| [TC-143](#tc-143) | Deactivate member is a soft delete | `GET /api/members/1` | — | 200 | ✅ Pass |
+| [TC-144](#tc-144) | Deactivate worker removes them from the worker list | `GET /api/members/workers` | — | 200 | ✅ Pass |
+| [TC-145](#tc-145) | Deactivated member token returns 403 | `GET /api/auth/me` | 403 | 403 | ✅ Pass |
+| [TC-146](#tc-146) | Deactivate unknown member returns 404 | `DELETE /api/members/9999` | 404 | 404 | ✅ Pass |
+| [TC-147](#tc-147) | Deactivate member as resident returns 403 | `DELETE /api/members/1` | 403 | 403 | ✅ Pass |
+| [TC-148](#tc-148) | Deactivate member without token returns 401 | `DELETE /api/members/1` | 401 | 401 | ✅ Pass |
+
+
+### Complaints
+
+`Backend/tests/test_complaints.py` · US-02, US-03, US-04 · **44/44 passed**
+
+| ID | Test case | Endpoint | Expected | Actual | Result |
+|---|---|---|---|---|---|
+| [TC-149](#tc-149) | Resident can raise complaint | `POST /api/complaints/` | 201 | 201 | ✅ Pass |
+| [TC-150](#tc-150) | Priority defaults to medium | `POST /api/complaints/` | — | 201 | ✅ Pass |
+| [TC-151](#tc-151) | Resident lists only own complaints | `GET /api/complaints/` | 200 | 200 | ✅ Pass |
+| [TC-152](#tc-152) | Admin lists all complaints | `GET /api/complaints/` | 200 | 200 | ✅ Pass |
+| [TC-153](#tc-153) | Get complaint detail includes updates | `GET /api/complaints/1` | 200 | 200 | ✅ Pass |
+| [TC-154](#tc-154) | Admin can delete complaint | `GET /api/complaints/1` | 200 / 404 | 404 | ✅ Pass |
+| [TC-155](#tc-155) | COMMITTEE_MEMBER is an admin role even though it is not a finance role | `DELETE /api/complaints/1` | 200 | 200 | ✅ Pass |
+| [TC-156](#tc-156) | Raise complaint missing required field returns 400 | `POST /api/complaints/` | 400 | 400 | ✅ Pass |
+| [TC-157](#tc-157) | Raise complaint missing required field returns 400 | `POST /api/complaints/` | 400 | 400 | ✅ Pass |
+| [TC-158](#tc-158) | Raise complaint missing required field returns 400 | `POST /api/complaints/` | 400 | 400 | ✅ Pass |
+| [TC-159](#tc-159) | Raise complaint bad category returns 400 | `POST /api/complaints/` | 400 | 400 | ✅ Pass |
+| [TC-160](#tc-160) | Raise complaint bad priority returns 400 | `POST /api/complaints/` | 400 | 400 | ✅ Pass |
+| [TC-161](#tc-161) | Raise complaint non numeric apartment id returns 400 | `POST /api/complaints/` | 400 | 400 | ✅ Pass |
+| [TC-162](#tc-162) | Raise complaint unknown apartment returns 404 | `POST /api/complaints/` | 404 | 404 | ✅ Pass |
+| [TC-163](#tc-163) | Raise complaint malformed body returns 400 | `POST /api/complaints/` | 400 | 400 | ✅ Pass |
+| [TC-164](#tc-164) | Raise complaint malformed body returns 400 | `POST /api/complaints/` | 400 | 400 | ✅ Pass |
+| [TC-165](#tc-165) | Raise complaint malformed body returns 400 | `POST /api/complaints/` | 400 | 400 | ✅ Pass |
+| [TC-166](#tc-166) | Complaint endpoints require a token | `GET /api/complaints/` | 401 | 401 | ✅ Pass |
+| [TC-167](#tc-167) | Complaint endpoints require a token | `POST /api/complaints/` | 401 | 401 | ✅ Pass |
+| [TC-168](#tc-168) | Complaint endpoints require a token | `GET /api/complaints/1` | 401 | 401 | ✅ Pass |
+| [TC-169](#tc-169) | Complaint endpoints require a token | `PUT /api/complaints/1/assign` | 401 | 401 | ✅ Pass |
+| [TC-170](#tc-170) | Complaint endpoints require a token | `PUT /api/complaints/1/status` | 401 | 401 | ✅ Pass |
+| [TC-171](#tc-171) | Complaint endpoints require a token | `DELETE /api/complaints/1` | 401 | 401 | ✅ Pass |
+| [TC-172](#tc-172) | Resident cannot delete complaint | `DELETE /api/complaints/1` | 403 | 403 | ✅ Pass |
+| [TC-173](#tc-173) | Resident cannot assign a worker | `PUT /api/complaints/1/assign` | 403 | 403 | ✅ Pass |
+| [TC-174](#tc-174) | Resident cannot read another flats complaint | `GET /api/complaints/1` | 403 | 403 | ✅ Pass |
+| [TC-175](#tc-175) | Resident cannot update another flats complaint | `PUT /api/complaints/1/status` | 403 | 403 | ✅ Pass |
+| [TC-176](#tc-176) | Assign worker returns 200 and populates worker name | `PUT /api/complaints/1/assign` | 200 | 200 | ✅ Pass |
+| [TC-177](#tc-177) | Regression: a null worker_id used to flip the status to ASSIGNED anyway | `GET /api/complaints/1` | 400 | 200 | ✅ Pass |
+| [TC-178](#tc-178) | Regression: a null worker_id used to flip the status to ASSIGNED anyway | `GET /api/complaints/1` | 400 | 200 | ✅ Pass |
+| [TC-179](#tc-179) | Regression: a null worker_id used to flip the status to ASSIGNED anyway | `GET /api/complaints/1` | 400 | 200 | ✅ Pass |
+| [TC-180](#tc-180) | Regression: a null worker_id used to flip the status to ASSIGNED anyway | `GET /api/complaints/1` | 400 | 200 | ✅ Pass |
+| [TC-181](#tc-181) | Assign to non worker user returns 400 | `PUT /api/complaints/1/assign` | 400 | 400 | ✅ Pass |
+| [TC-182](#tc-182) | Assign to unknown user returns 404 | `PUT /api/complaints/1/assign` | 404 | 404 | ✅ Pass |
+| [TC-183](#tc-183) | Regression: workers only ever saw complaints they had raised themselves | `GET /api/complaints/` | 200 | 200 | ✅ Pass |
+| [TC-184](#tc-184) | Worker does not see unassigned complaints | `GET /api/complaints/` | 200 | 200 | ✅ Pass |
+| [TC-185](#tc-185) | Assigned worker can read and update the complaint | `PUT /api/complaints/1/status` | 200 | 200 | ✅ Pass |
+| [TC-186](#tc-186) | Status flow open to completed sets resolved at | `PUT /api/complaints/1/status` | 200 | 200 | ✅ Pass |
+| [TC-187](#tc-187) | Regression: resolved_at used to survive a reopen | `PUT /api/complaints/1/status` | 200 | 200 | ✅ Pass |
+| [TC-188](#tc-188) | Invalid status transition returns 400 | `PUT /api/complaints/1/status` | 400 | 400 | ✅ Pass |
+| [TC-189](#tc-189) | Status update requires status field | `PUT /api/complaints/1/status` | 400 | 400 | ✅ Pass |
+| [TC-190](#tc-190) | Status update bad enum returns 400 | `PUT /api/complaints/1/status` | 400 | 400 | ✅ Pass |
+| [TC-191](#tc-191) | Setting the same status is allowed | `PUT /api/complaints/1/status` | 200 | 200 | ✅ Pass |
+| [TC-192](#tc-192) | Unknown complaint id returns 404 | `DELETE /api/complaints/99999` | 404 | 404 | ✅ Pass |
+
+
+### Invoices & Payments
+
+`Backend/tests/test_invoices.py` · US-01, US-05, US-06 · **53/53 passed**
+
+| ID | Test case | Endpoint | Expected | Actual | Result |
+|---|---|---|---|---|---|
+| [TC-193](#tc-193) | Admin creates invoice | `POST /api/invoices/` | 201 | 201 | ✅ Pass |
+| [TC-194](#tc-194) | Treasurer can create invoice | `POST /api/invoices/` | — | 201 | ✅ Pass |
+| [TC-195](#tc-195) | Admin lists all invoices | `GET /api/invoices/` | 200 | 200 | ✅ Pass |
+| [TC-196](#tc-196) | Pay invoice returns receipt | `PUT /api/invoices/1/pay` | 200 | 200 | ✅ Pass |
+| [TC-197](#tc-197) | Payment method defaults to cash | `PUT /api/invoices/1/pay` | 200 | 200 | ✅ Pass |
+| [TC-198](#tc-198) | Get receipt for paid invoice | `GET /api/invoices/1/receipt` | 200 | 200 | ✅ Pass |
+| [TC-199](#tc-199) | Resident can read own receipt | `GET /api/invoices/1/receipt` | 200 | 200 | ✅ Pass |
+| [TC-200](#tc-200) | Pending lists only unpaid | `GET /api/invoices/pending` | 200 | 200 | ✅ Pass |
+| [TC-201](#tc-201) | Bulk generate creates invoice for every flat | `POST /api/invoices/bulk` | 201 | 201 | ✅ Pass |
+| [TC-202](#tc-202) | Bulk generate skips flats that already have that month | `GET /api/invoices/` | 201 | 200 | ✅ Pass |
+| [TC-203](#tc-203) | Create invoice missing required field returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
+| [TC-204](#tc-204) | Create invoice missing required field returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
+| [TC-205](#tc-205) | Create invoice missing required field returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
+| [TC-206](#tc-206) | Create invoice missing required field returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
+| [TC-207](#tc-207) | Create invoice month out of range returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
+| [TC-208](#tc-208) | Create invoice month out of range returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
+| [TC-209](#tc-209) | Create invoice month out of range returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
+| [TC-210](#tc-210) | Create invoice month out of range returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
+| [TC-211](#tc-211) | Bulk generate month out of range returns 400 | `POST /api/invoices/bulk` | 400 | 400 | ✅ Pass |
+| [TC-212](#tc-212) | Create invoice year out of range returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
+| [TC-213](#tc-213) | Create invoice non numeric amount returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
+| [TC-214](#tc-214) | Create invoice negative amount returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
+| [TC-215](#tc-215) | Create invoice bad due date returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
+| [TC-216](#tc-216) | Regression: an empty due_date from the form used to 400 (or crash) | `POST /api/invoices/` | 201 | 201 | ✅ Pass |
+| [TC-217](#tc-217) | Regression: an empty due_date from the form used to 400 (or crash) | `POST /api/invoices/` | 201 | 201 | ✅ Pass |
+| [TC-218](#tc-218) | Regression: an empty due_date from the form used to 400 (or crash) | `POST /api/invoices/` | 201 | 201 | ✅ Pass |
+| [TC-219](#tc-219) | Create invoice unknown apartment returns 404 | `POST /api/invoices/` | 404 | 404 | ✅ Pass |
+| [TC-220](#tc-220) | Invoice malformed body returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
+| [TC-221](#tc-221) | Invoice malformed body returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
+| [TC-222](#tc-222) | Invoice malformed body returns 400 | `POST /api/invoices/bulk` | 400 | 400 | ✅ Pass |
+| [TC-223](#tc-223) | Invoice malformed body returns 400 | `POST /api/invoices/bulk` | 400 | 400 | ✅ Pass |
+| [TC-224](#tc-224) | Invoice endpoints require a token | `GET /api/invoices/` | 401 | 401 | ✅ Pass |
+| [TC-225](#tc-225) | Invoice endpoints require a token | `POST /api/invoices/` | 401 | 401 | ✅ Pass |
+| [TC-226](#tc-226) | Invoice endpoints require a token | `POST /api/invoices/bulk` | 401 | 401 | ✅ Pass |
+| [TC-227](#tc-227) | Invoice endpoints require a token | `PUT /api/invoices/1/pay` | 401 | 401 | ✅ Pass |
+| [TC-228](#tc-228) | Invoice endpoints require a token | `GET /api/invoices/1/receipt` | 401 | 401 | ✅ Pass |
+| [TC-229](#tc-229) | Invoice endpoints require a token | `GET /api/invoices/pending` | 401 | 401 | ✅ Pass |
+| [TC-230](#tc-230) | Resident cannot create invoice | `POST /api/invoices/` | 403 | 403 | ✅ Pass |
+| [TC-231](#tc-231) | Resident cannot mark invoice paid | `GET /api/invoices/` | 403 | 200 | ✅ Pass |
+| [TC-232](#tc-232) | Resident cannot bulk generate | `POST /api/invoices/bulk` | 403 | 403 | ✅ Pass |
+| [TC-233](#tc-233) | COMMITTEE_MEMBER manages the society but must not touch money | `POST /api/invoices/` | 403 | 403 | ✅ Pass |
+| [TC-234](#tc-234) | COMMITTEE_MEMBER manages the society but must not touch money | `POST /api/invoices/bulk` | 403 | 403 | ✅ Pass |
+| [TC-235](#tc-235) | Resident cannot read another flats receipt | `GET /api/invoices/1/receipt` | 403 | 403 | ✅ Pass |
+| [TC-236](#tc-236) | Duplicate invoice for same flat month year returns 409 | `GET /api/invoices/` | 409 | 200 | ✅ Pass |
+| [TC-237](#tc-237) | Same month different flat is allowed | `GET /api/invoices/` | — | 200 | ✅ Pass |
+| [TC-238](#tc-238) | Regression: the second payment used to insert a duplicate Payment row | `GET /api/invoices/1/receipt` | 200 / 409 | 200 | ✅ Pass |
+| [TC-239](#tc-239) | Receipt for unpaid invoice returns 400 | `GET /api/invoices/1/receipt` | 400 | 400 | ✅ Pass |
+| [TC-240](#tc-240) | Pay invoice for flat without resident returns 404 | `PUT /api/invoices/1/pay` | 404 | 404 | ✅ Pass |
+| [TC-241](#tc-241) | Unknown invoice returns 404 | `GET /api/invoices/99999/receipt` | 404 | 404 | ✅ Pass |
+| [TC-242](#tc-242) | Resident sees only own flat invoices | `GET /api/invoices/` | 200 | 200 | ✅ Pass |
+| [TC-243](#tc-243) | Regression: /pending used to leak every flat's outstanding dues | `GET /api/invoices/pending` | 200 | 200 | ✅ Pass |
+| [TC-244](#tc-244) | User without a flat sees an empty list | `GET /api/invoices/` | 200 | 200 | ✅ Pass |
+| [TC-245](#tc-245) | User without a flat sees an empty list | `GET /api/invoices/pending` | 200 | 200 | ✅ Pass |
+
+
+### Expenses
+
+`Backend/tests/test_expenses.py` · US-14 · **44/44 passed**
+
+| ID | Test case | Endpoint | Expected | Actual | Result |
+|---|---|---|---|---|---|
+| [TC-246](#tc-246) | Admin logs expense | `POST /api/expenses/` | 201 | 201 | ✅ Pass |
+| [TC-247](#tc-247) | Treasurer can log expense | `POST /api/expenses/` | — | 201 | ✅ Pass |
+| [TC-248](#tc-248) | Paid by defaults to the logged in user | `POST /api/expenses/` | — | 201 | ✅ Pass |
+| [TC-249](#tc-249) | Admin may attribute expense to another user | `POST /api/expenses/` | — | 201 | ✅ Pass |
+| [TC-250](#tc-250) | Paid by unknown user returns 404 | `POST /api/expenses/` | 404 | 404 | ✅ Pass |
+| [TC-251](#tc-251) | List expenses | `GET /api/expenses/` | 200 | 200 | ✅ Pass |
+| [TC-252](#tc-252) | Update expense | `PUT /api/expenses/1` | 200 | 200 | ✅ Pass |
+| [TC-253](#tc-253) | Delete expense | `GET /api/expenses/` | 200 | 200 | ✅ Pass |
+| [TC-254](#tc-254) | Unknown expense returns 404 | `DELETE /api/expenses/99999` | 404 | 404 | ✅ Pass |
+| [TC-255](#tc-255) | Summary for a month | `GET /api/expenses/summary?month=8&year=2026` | 200 | 200 | ✅ Pass |
+| [TC-256](#tc-256) | Summary without filters is all time | `GET /api/expenses/summary` | 200 | 200 | ✅ Pass |
+| [TC-257](#tc-257) | Regression: half a filter silently fell through to all-time totals | `GET /api/expenses/summary?month=8` | 400 | 400 | ✅ Pass |
+| [TC-258](#tc-258) | Regression: half a filter silently fell through to all-time totals | `GET /api/expenses/summary?year=2026` | 400 | 400 | ✅ Pass |
+| [TC-259](#tc-259) | Regression: half a filter silently fell through to all-time totals | `GET /api/expenses/summary?month=8&year=` | 400 | 400 | ✅ Pass |
+| [TC-260](#tc-260) | Regression: half a filter silently fell through to all-time totals | `GET /api/expenses/summary?month=&year=2026` | 400 | 400 | ✅ Pass |
+| [TC-261](#tc-261) | Summary month out of range returns 400 | `GET /api/expenses/summary?month=99&year=2026` | 400 | 400 | ✅ Pass |
+| [TC-262](#tc-262) | Summary non numeric month returns 400 | `GET /api/expenses/summary?month=August&year=2026` | 400 | 400 | ✅ Pass |
+| [TC-263](#tc-263) | Add expense missing required field returns 400 | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
+| [TC-264](#tc-264) | Add expense missing required field returns 400 | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
+| [TC-265](#tc-265) | Add expense missing required field returns 400 | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
+| [TC-266](#tc-266) | Add expense missing required field returns 400 | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
+| [TC-267](#tc-267) | Add expense bad category returns 400 | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
+| [TC-268](#tc-268) | Regression: raw strings used to reach the Date column and 500 | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
+| [TC-269](#tc-269) | Regression: raw strings used to reach the Date column and 500 | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
+| [TC-270](#tc-270) | Regression: raw strings used to reach the Date column and 500 | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
+| [TC-271](#tc-271) | expense_date is required, so a blank one is rejected by require() | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
+| [TC-272](#tc-272) | Add expense non numeric amount returns 400 | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
+| [TC-273](#tc-273) | Add expense negative amount returns 400 | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
+| [TC-274](#tc-274) | Update expense bad category returns 400 | `PUT /api/expenses/1` | 400 | 400 | ✅ Pass |
+| [TC-275](#tc-275) | Update expense non numeric amount returns 400 | `PUT /api/expenses/1` | 400 | 400 | ✅ Pass |
+| [TC-276](#tc-276) | Add expense malformed body returns 400 | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
+| [TC-277](#tc-277) | Add expense malformed body returns 400 | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
+| [TC-278](#tc-278) | Expense endpoints require a token | `GET /api/expenses/` | 401 | 401 | ✅ Pass |
+| [TC-279](#tc-279) | Expense endpoints require a token | `POST /api/expenses/` | 401 | 401 | ✅ Pass |
+| [TC-280](#tc-280) | Expense endpoints require a token | `PUT /api/expenses/1` | 401 | 401 | ✅ Pass |
+| [TC-281](#tc-281) | Expense endpoints require a token | `DELETE /api/expenses/1` | 401 | 401 | ✅ Pass |
+| [TC-282](#tc-282) | Expense endpoints require a token | `GET /api/expenses/summary` | 401 | 401 | ✅ Pass |
+| [TC-283](#tc-283) | Resident cannot list expenses | `GET /api/expenses/` | 403 | 403 | ✅ Pass |
+| [TC-284](#tc-284) | Resident cannot add expense | `POST /api/expenses/` | 403 | 403 | ✅ Pass |
+| [TC-285](#tc-285) | Resident cannot delete expense | `GET /api/expenses/` | 403 | 200 | ✅ Pass |
+| [TC-286](#tc-286) | Worker cannot read the ledger | `GET /api/expenses/summary` | 403 | 403 | ✅ Pass |
+| [TC-287](#tc-287) | COMMITTEE_MEMBER is an admin role but must not reach the ledger | `GET /api/expenses/` | 403 | 403 | ✅ Pass |
+| [TC-288](#tc-288) | COMMITTEE_MEMBER is an admin role but must not reach the ledger | `POST /api/expenses/` | 403 | 403 | ✅ Pass |
+| [TC-289](#tc-289) | COMMITTEE_MEMBER is an admin role but must not reach the ledger | `GET /api/expenses/summary` | 403 | 403 | ✅ Pass |
+
+
+### Notices
+
+`Backend/tests/test_notices.py` · US-10 · **18/18 passed**
+
+| ID | Test case | Endpoint | Expected | Actual | Result |
+|---|---|---|---|---|---|
+| [TC-290](#tc-290) | Admin can publish a notice | `POST /api/notices/` | 201 | 201 | ✅ Pass |
+| [TC-291](#tc-291) | Category defaults to general when omitted | `POST /api/notices/` | — | 201 | ✅ Pass |
+| [TC-292](#tc-292) | Treasurer is also allowed to publish | `POST /api/notices/` | 201 | 201 | ✅ Pass |
+| [TC-293](#tc-293) | Notice list returns newest notices | `GET /api/notices/` | 200 | 200 | ✅ Pass |
+| [TC-294](#tc-294) | Admin can update a notice | `PUT /api/notices/1` | 200 | 200 | ✅ Pass |
+| [TC-295](#tc-295) | Delete soft deletes and hides the notice from the list | `GET /api/notices/` | 200 | 200 | ✅ Pass |
+| [TC-296](#tc-296) | Updating a missing notice returns 404 | `PUT /api/notices/9999` | 404 | 404 | ✅ Pass |
+| [TC-297](#tc-297) | Notice without title is rejected | `POST /api/notices/` | 400 | 400 | ✅ Pass |
+| [TC-298](#tc-298) | Notice without content is rejected | `POST /api/notices/` | 400 | 400 | ✅ Pass |
+| [TC-299](#tc-299) | Blank title is rejected | `POST /api/notices/` | 400 | 400 | ✅ Pass |
+| [TC-300](#tc-300) | Unknown category is rejected instead of being stored | `POST /api/notices/` | 400 | 400 | ✅ Pass |
+| [TC-301](#tc-301) | Unknown category on update is rejected | `PUT /api/notices/1` | 400 | 400 | ✅ Pass |
+| [TC-302](#tc-302) | Null body is rejected | `POST /api/notices/` | 400 | 400 | ✅ Pass |
+| [TC-303](#tc-303) | List body is rejected | `POST /api/notices/` | 400 | 400 | ✅ Pass |
+| [TC-304](#tc-304) | Notices require authentication | `POST /api/notices/` | 401 | 401 | ✅ Pass |
+| [TC-305](#tc-305) | Resident can read notices | `GET /api/notices/` | 200 | 200 | ✅ Pass |
+| [TC-306](#tc-306) | Resident cannot publish a notice | `POST /api/notices/` | 403 | 403 | ✅ Pass |
+| [TC-307](#tc-307) | Resident cannot update or delete a notice | `DELETE /api/notices/1` | 403 | 403 | ✅ Pass |
+
+
+### Polls & Voting
+
+`Backend/tests/test_polls.py` · US-13 · **29/29 passed**
+
+| ID | Test case | Endpoint | Expected | Actual | Result |
+|---|---|---|---|---|---|
+| [TC-308](#tc-308) | Admin can create a poll with options | `POST /api/polls/` | 201 | 201 | ✅ Pass |
+| [TC-309](#tc-309) | Start date defaults to today when omitted | `POST /api/polls/` | — | 201 | ✅ Pass |
+| [TC-310](#tc-310) | Explicit start date is kept | `POST /api/polls/` | — | 201 | ✅ Pass |
+| [TC-311](#tc-311) | Single poll can be fetched | `GET /api/polls/1` | 200 | 200 | ✅ Pass |
+| [TC-312](#tc-312) | Resident can vote and results are tallied | `POST /api/polls/1/vote` | 200 | 200 | ✅ Pass |
+| [TC-313](#tc-313) | Admin can close a poll | `PUT /api/polls/1/close` | 200 | 200 | ✅ Pass |
+| [TC-314](#tc-314) | Admin can delete a poll | `GET /api/polls/1` | 200 / 404 | 404 | ✅ Pass |
+| [TC-315](#tc-315) | Poll list reports has voted per user | `GET /api/polls/` | — | 200 | ✅ Pass |
+| [TC-316](#tc-316) | Voting twice returns 409 | `POST /api/polls/1/vote` | 200 / 409 | 409 | ✅ Pass |
+| [TC-317](#tc-317) | Voting on a closed poll is rejected | `POST /api/polls/1/vote` | 400 | 400 | ✅ Pass |
+| [TC-318](#tc-318) | Voting before the window opens is rejected | `POST /api/polls/1/vote` | 400 | 400 | ✅ Pass |
+| [TC-319](#tc-319) | Voting after the window closes is rejected | `POST /api/polls/1/vote` | 400 | 400 | ✅ Pass |
+| [TC-320](#tc-320) | Voting for an option of another poll is rejected | `POST /api/polls/2/vote` | 400 | 400 | ✅ Pass |
+| [TC-321](#tc-321) | Poll requires an end date | `POST /api/polls/` | 400 | 400 | ✅ Pass |
+| [TC-322](#tc-322) | Poll requires a title | `POST /api/polls/` | 400 | 400 | ✅ Pass |
+| [TC-323](#tc-323) | "abc" used to be split into three single-letter options | `POST /api/polls/` | 400 | 400 | ✅ Pass |
+| [TC-324](#tc-324) | Missing options are rejected | `POST /api/polls/` | 400 | 400 | ✅ Pass |
+| [TC-325](#tc-325) | Fewer than two options are rejected | `POST /api/polls/` | 400 | 400 | ✅ Pass |
+| [TC-326](#tc-326) | Blank options do not count towards the minimum | `POST /api/polls/` | 400 | 400 | ✅ Pass |
+| [TC-327](#tc-327) | Unparseable end date is rejected | `POST /api/polls/` | 400 | 400 | ✅ Pass |
+| [TC-328](#tc-328) | End date before start date is rejected | `POST /api/polls/` | 400 | 400 | ✅ Pass |
+| [TC-329](#tc-329) | Unknown status is rejected | `POST /api/polls/` | 400 | 400 | ✅ Pass |
+| [TC-330](#tc-330) | Vote requires an option id | `POST /api/polls/1/vote` | 400 | 400 | ✅ Pass |
+| [TC-331](#tc-331) | Non numeric option id is rejected | `POST /api/polls/1/vote` | 400 | 400 | ✅ Pass |
+| [TC-332](#tc-332) | Null body is rejected | `POST /api/polls/` | 400 | 400 | ✅ Pass |
+| [TC-333](#tc-333) | List body is rejected | `POST /api/polls/` | 400 | 400 | ✅ Pass |
+| [TC-334](#tc-334) | Polls require authentication | `POST /api/polls/` | 401 | 401 | ✅ Pass |
+| [TC-335](#tc-335) | Resident can read the poll list | `GET /api/polls/` | 200 | 200 | ✅ Pass |
+| [TC-336](#tc-336) | Resident cannot create close or delete a poll | `DELETE /api/polls/1` | 403 | 403 | ✅ Pass |
+
+
+### Maintenance Tasks
+
+`Backend/tests/test_maintenance.py` · US-11 · **24/24 passed**
+
+| ID | Test case | Endpoint | Expected | Actual | Result |
+|---|---|---|---|---|---|
+| [TC-337](#tc-337) | Admin can create a task | `POST /api/maintenance/` | 201 | 201 | ✅ Pass |
+| [TC-338](#tc-338) | Task can be assigned to a worker | `POST /api/maintenance/` | — | 201 | ✅ Pass |
+| [TC-339](#tc-339) | Task list is returned | `GET /api/maintenance/` | 200 | 200 | ✅ Pass |
+| [TC-340](#tc-340) | Admin can update a task | `PUT /api/maintenance/1` | 200 | 200 | ✅ Pass |
+| [TC-341](#tc-341) | Admin can complete a task | `PUT /api/maintenance/1/complete` | 200 | 200 | ✅ Pass |
+| [TC-342](#tc-342) | Admin can delete a task | `GET /api/maintenance/` | 200 | 200 | ✅ Pass |
+| [TC-343](#tc-343) | Completing a missing task returns 404 | `PUT /api/maintenance/9999/complete` | 404 | 404 | ✅ Pass |
+| [TC-344](#tc-344) | Completing an already completed task returns 409 | `PUT /api/maintenance/1/complete` | 200 / 409 | 409 | ✅ Pass |
+| [TC-345](#tc-345) | Updating status to completed stamps completed at | `PUT /api/maintenance/1` | 200 | 200 | ✅ Pass |
+| [TC-346](#tc-346) | Reopening a completed task clears completed at | `PUT /api/maintenance/1` | 200 | 200 | ✅ Pass |
+| [TC-347](#tc-347) | Task requires a title | `POST /api/maintenance/` | 400 | 400 | ✅ Pass |
+| [TC-348](#tc-348) | Task requires a scheduled date | `POST /api/maintenance/` | 400 | 400 | ✅ Pass |
+| [TC-349](#tc-349) | Blank scheduled date is rejected | `POST /api/maintenance/` | 400 | 400 | ✅ Pass |
+| [TC-350](#tc-350) | Day first scheduled date is rejected | `POST /api/maintenance/` | 400 | 400 | ✅ Pass |
+| [TC-351](#tc-351) | Unknown category is rejected | `POST /api/maintenance/` | 400 | 400 | ✅ Pass |
+| [TC-352](#tc-352) | Unknown status on update is rejected | `PUT /api/maintenance/1` | 400 | 400 | ✅ Pass |
+| [TC-353](#tc-353) | Bad scheduled date on update is rejected | `PUT /api/maintenance/1` | 400 | 400 | ✅ Pass |
+| [TC-354](#tc-354) | Non numeric assignee is rejected | `POST /api/maintenance/` | 400 | 400 | ✅ Pass |
+| [TC-355](#tc-355) | Null body is rejected | `POST /api/maintenance/` | 400 | 400 | ✅ Pass |
+| [TC-356](#tc-356) | List body is rejected | `POST /api/maintenance/` | 400 | 400 | ✅ Pass |
+| [TC-357](#tc-357) | Maintenance requires authentication | `POST /api/maintenance/` | 401 | 401 | ✅ Pass |
+| [TC-358](#tc-358) | Resident can read the task list | `GET /api/maintenance/` | 200 | 200 | ✅ Pass |
+| [TC-359](#tc-359) | Worker cannot create a task | `POST /api/maintenance/` | 403 | 403 | ✅ Pass |
+| [TC-360](#tc-360) | Resident cannot update complete or delete a task | `DELETE /api/maintenance/1` | 403 | 403 | ✅ Pass |
+
+
+### Equipment / Maintenance Predictor
+
+`Backend/tests/test_equipment.py` · US-15 · **28/28 passed**
+
+| ID | Test case | Endpoint | Expected | Actual | Result |
+|---|---|---|---|---|---|
+| [TC-361](#tc-361) | Admin can add equipment | `POST /api/equipment/` | 201 | 201 | ✅ Pass |
+| [TC-362](#tc-362) | Equipment list is readable | `GET /api/equipment/` | 200 | 200 | ✅ Pass |
+| [TC-363](#tc-363) | Overdue equipment reports negative days and high risk | `POST /api/equipment/` | — | 201 | ✅ Pass |
+| [TC-364](#tc-364) | Equipment nearing its due date is medium risk | `POST /api/equipment/` | — | 201 | ✅ Pass |
+| [TC-365](#tc-365) | Marking serviced updates the last serviced date | `PUT /api/equipment/1/service` | 200 | 200 | ✅ Pass |
+| [TC-366](#tc-366) | Service can be backdated | `PUT /api/equipment/1/service` | 200 | 200 | ✅ Pass |
+| [TC-367](#tc-367) | Service history lists logged services | `GET /api/equipment/1/history` | 200 | 200 | ✅ Pass |
+| [TC-368](#tc-368) | History of unserviced equipment is empty | `GET /api/equipment/1/history` | — | 200 | ✅ Pass |
+| [TC-369](#tc-369) | Forecast returns items due within 30 days | `GET /api/equipment/forecast` | 200 | 200 | ✅ Pass |
+| [TC-370](#tc-370) | Forecast works with no equipment | `GET /api/equipment/forecast` | 200 | 200 | ✅ Pass |
+| [TC-371](#tc-371) | Admin can delete equipment | `GET /api/equipment/` | 200 | 200 | ✅ Pass |
+| [TC-372](#tc-372) | History of missing equipment returns 404 | `GET /api/equipment/9999/history` | 404 | 404 | ✅ Pass |
+| [TC-373](#tc-373) | Equipment requires a name | `POST /api/equipment/` | 400 | 400 | ✅ Pass |
+| [TC-374](#tc-374) | Equipment requires a last serviced date | `POST /api/equipment/` | 400 | 400 | ✅ Pass |
+| [TC-375](#tc-375) | Blank last serviced date is rejected | `POST /api/equipment/` | 400 | 400 | ✅ Pass |
+| [TC-376](#tc-376) | Bad last serviced date is rejected | `POST /api/equipment/` | 400 | 400 | ✅ Pass |
+| [TC-377](#tc-377) | A 0 frequency used to be stored and then divided by on every GET | `POST /api/equipment/` | 400 | 400 | ✅ Pass |
+| [TC-378](#tc-378) | Zero service frequency as a string is rejected | `POST /api/equipment/` | 400 | 400 | ✅ Pass |
+| [TC-379](#tc-379) | Missing service frequency is rejected | `POST /api/equipment/` | 400 | 400 | ✅ Pass |
+| [TC-380](#tc-380) | Negative estimated cost is rejected | `POST /api/equipment/` | 400 | 400 | ✅ Pass |
+| [TC-381](#tc-381) | Unknown category is rejected | `POST /api/equipment/` | 400 | 400 | ✅ Pass |
+| [TC-382](#tc-382) | An empty cost box in the UI must mean "not recorded", not an error | `GET /api/equipment/1/history` | 200 | 200 | ✅ Pass |
+| [TC-383](#tc-383) | Non numeric cost when marking serviced is rejected | `PUT /api/equipment/1/service` | 400 | 400 | ✅ Pass |
+| [TC-384](#tc-384) | Null body is rejected | `POST /api/equipment/` | 400 | 400 | ✅ Pass |
+| [TC-385](#tc-385) | List body is rejected | `POST /api/equipment/` | 400 | 400 | ✅ Pass |
+| [TC-386](#tc-386) | Equipment requires authentication | `POST /api/equipment/` | 401 | 401 | ✅ Pass |
+| [TC-387](#tc-387) | Resident can read equipment and forecast | `GET /api/equipment/forecast` | 200 | 200 | ✅ Pass |
+| [TC-388](#tc-388) | Resident cannot add service or delete equipment | `DELETE /api/equipment/1` | 403 | 403 | ✅ Pass |
+
+
+### Society Health Score
+
+`Backend/tests/test_health.py` · US-17 · **20/20 passed**
+
+| ID | Test case | Endpoint | Expected | Actual | Result |
+|---|---|---|---|---|---|
+| [TC-389](#tc-389) | Get calculate returns the full score shape | `GET /api/health/calculate` | 200 | 200 | ✅ Pass |
+| [TC-390](#tc-390) | Post calculate uses the same view as get | `POST /api/health/calculate` | 200 | 200 | ✅ Pass |
+| [TC-391](#tc-391) | Calculate accepts explicit month and year | `GET /api/health/calculate?month=3&year=2025` | 200 | 200 | ✅ Pass |
+| [TC-392](#tc-392) | Calculate is an upsert for the month | `GET /api/health/history` | — | 200 | ✅ Pass |
+| [TC-393](#tc-393) | History is empty before anything is calculated | `GET /api/health/history` | 200 | 200 | ✅ Pass |
+| [TC-394](#tc-394) | History returns the saved score | `GET /api/health/history` | 200 | 200 | ✅ Pass |
+| [TC-395](#tc-395) | Empty society is not awarded a perfect score | `GET /api/health/calculate` | — | 200 | ✅ Pass |
+| [TC-396](#tc-396) | Empty society does not report nonsense invoice alerts | `GET /api/health/calculate` | — | 200 | ✅ Pass |
+| [TC-397](#tc-397) | Components without data are named as not scored | `GET /api/health/calculate` | — | 200 | ✅ Pass |
+| [TC-398](#tc-398) | Missing notices are flagged | `GET /api/health/calculate` | — | 200 | ✅ Pass |
+| [TC-399](#tc-399) | Only the notice component has data, so a posted notice is a full score | `GET /api/health/calculate?month=8&year=2026` | 201 | 200 | ✅ Pass |
+| [TC-400](#tc-400) | Month above twelve is rejected | `GET /api/health/calculate?month=13` | 400 | 400 | ✅ Pass |
+| [TC-401](#tc-401) | Month below one is rejected | `GET /api/health/calculate?month=0` | 400 | 400 | ✅ Pass |
+| [TC-402](#tc-402) | Non numeric month is rejected | `GET /api/health/calculate?month=june` | 400 | 400 | ✅ Pass |
+| [TC-403](#tc-403) | Year before 2000 is rejected | `GET /api/health/calculate?year=1999` | 400 | 400 | ✅ Pass |
+| [TC-404](#tc-404) | Health endpoints require authentication | `GET /api/health/history` | 401 | 401 | ✅ Pass |
+| [TC-405](#tc-405) | Resident cannot calculate the score | `POST /api/health/calculate` | 403 | 403 | ✅ Pass |
+| [TC-406](#tc-406) | Worker cannot calculate the score | `GET /api/health/calculate` | 403 | 403 | ✅ Pass |
+| [TC-407](#tc-407) | Treasurer can calculate the score | `GET /api/health/calculate` | 200 | 200 | ✅ Pass |
+| [TC-408](#tc-408) | Any authenticated user can read the history | `GET /api/health/history` | 200 | 200 | ✅ Pass |
+
+
+### Neighbour Conflict Resolver
+
+`Backend/tests/test_conflicts.py` · US-16 · **27/27 passed**
+
+| ID | Test case | Endpoint | Expected | Actual | Result |
+|---|---|---|---|---|---|
+| [TC-409](#tc-409) | Resident can raise a conflict against another flat | `POST /api/conflicts/` | 201 | 201 | ✅ Pass |
+| [TC-410](#tc-410) | Admin sees every report with the reporter named | `GET /api/conflicts/` | 200 | 200 | ✅ Pass |
+| [TC-411](#tc-411) | Reported flat can submit its side | `GET /api/conflicts/` | 200 | 200 | ✅ Pass |
+| [TC-412](#tc-412) | Admin can resolve a report | `PUT /api/conflicts/1/resolve` | 200 | 200 | ✅ Pass |
+| [TC-413](#tc-413) | Resolution note defaults when not supplied | `PUT /api/conflicts/1/resolve` | — | 200 | ✅ Pass |
+| [TC-414](#tc-414) | Pending lists open and under review reports for admin | `GET /api/conflicts/pending` | 200 | 200 | ✅ Pass |
+| [TC-415](#tc-415) | Responding to a missing report returns 404 | `PUT /api/conflicts/9999/respond` | 404 | 404 | ✅ Pass |
+| [TC-416](#tc-416) | The accused flat must not learn who reported them | `GET /api/conflicts/` | 200 | 200 | ✅ Pass |
+| [TC-417](#tc-417) | Reporter own report is also returned without identity fields | `GET /api/conflicts/` | — | 200 | ✅ Pass |
+| [TC-418](#tc-418) | Resident cannot see unrelated reports | `GET /api/conflicts/` | — | 200 | ✅ Pass |
+| [TC-419](#tc-419) | This endpoint reveals reporter identities, so residents get a 403 | `GET /api/conflicts/pending` | 403 | 403 | ✅ Pass |
+| [TC-420](#tc-420) | Reporting your own flat is rejected | `POST /api/conflicts/` | 400 | 400 | ✅ Pass |
+| [TC-421](#tc-421) | Reporting an unknown flat returns 404 | `POST /api/conflicts/` | 404 | 404 | ✅ Pass |
+| [TC-422](#tc-422) | A user from another flat cannot respond | `PUT /api/conflicts/1/respond` | 403 | 403 | ✅ Pass |
+| [TC-423](#tc-423) | A user with no flat cannot respond | `PUT /api/conflicts/1/respond` | 403 | 403 | ✅ Pass |
+| [TC-424](#tc-424) | Responding twice returns 409 | `PUT /api/conflicts/1/respond` | 200 / 409 | 409 | ✅ Pass |
+| [TC-425](#tc-425) | Responding to a resolved report returns 409 | `PUT /api/conflicts/1/respond` | 409 | 409 | ✅ Pass |
+| [TC-426](#tc-426) | Resolving twice returns 409 | `PUT /api/conflicts/1/resolve` | 200 / 409 | 409 | ✅ Pass |
+| [TC-427](#tc-427) | Conflict requires a description | `POST /api/conflicts/` | 400 | 400 | ✅ Pass |
+| [TC-428](#tc-428) | Conflict requires a reported apartment | `POST /api/conflicts/` | 400 | 400 | ✅ Pass |
+| [TC-429](#tc-429) | Unknown category is rejected | `POST /api/conflicts/` | 400 | 400 | ✅ Pass |
+| [TC-430](#tc-430) | Non numeric apartment id is rejected | `POST /api/conflicts/` | 400 | 400 | ✅ Pass |
+| [TC-431](#tc-431) | Response text is required | `PUT /api/conflicts/1/respond` | 400 | 400 | ✅ Pass |
+| [TC-432](#tc-432) | Null body is rejected | `POST /api/conflicts/` | 400 | 400 | ✅ Pass |
+| [TC-433](#tc-433) | List body is rejected | `POST /api/conflicts/` | 400 | 400 | ✅ Pass |
+| [TC-434](#tc-434) | Conflicts require authentication | `PUT /api/conflicts/1/resolve` | 401 | 401 | ✅ Pass |
+| [TC-435](#tc-435) | Resident cannot resolve a report | `PUT /api/conflicts/1/resolve` | 403 | 403 | ✅ Pass |
+
+
+### Visitor Parking
+
+`Backend/tests/test_parking.py` · US-12 · **27/27 passed**
+
+| ID | Test case | Endpoint | Expected | Actual | Result |
+|---|---|---|---|---|---|
+| [TC-436](#tc-436) | Admin can add a slot | `POST /api/parking/` | 201 | 201 | ✅ Pass |
+| [TC-437](#tc-437) | Slot can be created with an explicit status | `POST /api/parking/` | — | 201 | ✅ Pass |
+| [TC-438](#tc-438) | Slot list is ordered by slot number | `GET /api/parking/` | 200 | 200 | ✅ Pass |
+| [TC-439](#tc-439) | Available returns only free slots | `GET /api/parking/available` | 200 | 200 | ✅ Pass |
+| [TC-440](#tc-440) | Resident can reserve a slot for a visitor | `PUT /api/parking/1/reserve` | 200 | 200 | ✅ Pass |
+| [TC-441](#tc-441) | Occupying a reserved slot keeps the reserving flat | `PUT /api/parking/1/occupy` | 200 | 200 | ✅ Pass |
+| [TC-442](#tc-442) | Occupying a free slot attributes it to the caller | `PUT /api/parking/1/occupy` | 200 | 200 | ✅ Pass |
+| [TC-443](#tc-443) | Resident can release their own reservation | `PUT /api/parking/1/release` | 200 | 200 | ✅ Pass |
+| [TC-444](#tc-444) | Admin can release any slot | `PUT /api/parking/1/release` | 200 | 200 | ✅ Pass |
+| [TC-445](#tc-445) | Admin can delete a slot | `GET /api/parking/` | 200 | 200 | ✅ Pass |
+| [TC-446](#tc-446) | Reserving a missing slot returns 404 | `PUT /api/parking/9999/reserve` | 404 | 404 | ✅ Pass |
+| [TC-447](#tc-447) | Reserving an already reserved slot is rejected | `PUT /api/parking/1/reserve` | 400 | 400 | ✅ Pass |
+| [TC-448](#tc-448) | Occupying an already occupied slot is rejected | `PUT /api/parking/1/occupy` | 200 / 400 | 400 | ✅ Pass |
+| [TC-449](#tc-449) | Releasing someone elses reservation is forbidden | `GET /api/parking/` | 403 | 200 | ✅ Pass |
+| [TC-450](#tc-450) | Duplicate slot number returns 409 | `POST /api/parking/` | 409 | 409 | ✅ Pass |
+| [TC-451](#tc-451) | The UI sends "" when the arrival time box is left empty | `PUT /api/parking/1/reserve` | 200 | 200 | ✅ Pass |
+| [TC-452](#tc-452) | Date only expected arrival time is accepted | `PUT /api/parking/1/reserve` | 200 | 200 | ✅ Pass |
+| [TC-453](#tc-453) | Unparseable expected arrival time is rejected | `PUT /api/parking/1/reserve` | 400 | 400 | ✅ Pass |
+| [TC-454](#tc-454) | Slot number is required | `POST /api/parking/` | 400 | 400 | ✅ Pass |
+| [TC-455](#tc-455) | Blank slot number is rejected | `POST /api/parking/` | 400 | 400 | ✅ Pass |
+| [TC-456](#tc-456) | Unknown status is rejected | `POST /api/parking/` | 400 | 400 | ✅ Pass |
+| [TC-457](#tc-457) | Null body is rejected | `POST /api/parking/` | 400 | 400 | ✅ Pass |
+| [TC-458](#tc-458) | List body is rejected | `POST /api/parking/` | 400 | 400 | ✅ Pass |
+| [TC-459](#tc-459) | Null body on reserve is rejected | `PUT /api/parking/1/reserve` | 400 | 400 | ✅ Pass |
+| [TC-460](#tc-460) | Parking requires authentication | `PUT /api/parking/1/reserve` | 401 | 401 | ✅ Pass |
+| [TC-461](#tc-461) | Resident can read slots | `GET /api/parking/available` | 200 | 200 | ✅ Pass |
+| [TC-462](#tc-462) | Resident cannot add or delete slots | `DELETE /api/parking/1` | 403 | 403 | ✅ Pass |
+
+
+### Emergency Contacts
+
+`Backend/tests/test_emergency.py` · US-07 · **50/50 passed**
+
+| ID | Test case | Endpoint | Expected | Actual | Result |
+|---|---|---|---|---|---|
+| [TC-463](#tc-463) | Create contact returns 201 | `POST /api/emergency/` | 201 | 201 | ✅ Pass |
+| [TC-464](#tc-464) | Create contact returns only real columns | `POST /api/emergency/` | — | 201 | ✅ Pass |
+| [TC-465](#tc-465) | Create contact uppercases the service type | `POST /api/emergency/` | 201 | 201 | ✅ Pass |
+| [TC-466](#tc-466) | Create contact blank availability becomes null | `POST /api/emergency/` | 201 | 201 | ✅ Pass |
+| [TC-467](#tc-467) | Create contact omitted availability is null | `POST /api/emergency/` | 201 | 201 | ✅ Pass |
+| [TC-468](#tc-468) | phone has no UNIQUE constraint — two services can share a number | `POST /api/emergency/` | — | 201 | ✅ Pass |
+| [TC-469](#tc-469) | Create contact missing required field returns 400 | `POST /api/emergency/` | 400 | 400 | ✅ Pass |
+| [TC-470](#tc-470) | Create contact missing required field returns 400 | `POST /api/emergency/` | 400 | 400 | ✅ Pass |
+| [TC-471](#tc-471) | Create contact missing required field returns 400 | `POST /api/emergency/` | 400 | 400 | ✅ Pass |
+| [TC-472](#tc-472) | Create contact unknown service type returns 400 | `POST /api/emergency/` | 400 | 400 | ✅ Pass |
+| [TC-473](#tc-473) | Create contact phone without digits returns 400 | `POST /api/emergency/` | 400 | 400 | ✅ Pass |
+| [TC-474](#tc-474) | Create contact phone longer than 15 chars returns 400 | `POST /api/emergency/` | 400 | 400 | ✅ Pass |
+| [TC-475](#tc-475) | Create contact malformed body returns 400 | `POST /api/emergency/` | 400 | 400 | ✅ Pass |
+| [TC-476](#tc-476) | Create contact malformed body returns 400 | `POST /api/emergency/` | 400 | 400 | ✅ Pass |
+| [TC-477](#tc-477) | Create contact malformed body returns 400 | `POST /api/emergency/` | 400 | 400 | ✅ Pass |
+| [TC-478](#tc-478) | Create contact as resident returns 403 | `POST /api/emergency/` | 403 | 403 | ✅ Pass |
+| [TC-479](#tc-479) | Create contact as worker returns 403 | `POST /api/emergency/` | 403 | 403 | ✅ Pass |
+| [TC-480](#tc-480) | Create contact as treasurer returns 201 | `POST /api/emergency/` | 201 | 201 | ✅ Pass |
+| [TC-481](#tc-481) | Create contact without token returns 401 | `POST /api/emergency/` | 401 | 401 | ✅ Pass |
+| [TC-482](#tc-482) | List contacts empty directory returns empty list | `GET /api/emergency/` | 200 | 200 | ✅ Pass |
+| [TC-483](#tc-483) | List contacts returns the created contact | `GET /api/emergency/` | 200 | 200 | ✅ Pass |
+| [TC-484](#tc-484) | List contacts is ordered by service type then name | `GET /api/emergency/` | — | 200 | ✅ Pass |
+| [TC-485](#tc-485) | Every role may read the emergency directory | `GET /api/emergency/` | 200 | 200 | ✅ Pass |
+| [TC-486](#tc-486) | List contacts is open to every role | `GET /api/emergency/` | 200 | 200 | ✅ Pass |
+| [TC-487](#tc-487) | List contacts is open to every role | `GET /api/emergency/` | 200 | 200 | ✅ Pass |
+| [TC-488](#tc-488) | List contacts is open to every role | `GET /api/emergency/` | 200 | 200 | ✅ Pass |
+| [TC-489](#tc-489) | List contacts is open to every role | `GET /api/emergency/` | 200 | 200 | ✅ Pass |
+| [TC-490](#tc-490) | List contacts without token returns 401 | `GET /api/emergency/` | 401 | 401 | ✅ Pass |
+| [TC-491](#tc-491) | Update contact returns 200 | `PUT /api/emergency/1` | 200 | 200 | ✅ Pass |
+| [TC-492](#tc-492) | Update contact leaves omitted fields untouched | `PUT /api/emergency/1` | 200 | 200 | ✅ Pass |
+| [TC-493](#tc-493) | Update contact blank service type keeps the current one | `PUT /api/emergency/1` | 200 | 200 | ✅ Pass |
+| [TC-494](#tc-494) | Update contact blank availability clears it | `PUT /api/emergency/1` | 200 | 200 | ✅ Pass |
+| [TC-495](#tc-495) | Update contact unknown service type returns 400 | `PUT /api/emergency/1` | 400 | 400 | ✅ Pass |
+| [TC-496](#tc-496) | Update contact blank phone returns 400 | `PUT /api/emergency/1` | 400 | 400 | ✅ Pass |
+| [TC-497](#tc-497) | Update contact phone without digits returns 400 | `PUT /api/emergency/1` | 400 | 400 | ✅ Pass |
+| [TC-498](#tc-498) | Update contact phone longer than 15 chars returns 400 | `PUT /api/emergency/1` | 400 | 400 | ✅ Pass |
+| [TC-499](#tc-499) | Update contact malformed body returns 400 | `PUT /api/emergency/1` | 400 | 400 | ✅ Pass |
+| [TC-500](#tc-500) | Update contact malformed body returns 400 | `PUT /api/emergency/1` | 400 | 400 | ✅ Pass |
+| [TC-501](#tc-501) | Update contact malformed body returns 400 | `PUT /api/emergency/1` | 400 | 400 | ✅ Pass |
+| [TC-502](#tc-502) | Update unknown contact returns 404 | `PUT /api/emergency/9999` | 404 | 404 | ✅ Pass |
+| [TC-503](#tc-503) | Update contact as resident returns 403 | `PUT /api/emergency/1` | 403 | 403 | ✅ Pass |
+| [TC-504](#tc-504) | Update contact as worker returns 403 | `PUT /api/emergency/1` | 403 | 403 | ✅ Pass |
+| [TC-505](#tc-505) | Update contact without token returns 401 | `PUT /api/emergency/1` | 401 | 401 | ✅ Pass |
+| [TC-506](#tc-506) | Delete contact returns 200 | `DELETE /api/emergency/1` | 200 | 200 | ✅ Pass |
+| [TC-507](#tc-507) | Delete contact is a hard delete | `GET /api/emergency/` | — | 200 | ✅ Pass |
+| [TC-508](#tc-508) | Delete contact twice returns 404 | `DELETE /api/emergency/1` | 404 | 404 | ✅ Pass |
+| [TC-509](#tc-509) | Delete unknown contact returns 404 | `DELETE /api/emergency/9999` | 404 | 404 | ✅ Pass |
+| [TC-510](#tc-510) | Delete contact as resident returns 403 | `DELETE /api/emergency/1` | 403 | 403 | ✅ Pass |
+| [TC-511](#tc-511) | Delete contact as worker returns 403 | `DELETE /api/emergency/1` | 403 | 403 | ✅ Pass |
+| [TC-512](#tc-512) | Delete contact without token returns 401 | `DELETE /api/emergency/1` | 401 | 401 | ✅ Pass |
+
+
+### Regression suite — defects already fixed
+
+`Backend/tests/test_regressions.py` · all · **21/21 passed**
+
+| ID | Test case | Endpoint | Expected | Actual | Result |
+|---|---|---|---|---|---|
+| [TC-513](#tc-513) | Duplicate phone returns 409 not 500 | `POST /api/auth/register` | 409 | 409 | ✅ Pass |
+| [TC-514](#tc-514) | The same bug in its nastier form: '' is not NULL, so the SECOND | `POST /api/auth/register` | 201 | 201 | ✅ Pass |
+| [TC-515](#tc-515) | DEFECT-02  Four endpoints were 100% dead | `POST /api/expenses/` | 201 | 201 | ✅ Pass |
+| [TC-516](#tc-516) | DEFECT-02  Four endpoints were 100% dead | `POST /api/maintenance/` | 201 | 201 | ✅ Pass |
+| [TC-517](#tc-517) | DEFECT-02  Four endpoints were 100% dead | `POST /api/equipment/` | 201 | 201 | ✅ Pass |
+| [TC-518](#tc-518) | DEFECT-02  Four endpoints were 100% dead | `POST /api/polls/` | 201 | 201 | ✅ Pass |
+| [TC-519](#tc-519) | The flip side: a genuinely bad date must be a 400, not a 500 | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
+| [TC-520](#tc-520) | Pending is admin only | `GET /api/conflicts/pending` | 403 | 403 | ✅ Pass |
+| [TC-521](#tc-521) | Resident listing never exposes the reporter | `GET /api/conflicts/` | 200 | 200 | ✅ Pass |
+| [TC-522](#tc-522) | Assign without worker is rejected | `PUT /api/complaints/1/assign` | 400 | 400 | ✅ Pass |
+| [TC-523](#tc-523) | Assign to non worker is rejected | `PUT /api/complaints/1/assign` | 400 | 400 | ✅ Pass |
+| [TC-524](#tc-524) | Assigned worker sees the job | `GET /api/complaints/` | 200 | 200 | ✅ Pass |
+| [TC-525](#tc-525) | DEFECT-05  PUT /api/invoices/<id>/pay was not idempotent | `PUT /api/invoices/1/pay` | 201 / 200 / 409 | 409 | ✅ Pass |
+| [TC-526](#tc-526) | DEFECT-06  POST /api/equipment with service_frequency_days = 0 | `GET /api/equipment/` | 400 / 200 | 200 | ✅ Pass |
+| [TC-527](#tc-527) | DEFECT-07  Any endpoint, with a body of null / [] / "str" | `POST /api/auth/login` | 400 | 400 | ✅ Pass |
+| [TC-528](#tc-528) | DEFECT-07  Any endpoint, with a body of null / [] / "str" | `POST /api/auth/login` | 400 | 400 | ✅ Pass |
+| [TC-529](#tc-529) | DEFECT-07  Any endpoint, with a body of null / [] / "str" | `POST /api/auth/login` | 400 | 400 | ✅ Pass |
+| [TC-530](#tc-530) | DEFECT-07b  PUT /api/auth/change-password | `PUT /api/auth/change-password` | 400 | 400 | ✅ Pass |
+| [TC-531](#tc-531) | DEFECT-08  There was not a single `except` block in api/ or auth/ | `POST /api/complaints/` | — | 400 | ✅ Pass |
+| [TC-532](#tc-532) | DEFECT-09  Every mutating endpoint was bare @jwt_required() | `GET /api/expenses/` | 403 | 403 | ✅ Pass |
+| [TC-533](#tc-533) | DEFECT-09b  DELETE /api/members/apartments/<id> | `DELETE /api/members/apartments/1` | 409 | 409 | ✅ Pass |
+
+
+### Open defects — EXPECTED TO FAIL  ⚠️ *fails by design*
+
+`Backend/tests/test_open_defects.py` · all · **0/6 passed**
+
+| ID | Test case | Endpoint | Expected | Actual | Result |
+|---|---|---|---|---|---|
+| [TC-534](#tc-534) | OD-01 · Auth errors use a different JSON envelope from the rest of the API | `GET /api/auth/me` | 401 | **401** | ❌ **Fail** |
+| [TC-535](#tc-535) | OD-02 · Anyone on the internet can create an ADMIN account.  [SECURITY] | `POST /api/auth/register` | 400 / 403 | **201** | ❌ **Fail** |
+| [TC-536](#tc-536) | OD-02b · Proves the escalation above is exploitable, not cosmetic | `GET /api/members/` | 403 | **200** | ❌ **Fail** |
+| [TC-537](#tc-537) | OD-03 · Invoices never become OVERDUE | `GET /api/invoices/` | 200 | **200** | ❌ **Fail** |
+| [TC-538](#tc-538) | OD-04 · Validation errors name the internal enum, not the client's field | `POST /api/maintenance/` | 400 | **400** | ❌ **Fail** |
+| [TC-539](#tc-539) | OD-04 · Validation errors name the internal enum, not the client's field | `POST /api/equipment/` | 400 | **400** | ❌ **Fail** |
+
+
+---
+
+## 3. Test case detail
 
 
 ---
 
 ## Authentication
 
-`Backend/tests/test_auth.py` · US-08 · **52/52 passed**
+`Backend/tests/test_auth.py` · US-08 · **52/52 passed** · [↑ back to index](#2-test-case-index)
 
+
+<a id="tc-001"></a>
 
 ### TC-001 · Register returns 201 with token and user
 
@@ -100,7 +768,7 @@ Every module covers the same four axes: **happy path**, **validation** (missing 
       "message": "User registered successfully",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 11:56:41.271585",
+        "created_at": "2026-08-02 12:17:58.981237",
         "email": "nina@test.com",
         "id": 1,
         "is_active": true,
@@ -134,6 +802,10 @@ def test_register_returns_201_with_token_and_user(client):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-002"></a>
 
 ### TC-002 · Register lowercases and strips email
 
@@ -167,7 +839,7 @@ def test_register_returns_201_with_token_and_user(client):
       "message": "User registered successfully",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 11:56:41.593671",
+        "created_at": "2026-08-02 12:17:59.944829",
         "email": "mixed@test.com",
         "id": 1,
         "is_active": true,
@@ -195,6 +867,10 @@ def test_register_lowercases_and_strips_email(client):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-003"></a>
 
 ### TC-003 · Register issues a usable token
 
@@ -219,7 +895,7 @@ def test_register_lowercases_and_strips_email(client):
 - JSON:
     ```json
     {
-      "created_at": "2026-08-02 11:56:42.148697",
+      "created_at": "2026-08-02 12:18:00.611082",
       "email": "token@test.com",
       "id": 1,
       "is_active": true,
@@ -246,6 +922,10 @@ def test_register_issues_a_usable_token(client):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-004"></a>
 
 ### TC-004 · Register missing required field returns 400
 
@@ -296,6 +976,10 @@ def test_register_missing_required_field_returns_400(client, missing):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-005"></a>
 
 ### TC-005 · Register missing required field returns 400
 
@@ -346,6 +1030,10 @@ def test_register_missing_required_field_returns_400(client, missing):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-006"></a>
 
 ### TC-006 · Register missing required field returns 400
 
@@ -396,6 +1084,10 @@ def test_register_missing_required_field_returns_400(client, missing):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-007"></a>
 
 ### TC-007 · Register missing required field returns 400
 
@@ -446,6 +1138,10 @@ def test_register_missing_required_field_returns_400(client, missing):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-008"></a>
 
 ### TC-008 · Register blank required field returns 400
 
@@ -497,6 +1193,10 @@ def test_register_blank_required_field_returns_400(client, blank):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-009"></a>
 
 ### TC-009 · Register blank required field returns 400
 
@@ -548,6 +1248,10 @@ def test_register_blank_required_field_returns_400(client, blank):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-010"></a>
 
 ### TC-010 · Register unknown role returns 400
 
@@ -597,6 +1301,10 @@ def test_register_unknown_role_returns_400(client):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-011"></a>
 
 ### TC-011 · Register malformed body returns 400
 
@@ -644,6 +1352,10 @@ def test_register_malformed_body_returns_400(client, raw, expected):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-012"></a>
 
 ### TC-012 · Register malformed body returns 400
 
@@ -691,6 +1403,10 @@ def test_register_malformed_body_returns_400(client, raw, expected):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-013"></a>
 
 ### TC-013 · Register malformed body returns 400
 
@@ -738,6 +1454,10 @@ def test_register_malformed_body_returns_400(client, raw, expected):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-014"></a>
 
 ### TC-014 · Register duplicate email returns 409
 
@@ -788,6 +1508,10 @@ def test_register_duplicate_email_returns_409(client, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-015"></a>
 
 ### TC-015 · Register duplicate email is case insensitive
 
@@ -838,6 +1562,10 @@ def test_register_duplicate_email_is_case_insensitive(client, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-016"></a>
 
 ### TC-016 · Register duplicate phone returns 409
 
@@ -896,6 +1624,10 @@ def test_register_duplicate_phone_returns_409(client):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-017"></a>
 
 ### TC-017 · Blank phone must normalise to NULL — users.phone is UNIQUE
 
@@ -931,7 +1663,7 @@ def test_register_duplicate_phone_returns_409(client):
       "message": "User registered successfully",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 11:56:48.881252",
+        "created_at": "2026-08-02 12:18:08.166241",
         "email": "blank2@test.com",
         "id": 2,
         "is_active": true,
@@ -964,6 +1696,10 @@ def test_register_two_blank_phones_both_succeed(client):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-018"></a>
 
 ### TC-018 · Register blank phone is stored as null
 
@@ -999,7 +1735,7 @@ def test_register_two_blank_phones_both_succeed(client):
       "message": "User registered successfully",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 11:56:49.639816",
+        "created_at": "2026-08-02 12:18:08.856558",
         "email": "blankphone@test.com",
         "id": 1,
         "is_active": true,
@@ -1025,6 +1761,10 @@ def test_register_blank_phone_is_stored_as_null(client):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-019"></a>
 
 ### TC-019 · Login succeeds for every seeded role
 
@@ -1056,7 +1796,7 @@ def test_register_blank_phone_is_stored_as_null(client):
       "message": "Login successful",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 11:56:49.958042",
+        "created_at": "2026-08-02 12:18:09.175745",
         "email": "admin@test.com",
         "id": 1,
         "is_active": true,
@@ -1090,6 +1830,10 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-020"></a>
 
 ### TC-020 · Login succeeds for every seeded role
 
@@ -1121,7 +1865,7 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
       "message": "Login successful",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 11:56:50.502459",
+        "created_at": "2026-08-02 12:18:09.870022",
         "email": "treasurer@test.com",
         "id": 2,
         "is_active": true,
@@ -1155,6 +1899,10 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-021"></a>
 
 ### TC-021 · Login succeeds for every seeded role
 
@@ -1186,7 +1934,7 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
       "message": "Login successful",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 11:56:50.930694",
+        "created_at": "2026-08-02 12:18:10.257363",
         "email": "committee@test.com",
         "id": 3,
         "is_active": true,
@@ -1220,6 +1968,10 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-022"></a>
 
 ### TC-022 · Login succeeds for every seeded role
 
@@ -1251,7 +2003,7 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
       "message": "Login successful",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 11:56:51.459616",
+        "created_at": "2026-08-02 12:18:10.609288",
         "email": "resident@test.com",
         "id": 4,
         "is_active": true,
@@ -1285,6 +2037,10 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-023"></a>
 
 ### TC-023 · Login succeeds for every seeded role
 
@@ -1316,7 +2072,7 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
       "message": "Login successful",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 11:56:51.797236",
+        "created_at": "2026-08-02 12:18:11.043862",
         "email": "owner@test.com",
         "id": 5,
         "is_active": true,
@@ -1350,6 +2106,10 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-024"></a>
 
 ### TC-024 · Login succeeds for every seeded role
 
@@ -1381,7 +2141,7 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
       "message": "Login successful",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 11:56:52.321752",
+        "created_at": "2026-08-02 12:18:11.476505",
         "email": "worker@test.com",
         "id": 6,
         "is_active": true,
@@ -1415,6 +2175,10 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-025"></a>
 
 ### TC-025 · Login wrong password returns 401
 
@@ -1461,6 +2225,10 @@ def test_login_wrong_password_returns_401(client, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-026"></a>
 
 ### TC-026 · Login unknown email returns 401
 
@@ -1507,6 +2275,10 @@ def test_login_unknown_email_returns_401(client, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-027"></a>
 
 ### TC-027 · Login missing required field returns 400
 
@@ -1554,6 +2326,10 @@ def test_login_missing_required_field_returns_400(client, seed, missing):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-028"></a>
 
 ### TC-028 · Login missing required field returns 400
 
@@ -1601,6 +2377,10 @@ def test_login_missing_required_field_returns_400(client, seed, missing):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-029"></a>
 
 ### TC-029 · Login malformed body returns 400
 
@@ -1647,6 +2427,10 @@ def test_login_malformed_body_returns_400(client, raw, expected):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-030"></a>
 
 ### TC-030 · Login malformed body returns 400
 
@@ -1693,6 +2477,10 @@ def test_login_malformed_body_returns_400(client, raw, expected):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-031"></a>
 
 ### TC-031 · Login malformed body returns 400
 
@@ -1739,6 +2527,10 @@ def test_login_malformed_body_returns_400(client, raw, expected):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-032"></a>
 
 ### TC-032 · Login deactivated account returns 403
 
@@ -1788,6 +2580,10 @@ def test_login_deactivated_account_returns_403(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-033"></a>
 
 ### TC-033 · Me returns the authenticated user
 
@@ -1811,7 +2607,7 @@ def test_login_deactivated_account_returns_403(client, seed, admin):
 - JSON:
     ```json
     {
-      "created_at": "2026-08-02 11:56:55.552923",
+      "created_at": "2026-08-02 12:18:15.488701",
       "email": "resident@test.com",
       "id": 4,
       "is_active": true,
@@ -1836,6 +2632,10 @@ def test_me_returns_the_authenticated_user(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-034"></a>
 
 ### TC-034 · Me is open to every role
 
@@ -1859,7 +2659,7 @@ def test_me_returns_the_authenticated_user(client, seed, resident):
 - JSON:
     ```json
     {
-      "created_at": "2026-08-02 11:56:56.015860",
+      "created_at": "2026-08-02 12:18:15.824614",
       "email": "admin@test.com",
       "id": 1,
       "is_active": true,
@@ -1881,6 +2681,10 @@ def test_me_is_open_to_every_role(client, request, role_fixture):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-035"></a>
 
 ### TC-035 · Me is open to every role
 
@@ -1904,7 +2708,7 @@ def test_me_is_open_to_every_role(client, request, role_fixture):
 - JSON:
     ```json
     {
-      "created_at": "2026-08-02 11:56:56.459714",
+      "created_at": "2026-08-02 12:18:16.312305",
       "email": "treasurer@test.com",
       "id": 2,
       "is_active": true,
@@ -1926,6 +2730,10 @@ def test_me_is_open_to_every_role(client, request, role_fixture):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-036"></a>
 
 ### TC-036 · Me is open to every role
 
@@ -1949,7 +2757,7 @@ def test_me_is_open_to_every_role(client, request, role_fixture):
 - JSON:
     ```json
     {
-      "created_at": "2026-08-02 11:56:56.939179",
+      "created_at": "2026-08-02 12:18:16.762232",
       "email": "resident@test.com",
       "id": 4,
       "is_active": true,
@@ -1971,6 +2779,10 @@ def test_me_is_open_to_every_role(client, request, role_fixture):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-037"></a>
 
 ### TC-037 · Me is open to every role
 
@@ -1994,7 +2806,7 @@ def test_me_is_open_to_every_role(client, request, role_fixture):
 - JSON:
     ```json
     {
-      "created_at": "2026-08-02 11:56:57.263679",
+      "created_at": "2026-08-02 12:18:17.281072",
       "email": "worker@test.com",
       "id": 6,
       "is_active": true,
@@ -2016,6 +2828,10 @@ def test_me_is_open_to_every_role(client, request, role_fixture):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-038"></a>
 
 ### TC-038 · Me without token returns 401
 
@@ -2052,6 +2868,10 @@ def test_me_without_token_returns_401(client):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-039"></a>
 
 ### TC-039 · Me with garbage token returns 422
 
@@ -2089,6 +2909,10 @@ def test_me_with_garbage_token_returns_422(client):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-040"></a>
 
 ### TC-040 · Change password returns 200
 
@@ -2136,6 +2960,10 @@ def test_change_password_returns_200(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-041"></a>
 
 ### TC-041 · Change password old password stops working
 
@@ -2184,6 +3012,10 @@ def test_change_password_old_password_stops_working(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-042"></a>
 
 ### TC-042 · Change password new password works
 
@@ -2216,7 +3048,7 @@ def test_change_password_old_password_stops_working(client, seed, resident):
       "message": "Login successful",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 11:56:59.886060",
+        "created_at": "2026-08-02 12:18:21.562391",
         "email": "resident@test.com",
         "id": 4,
         "is_active": true,
@@ -2242,6 +3074,10 @@ def test_change_password_new_password_works(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-043"></a>
 
 ### TC-043 · Regression: this used to be a KeyError -> HTML 500
 
@@ -2289,6 +3125,10 @@ def test_change_password_missing_new_password_returns_400(client, seed, resident
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-044"></a>
 
 ### TC-044 · Change password missing old password returns 400
 
@@ -2335,6 +3175,10 @@ def test_change_password_missing_old_password_returns_400(client, seed, resident
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-045"></a>
 
 ### TC-045 · Change password wrong old password returns 400
 
@@ -2382,6 +3226,10 @@ def test_change_password_wrong_old_password_returns_400(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-046"></a>
 
 ### TC-046 · Change password shorter than six chars returns 400
 
@@ -2430,6 +3278,10 @@ def test_change_password_shorter_than_six_chars_returns_400(client, seed, reside
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-047"></a>
 
 ### TC-047 · Change password shorter than six chars returns 400
 
@@ -2478,6 +3330,10 @@ def test_change_password_shorter_than_six_chars_returns_400(client, seed, reside
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-048"></a>
 
 ### TC-048 · Change password shorter than six chars returns 400
 
@@ -2526,6 +3382,10 @@ def test_change_password_shorter_than_six_chars_returns_400(client, seed, reside
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-049"></a>
 
 ### TC-049 · Change password malformed body returns 400
 
@@ -2574,6 +3434,10 @@ def test_change_password_malformed_body_returns_400(client, seed, resident, raw,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-050"></a>
 
 ### TC-050 · Change password malformed body returns 400
 
@@ -2622,6 +3486,10 @@ def test_change_password_malformed_body_returns_400(client, seed, resident, raw,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-051"></a>
 
 ### TC-051 · Change password malformed body returns 400
 
@@ -2670,6 +3538,10 @@ def test_change_password_malformed_body_returns_400(client, seed, resident, raw,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-052"></a>
 
 ### TC-052 · Change password without token returns 401
 
@@ -2714,13 +3586,17 @@ def test_change_password_without_token_returns_401(client, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
 
 ---
 
 ## Members & Apartments
 
-`Backend/tests/test_members.py` · US-09, US-04 · **96/96 passed**
+`Backend/tests/test_members.py` · US-09, US-04 · **96/96 passed** · [↑ back to index](#2-test-case-index)
 
+
+<a id="tc-053"></a>
 
 ### TC-053 · List apartments returns seeded flats
 
@@ -2771,6 +3647,10 @@ def test_list_apartments_returns_seeded_flats(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-054"></a>
 
 ### TC-054 · List apartments exposes block and floor
 
@@ -2821,6 +3701,10 @@ def test_list_apartments_exposes_block_and_floor(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-055"></a>
 
 ### TC-055 · List apartments is open to every role
 
@@ -2871,6 +3755,10 @@ def test_list_apartments_is_open_to_every_role(client, request, role_fixture):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-056"></a>
 
 ### TC-056 · List apartments is open to every role
 
@@ -2921,6 +3809,10 @@ def test_list_apartments_is_open_to_every_role(client, request, role_fixture):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-057"></a>
 
 ### TC-057 · List apartments is open to every role
 
@@ -2971,6 +3863,10 @@ def test_list_apartments_is_open_to_every_role(client, request, role_fixture):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-058"></a>
 
 ### TC-058 · List apartments is open to every role
 
@@ -3021,6 +3917,10 @@ def test_list_apartments_is_open_to_every_role(client, request, role_fixture):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-059"></a>
 
 ### TC-059 · List apartments without token returns 401
 
@@ -3057,6 +3957,10 @@ def test_list_apartments_without_token_returns_401(client, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-060"></a>
 
 ### TC-060 · Create apartment returns 201
 
@@ -3111,6 +4015,10 @@ def test_create_apartment_returns_201(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-061"></a>
 
 ### TC-061 · Create apartment accepts a numeric string floor
 
@@ -3160,6 +4068,10 @@ def test_create_apartment_accepts_a_numeric_string_floor(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-062"></a>
 
 ### TC-062 · Create apartment missing flat number returns 400
 
@@ -3205,6 +4117,10 @@ def test_create_apartment_missing_flat_number_returns_400(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-063"></a>
 
 ### TC-063 · Create apartment non numeric floor returns 400
 
@@ -3252,6 +4168,10 @@ def test_create_apartment_non_numeric_floor_returns_400(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-064"></a>
 
 ### TC-064 · Create apartment malformed body returns 400
 
@@ -3300,6 +4220,10 @@ def test_create_apartment_malformed_body_returns_400(client, seed, admin, raw, e
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-065"></a>
 
 ### TC-065 · Create apartment malformed body returns 400
 
@@ -3348,6 +4272,10 @@ def test_create_apartment_malformed_body_returns_400(client, seed, admin, raw, e
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-066"></a>
 
 ### TC-066 · Create apartment malformed body returns 400
 
@@ -3396,6 +4324,10 @@ def test_create_apartment_malformed_body_returns_400(client, seed, admin, raw, e
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-067"></a>
 
 ### TC-067 · Create apartment duplicate flat number returns 409
 
@@ -3442,6 +4374,10 @@ def test_create_apartment_duplicate_flat_number_returns_409(client, seed, admin)
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-068"></a>
 
 ### TC-068 · Create apartment as resident returns 403
 
@@ -3488,6 +4424,10 @@ def test_create_apartment_as_resident_returns_403(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-069"></a>
 
 ### TC-069 · Create apartment as worker returns 403
 
@@ -3532,6 +4472,10 @@ def test_create_apartment_as_worker_returns_403(client, seed, worker):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-070"></a>
 
 ### TC-070 · Create apartment as treasurer returns 201
 
@@ -3579,6 +4523,10 @@ def test_create_apartment_as_treasurer_returns_201(client, seed, treasurer):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-071"></a>
 
 ### TC-071 · Create apartment without token returns 401
 
@@ -3621,6 +4569,10 @@ def test_create_apartment_without_token_returns_401(client, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-072"></a>
 
 ### TC-072 · Update apartment renames the flat
 
@@ -3670,6 +4622,10 @@ def test_update_apartment_renames_the_flat(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-073"></a>
 
 ### TC-073 · Update apartment updates block and floor
 
@@ -3719,6 +4675,10 @@ def test_update_apartment_updates_block_and_floor(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-074"></a>
 
 ### TC-074 · Update apartment blank flat number returns 400
 
@@ -3765,6 +4725,10 @@ def test_update_apartment_blank_flat_number_returns_400(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-075"></a>
 
 ### TC-075 · Update apartment bad floor returns 400
 
@@ -3811,6 +4775,10 @@ def test_update_apartment_bad_floor_returns_400(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-076"></a>
 
 ### TC-076 · Update apartment duplicate flat number returns 409
 
@@ -3857,6 +4825,10 @@ def test_update_apartment_duplicate_flat_number_returns_409(client, seed, admin)
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-077"></a>
 
 ### TC-077 · Update apartment to its own flat number returns 200
 
@@ -3904,6 +4876,10 @@ def test_update_apartment_to_its_own_flat_number_returns_200(client, seed, admin
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-078"></a>
 
 ### TC-078 · Update unknown apartment returns 404
 
@@ -3948,6 +4924,10 @@ def test_update_unknown_apartment_returns_404(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-079"></a>
 
 ### TC-079 · Update apartment as resident returns 403
 
@@ -3992,6 +4972,10 @@ def test_update_apartment_as_resident_returns_403(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-080"></a>
 
 ### TC-080 · Update apartment without token returns 401
 
@@ -4035,6 +5019,10 @@ def test_update_apartment_without_token_returns_401(client, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-081"></a>
 
 ### TC-081 · Delete empty apartment returns 200
 
@@ -4076,6 +5064,10 @@ def test_delete_empty_apartment_returns_200(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-082"></a>
 
 ### TC-082 · Delete apartment removes it from the list
 
@@ -4120,6 +5112,10 @@ def test_delete_apartment_removes_it_from_the_list(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-083"></a>
 
 ### TC-083 · Delete apartment with residents returns 409
 
@@ -4160,6 +5156,10 @@ def test_delete_apartment_with_residents_returns_409(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-084"></a>
 
 ### TC-084 · Delete apartment with invoices returns 409
 
@@ -4206,6 +5206,10 @@ def test_delete_apartment_with_invoices_returns_409(client, app, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-085"></a>
 
 ### TC-085 · Delete unknown apartment returns 404
 
@@ -4243,6 +5247,10 @@ def test_delete_unknown_apartment_returns_404(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-086"></a>
 
 ### TC-086 · Delete apartment as resident returns 403
 
@@ -4282,6 +5290,10 @@ def test_delete_apartment_as_resident_returns_403(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-087"></a>
 
 ### TC-087 · Delete apartment without token returns 401
 
@@ -4319,6 +5331,10 @@ def test_delete_apartment_without_token_returns_401(client, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-088"></a>
 
 ### TC-088 · List members returns the seeded resident
 
@@ -4376,6 +5392,10 @@ def test_list_members_returns_the_seeded_resident(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-089"></a>
 
 ### TC-089 · List members includes flat details
 
@@ -4432,6 +5452,10 @@ def test_list_members_includes_flat_details(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-090"></a>
 
 ### TC-090 · List members as resident returns 403
 
@@ -4472,6 +5496,10 @@ def test_list_members_as_resident_returns_403(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-091"></a>
 
 ### TC-091 · List members as worker returns 403
 
@@ -4509,6 +5537,10 @@ def test_list_members_as_worker_returns_403(client, seed, worker):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-092"></a>
 
 ### TC-092 · List members as treasurer returns 200
 
@@ -4561,6 +5593,10 @@ def test_list_members_as_treasurer_returns_200(client, seed, treasurer):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-093"></a>
 
 ### TC-093 · List members without token returns 401
 
@@ -4597,6 +5633,10 @@ def test_list_members_without_token_returns_401(client, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-094"></a>
 
 ### TC-094 · Create member returns 201
 
@@ -4670,6 +5710,10 @@ def test_create_member_returns_201(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-095"></a>
 
 ### TC-095 · Create member can log in afterwards
 
@@ -4702,7 +5746,7 @@ def test_create_member_returns_201(client, seed, admin):
       "message": "Login successful",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 11:58:57.221618",
+        "created_at": "2026-08-02 12:20:58.231840",
         "email": "manoj@test.com",
         "id": 7,
         "is_active": true,
@@ -4727,6 +5771,10 @@ def test_create_member_can_log_in_afterwards(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-096"></a>
 
 ### TC-096 · Create member appears in the listing
 
@@ -4765,6 +5813,10 @@ def test_create_member_appears_in_the_listing(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-097"></a>
 
 ### TC-097 · Create member missing required field returns 400
 
@@ -4817,6 +5869,10 @@ def test_create_member_missing_required_field_returns_400(client, seed, admin, m
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-098"></a>
 
 ### TC-098 · Create member missing required field returns 400
 
@@ -4869,6 +5925,10 @@ def test_create_member_missing_required_field_returns_400(client, seed, admin, m
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-099"></a>
 
 ### TC-099 · Create member missing required field returns 400
 
@@ -4921,6 +5981,10 @@ def test_create_member_missing_required_field_returns_400(client, seed, admin, m
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-100"></a>
 
 ### TC-100 · Create member missing required field returns 400
 
@@ -4973,6 +6037,10 @@ def test_create_member_missing_required_field_returns_400(client, seed, admin, m
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-101"></a>
 
 ### TC-101 · Create member missing required field returns 400
 
@@ -5025,6 +6093,10 @@ def test_create_member_missing_required_field_returns_400(client, seed, admin, m
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-102"></a>
 
 ### TC-102 · Create member unknown role returns 400
 
@@ -5074,6 +6146,10 @@ def test_create_member_unknown_role_returns_400(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-103"></a>
 
 ### TC-103 · Create member bad move in date returns 400
 
@@ -5125,6 +6201,10 @@ def test_create_member_bad_move_in_date_returns_400(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-104"></a>
 
 ### TC-104 · Create member non numeric apartment id returns 400
 
@@ -5175,6 +6255,10 @@ def test_create_member_non_numeric_apartment_id_returns_400(client, seed, admin)
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-105"></a>
 
 ### TC-105 · Create member zero apartment id returns 400
 
@@ -5224,6 +6308,10 @@ def test_create_member_zero_apartment_id_returns_400(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-106"></a>
 
 ### TC-106 · Create member unknown apartment returns 404
 
@@ -5273,6 +6361,10 @@ def test_create_member_unknown_apartment_returns_404(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-107"></a>
 
 ### TC-107 · Create member malformed body returns 400
 
@@ -5321,6 +6413,10 @@ def test_create_member_malformed_body_returns_400(client, seed, admin, raw, expe
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-108"></a>
 
 ### TC-108 · Create member malformed body returns 400
 
@@ -5369,6 +6465,10 @@ def test_create_member_malformed_body_returns_400(client, seed, admin, raw, expe
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-109"></a>
 
 ### TC-109 · Create member malformed body returns 400
 
@@ -5417,6 +6517,10 @@ def test_create_member_malformed_body_returns_400(client, seed, admin, raw, expe
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-110"></a>
 
 ### TC-110 · Create member duplicate email returns 409
 
@@ -5467,6 +6571,10 @@ def test_create_member_duplicate_email_returns_409(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-111"></a>
 
 ### TC-111 · Create member duplicate phone returns 409
 
@@ -5522,6 +6630,10 @@ def test_create_member_duplicate_phone_returns_409(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-112"></a>
 
 ### TC-112 · Blank phone must normalise to NULL — users.phone is UNIQUE
 
@@ -5589,6 +6701,10 @@ def test_create_two_members_with_blank_phone_both_succeed(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-113"></a>
 
 ### TC-113 · Create member as resident returns 403
 
@@ -5637,6 +6753,10 @@ def test_create_member_as_resident_returns_403(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-114"></a>
 
 ### TC-114 · Create member without token returns 401
 
@@ -5683,6 +6803,10 @@ def test_create_member_without_token_returns_401(client, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-115"></a>
 
 ### TC-115 · List workers returns only worker role users
 
@@ -5727,6 +6851,10 @@ def test_list_workers_returns_only_worker_role_users(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-116"></a>
 
 ### TC-116 · complaints.assigned_worker_id points at users.id, never residents.id
 
@@ -5770,6 +6898,10 @@ def test_list_workers_id_is_the_users_id(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-117"></a>
 
 ### TC-117 · List workers returns id name email only
 
@@ -5812,6 +6944,10 @@ def test_list_workers_returns_id_name_email_only(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-118"></a>
 
 ### TC-118 · List workers includes newly added workers
 
@@ -5863,6 +6999,10 @@ def test_list_workers_includes_newly_added_workers(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-119"></a>
 
 ### TC-119 · List workers as resident returns 403
 
@@ -5900,6 +7040,10 @@ def test_list_workers_as_resident_returns_403(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-120"></a>
 
 ### TC-120 · List workers without token returns 401
 
@@ -5936,6 +7080,10 @@ def test_list_workers_without_token_returns_401(client, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-121"></a>
 
 ### TC-121 · Get member returns 200
 
@@ -5991,6 +7139,10 @@ def test_get_member_returns_200(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-122"></a>
 
 ### TC-122 · Get member is open to every role
 
@@ -6044,6 +7196,10 @@ def test_get_member_is_open_to_every_role(client, seed, request, role_fixture):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-123"></a>
 
 ### TC-123 · Get member is open to every role
 
@@ -6097,6 +7253,10 @@ def test_get_member_is_open_to_every_role(client, seed, request, role_fixture):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-124"></a>
 
 ### TC-124 · Get member is open to every role
 
@@ -6150,6 +7310,10 @@ def test_get_member_is_open_to_every_role(client, seed, request, role_fixture):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-125"></a>
 
 ### TC-125 · Get member is open to every role
 
@@ -6203,6 +7367,10 @@ def test_get_member_is_open_to_every_role(client, seed, request, role_fixture):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-126"></a>
 
 ### TC-126 · Get unknown member returns 404
 
@@ -6240,6 +7408,10 @@ def test_get_unknown_member_returns_404(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-127"></a>
 
 ### TC-127 · Get member without token returns 401
 
@@ -6276,6 +7448,10 @@ def test_get_member_without_token_returns_401(client, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-128"></a>
 
 ### TC-128 · Update member changes name and role
 
@@ -6337,6 +7513,10 @@ def test_update_member_changes_name_and_role(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-129"></a>
 
 ### TC-129 · Update member changes resident fields
 
@@ -6401,6 +7581,10 @@ def test_update_member_changes_resident_fields(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-130"></a>
 
 ### TC-130 · Update member blank phone clears it
 
@@ -6460,6 +7644,10 @@ def test_update_member_blank_phone_clears_it(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-131"></a>
 
 ### TC-131 · Update member unknown role returns 400
 
@@ -6505,6 +7693,10 @@ def test_update_member_unknown_role_returns_400(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-132"></a>
 
 ### TC-132 · Update member bad move in date returns 400
 
@@ -6551,6 +7743,10 @@ def test_update_member_bad_move_in_date_returns_400(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-133"></a>
 
 ### TC-133 · Update member bad move out date returns 400
 
@@ -6597,6 +7793,10 @@ def test_update_member_bad_move_out_date_returns_400(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-134"></a>
 
 ### TC-134 · Update member duplicate phone returns 409
 
@@ -6646,6 +7846,10 @@ def test_update_member_duplicate_phone_returns_409(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-135"></a>
 
 ### TC-135 · Update member keeping its own phone returns 200
 
@@ -6705,6 +7909,10 @@ def test_update_member_keeping_its_own_phone_returns_200(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-136"></a>
 
 ### TC-136 · Update member malformed body returns 400
 
@@ -6753,6 +7961,10 @@ def test_update_member_malformed_body_returns_400(client, seed, admin, raw, expe
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-137"></a>
 
 ### TC-137 · Update member malformed body returns 400
 
@@ -6801,6 +8013,10 @@ def test_update_member_malformed_body_returns_400(client, seed, admin, raw, expe
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-138"></a>
 
 ### TC-138 · Update member malformed body returns 400
 
@@ -6849,6 +8065,10 @@ def test_update_member_malformed_body_returns_400(client, seed, admin, raw, expe
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-139"></a>
 
 ### TC-139 · Update unknown member returns 404
 
@@ -6892,6 +8112,10 @@ def test_update_unknown_member_returns_404(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-140"></a>
 
 ### TC-140 · Update member as resident returns 403
 
@@ -6936,6 +8160,10 @@ def test_update_member_as_resident_returns_403(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-141"></a>
 
 ### TC-141 · Update member without token returns 401
 
@@ -6978,6 +8206,10 @@ def test_update_member_without_token_returns_401(client, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-142"></a>
 
 ### TC-142 · Deactivate member returns 200
 
@@ -7018,6 +8250,10 @@ def test_deactivate_member_returns_200(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-143"></a>
 
 ### TC-143 · Deactivate member is a soft delete
 
@@ -7070,6 +8306,10 @@ def test_deactivate_member_is_a_soft_delete(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-144"></a>
 
 ### TC-144 · Deactivate worker removes them from the worker list
 
@@ -7117,6 +8357,10 @@ def test_deactivate_worker_removes_them_from_the_worker_list(client, seed, admin
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-145"></a>
 
 ### TC-145 · Deactivated member token returns 403
 
@@ -7158,6 +8402,10 @@ def test_deactivated_member_token_returns_403(client, seed, admin, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-146"></a>
 
 ### TC-146 · Deactivate unknown member returns 404
 
@@ -7195,6 +8443,10 @@ def test_deactivate_unknown_member_returns_404(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-147"></a>
 
 ### TC-147 · Deactivate member as resident returns 403
 
@@ -7233,6 +8485,10 @@ def test_deactivate_member_as_resident_returns_403(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-148"></a>
 
 ### TC-148 · Deactivate member without token returns 401
 
@@ -7269,13 +8525,17 @@ def test_deactivate_member_without_token_returns_401(client, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
 
 ---
 
 ## Complaints
 
-`Backend/tests/test_complaints.py` · US-02, US-03, US-04 · **44/44 passed**
+`Backend/tests/test_complaints.py` · US-02, US-03, US-04 · **44/44 passed** · [↑ back to index](#2-test-case-index)
 
+
+<a id="tc-149"></a>
 
 ### TC-149 · Resident can raise complaint
 
@@ -7313,7 +8573,7 @@ def test_deactivate_member_without_token_returns_401(client, seed):
       "assigned_worker_id": null,
       "assigned_worker_name": null,
       "category": "ELECTRICAL",
-      "created_at": "2026-08-02 11:57:04.485026",
+      "created_at": "2026-08-02 12:18:27.316172",
       "description": "Lift stops between floors 1 and 2.",
       "flat_number": "A-101",
       "id": 1,
@@ -7352,6 +8612,10 @@ def test_resident_can_raise_complaint(client, resident, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-150"></a>
 
 ### TC-150 · Priority defaults to medium
 
@@ -7387,7 +8651,7 @@ def test_resident_can_raise_complaint(client, resident, seed):
       "assigned_worker_id": null,
       "assigned_worker_name": null,
       "category": "PLUMBING",
-      "created_at": "2026-08-02 11:57:04.817119",
+      "created_at": "2026-08-02 12:18:27.765525",
       "description": "Water drips continuously under the sink.",
       "flat_number": "A-101",
       "id": 1,
@@ -7411,6 +8675,10 @@ def test_priority_defaults_to_medium(client, resident, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-151"></a>
 
 ### TC-151 · Resident lists only own complaints
 
@@ -7439,7 +8707,7 @@ def test_priority_defaults_to_medium(client, resident, seed):
         "assigned_worker_id": null,
         "assigned_worker_name": null,
         "category": "PLUMBING",
-        "created_at": "2026-08-02 11:57:05.224411",
+        "created_at": "2026-08-02 12:18:28.409953",
         "description": "Water drips continuously under the sink.",
         "flat_number": "A-101",
         "id": 1,
@@ -7470,6 +8738,10 @@ def test_resident_lists_only_own_complaints(client, admin, resident, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-152"></a>
 
 ### TC-152 · Admin lists all complaints
 
@@ -7492,7 +8764,7 @@ def test_resident_lists_only_own_complaints(client, admin, resident, seed):
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    [{"apartment_id": 2, "assigned_worker_id": null, "assigned_worker_name": null, "category": "PLUMBING", "created_at": "2026-08-02 11:57:05.616544", "description": "Water drips continuously under the sink.", "flat_number": "B-202", "id": 2, "priority": "MEDIUM", "raised_by": 1, "raised_by_name": "Priya Admin", "resolved_at": null, "status": "OPEN", "title": "Second"}, {"apartment_id": 1, "assigned_…
+    [{"apartment_id": 2, "assigned_worker_id": null, "assigned_worker_name": null, "category": "PLUMBING", "created_at": "2026-08-02 12:18:29.092320", "description": "Water drips continuously under the sink.", "flat_number": "B-202", "id": 2, "priority": "MEDIUM", "raised_by": 1, "raised_by_name": "Priya Admin", "resolved_at": null, "status": "OPEN", "title": "Second"}, {"apartment_id": 1, "assigned_…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -7510,6 +8782,10 @@ def test_admin_lists_all_complaints(client, admin, resident, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-153"></a>
 
 ### TC-153 · Get complaint detail includes updates
 
@@ -7532,7 +8808,7 @@ def test_admin_lists_all_complaints(client, admin, resident, seed):
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    {"apartment_id": 1, "assigned_worker_id": 6, "assigned_worker_name": "Ramesh Worker", "category": "PLUMBING", "created_at": "2026-08-02 11:57:06.022541", "description": "Water drips continuously under the sink.", "flat_number": "A-101", "id": 1, "priority": "MEDIUM", "raised_by": 4, "raised_by_name": "Ravi Resident", "resolved_at": null, "status": "ASSIGNED", "title": "Leaking kitchen tap", "upda…
+    {"apartment_id": 1, "assigned_worker_id": 6, "assigned_worker_name": "Ramesh Worker", "category": "PLUMBING", "created_at": "2026-08-02 12:18:29.691473", "description": "Water drips continuously under the sink.", "flat_number": "A-101", "id": 1, "priority": "MEDIUM", "raised_by": 4, "raised_by_name": "Ravi Resident", "resolved_at": null, "status": "ASSIGNED", "title": "Leaking kitchen tap", "upda…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -7553,6 +8829,10 @@ def test_get_complaint_detail_includes_updates(client, admin, resident, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-154"></a>
 
 ### TC-154 · Admin can delete complaint
 
@@ -7597,6 +8877,10 @@ def test_admin_can_delete_complaint(client, admin, resident, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-155"></a>
 
 ### TC-155 · COMMITTEE_MEMBER is an admin role even though it is not a finance role
 
@@ -7640,6 +8924,10 @@ def test_committee_member_may_delete_complaint(client, admin, resident,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-156"></a>
 
 ### TC-156 · Raise complaint missing required field returns 400
 
@@ -7691,6 +8979,10 @@ def test_raise_complaint_missing_required_field_returns_400(
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-157"></a>
 
 ### TC-157 · Raise complaint missing required field returns 400
 
@@ -7742,6 +9034,10 @@ def test_raise_complaint_missing_required_field_returns_400(
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-158"></a>
 
 ### TC-158 · Raise complaint missing required field returns 400
 
@@ -7793,6 +9089,10 @@ def test_raise_complaint_missing_required_field_returns_400(
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-159"></a>
 
 ### TC-159 · Raise complaint bad category returns 400
 
@@ -7843,6 +9143,10 @@ def test_raise_complaint_bad_category_returns_400(client, resident, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-160"></a>
 
 ### TC-160 · Raise complaint bad priority returns 400
 
@@ -7894,6 +9198,10 @@ def test_raise_complaint_bad_priority_returns_400(client, resident, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-161"></a>
 
 ### TC-161 · Raise complaint non numeric apartment id returns 400
 
@@ -7946,6 +9254,10 @@ def test_raise_complaint_non_numeric_apartment_id_returns_400(
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-162"></a>
 
 ### TC-162 · Raise complaint unknown apartment returns 404
 
@@ -7996,6 +9308,10 @@ def test_raise_complaint_unknown_apartment_returns_404(client, resident, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-163"></a>
 
 ### TC-163 · Raise complaint malformed body returns 400
 
@@ -8045,6 +9361,10 @@ def test_raise_complaint_malformed_body_returns_400(
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-164"></a>
 
 ### TC-164 · Raise complaint malformed body returns 400
 
@@ -8094,6 +9414,10 @@ def test_raise_complaint_malformed_body_returns_400(
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-165"></a>
 
 ### TC-165 · Raise complaint malformed body returns 400
 
@@ -8143,6 +9467,10 @@ def test_raise_complaint_malformed_body_returns_400(
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-166"></a>
 
 ### TC-166 · Complaint endpoints require a token
 
@@ -8191,6 +9519,10 @@ def test_complaint_endpoints_require_a_token(client, seed, method, path):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-167"></a>
 
 ### TC-167 · Complaint endpoints require a token
 
@@ -8239,6 +9571,10 @@ def test_complaint_endpoints_require_a_token(client, seed, method, path):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-168"></a>
 
 ### TC-168 · Complaint endpoints require a token
 
@@ -8287,6 +9623,10 @@ def test_complaint_endpoints_require_a_token(client, seed, method, path):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-169"></a>
 
 ### TC-169 · Complaint endpoints require a token
 
@@ -8335,6 +9675,10 @@ def test_complaint_endpoints_require_a_token(client, seed, method, path):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-170"></a>
 
 ### TC-170 · Complaint endpoints require a token
 
@@ -8383,6 +9727,10 @@ def test_complaint_endpoints_require_a_token(client, seed, method, path):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-171"></a>
 
 ### TC-171 · Complaint endpoints require a token
 
@@ -8431,6 +9779,10 @@ def test_complaint_endpoints_require_a_token(client, seed, method, path):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-172"></a>
 
 ### TC-172 · Resident cannot delete complaint
 
@@ -8473,6 +9825,10 @@ def test_resident_cannot_delete_complaint(client, resident, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-173"></a>
 
 ### TC-173 · Resident cannot assign a worker
 
@@ -8519,6 +9875,10 @@ def test_resident_cannot_assign_a_worker(client, resident, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-174"></a>
 
 ### TC-174 · Resident cannot read another flats complaint
 
@@ -8563,6 +9923,10 @@ def test_resident_cannot_read_another_flats_complaint(
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-175"></a>
 
 ### TC-175 · Resident cannot update another flats complaint
 
@@ -8612,6 +9976,10 @@ def test_resident_cannot_update_another_flats_complaint(
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-176"></a>
 
 ### TC-176 · Assign worker returns 200 and populates worker name
 
@@ -8644,7 +10012,7 @@ def test_resident_cannot_update_another_flats_complaint(
       "assigned_worker_id": 6,
       "assigned_worker_name": "Ramesh Worker",
       "category": "PLUMBING",
-      "created_at": "2026-08-02 11:57:15.118742",
+      "created_at": "2026-08-02 12:18:41.506899",
       "description": "Water drips continuously under the sink.",
       "flat_number": "A-101",
       "id": 1,
@@ -8676,6 +10044,10 @@ def test_assign_worker_returns_200_and_populates_worker_name(
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-177"></a>
 
 ### TC-177 · Regression: a null worker_id used to flip the status to ASSIGNED anyway
 
@@ -8705,7 +10077,7 @@ def test_assign_worker_returns_200_and_populates_worker_name(
       "assigned_worker_id": null,
       "assigned_worker_name": null,
       "category": "PLUMBING",
-      "created_at": "2026-08-02 11:57:15.624630",
+      "created_at": "2026-08-02 12:18:42.124425",
       "description": "Water drips continuously under the sink.",
       "flat_number": "A-101",
       "id": 1,
@@ -8742,6 +10114,10 @@ def test_assign_without_worker_id_returns_400(client, admin, resident,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-178"></a>
 
 ### TC-178 · Regression: a null worker_id used to flip the status to ASSIGNED anyway
 
@@ -8771,7 +10147,7 @@ def test_assign_without_worker_id_returns_400(client, admin, resident,
       "assigned_worker_id": null,
       "assigned_worker_name": null,
       "category": "PLUMBING",
-      "created_at": "2026-08-02 11:57:16.485794",
+      "created_at": "2026-08-02 12:18:43.006912",
       "description": "Water drips continuously under the sink.",
       "flat_number": "A-101",
       "id": 1,
@@ -8808,6 +10184,10 @@ def test_assign_without_worker_id_returns_400(client, admin, resident,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-179"></a>
 
 ### TC-179 · Regression: a null worker_id used to flip the status to ASSIGNED anyway
 
@@ -8837,7 +10217,7 @@ def test_assign_without_worker_id_returns_400(client, admin, resident,
       "assigned_worker_id": null,
       "assigned_worker_name": null,
       "category": "PLUMBING",
-      "created_at": "2026-08-02 11:57:17.100531",
+      "created_at": "2026-08-02 12:18:43.546585",
       "description": "Water drips continuously under the sink.",
       "flat_number": "A-101",
       "id": 1,
@@ -8874,6 +10254,10 @@ def test_assign_without_worker_id_returns_400(client, admin, resident,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-180"></a>
 
 ### TC-180 · Regression: a null worker_id used to flip the status to ASSIGNED anyway
 
@@ -8903,7 +10287,7 @@ def test_assign_without_worker_id_returns_400(client, admin, resident,
       "assigned_worker_id": null,
       "assigned_worker_name": null,
       "category": "PLUMBING",
-      "created_at": "2026-08-02 11:57:17.550866",
+      "created_at": "2026-08-02 12:18:44.004119",
       "description": "Water drips continuously under the sink.",
       "flat_number": "A-101",
       "id": 1,
@@ -8940,6 +10324,10 @@ def test_assign_without_worker_id_returns_400(client, admin, resident,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-181"></a>
 
 ### TC-181 · Assign to non worker user returns 400
 
@@ -8988,6 +10376,10 @@ def test_assign_to_non_worker_user_returns_400(client, admin, resident, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-182"></a>
 
 ### TC-182 · Assign to unknown user returns 404
 
@@ -9036,6 +10428,10 @@ def test_assign_to_unknown_user_returns_404(client, admin, resident, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-183"></a>
 
 ### TC-183 · Regression: workers only ever saw complaints they had raised themselves
 
@@ -9064,7 +10460,7 @@ def test_assign_to_unknown_user_returns_404(client, admin, resident, seed):
         "assigned_worker_id": 6,
         "assigned_worker_name": "Ramesh Worker",
         "category": "PLUMBING",
-        "created_at": "2026-08-02 11:57:18.641511",
+        "created_at": "2026-08-02 12:18:45.625601",
         "description": "Water drips continuously under the sink.",
         "flat_number": "A-101",
         "id": 1,
@@ -9098,6 +10494,10 @@ def test_worker_sees_complaint_assigned_to_them(client, admin, resident,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-184"></a>
 
 ### TC-184 · Worker does not see unassigned complaints
 
@@ -9138,6 +10538,10 @@ def test_worker_does_not_see_unassigned_complaints(client, resident,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-185"></a>
 
 ### TC-185 · Assigned worker can read and update the complaint
 
@@ -9171,7 +10575,7 @@ def test_worker_does_not_see_unassigned_complaints(client, resident,
       "assigned_worker_id": 6,
       "assigned_worker_name": "Ramesh Worker",
       "category": "PLUMBING",
-      "created_at": "2026-08-02 11:57:19.459455",
+      "created_at": "2026-08-02 12:18:47.009038",
       "description": "Water drips continuously under the sink.",
       "flat_number": "A-101",
       "id": 1,
@@ -9205,6 +10609,10 @@ def test_assigned_worker_can_read_and_update_the_complaint(
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-186"></a>
 
 ### TC-186 · Status flow open to completed sets resolved at
 
@@ -9235,7 +10643,7 @@ def test_assigned_worker_can_read_and_update_the_complaint(
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    {"apartment_id": 1, "assigned_worker_id": null, "assigned_worker_name": null, "category": "PLUMBING", "created_at": "2026-08-02 11:57:20.045278", "description": "Water drips continuously under the sink.", "flat_number": "A-101", "id": 1, "priority": "MEDIUM", "raised_by": 4, "raised_by_name": "Ravi Resident", "resolved_at": "2026-08-02 11:57:20.102242", "status": "COMPLETED", "title": "Leaking ki…
+    {"apartment_id": 1, "assigned_worker_id": null, "assigned_worker_name": null, "category": "PLUMBING", "created_at": "2026-08-02 12:18:47.542892", "description": "Water drips continuously under the sink.", "flat_number": "A-101", "id": 1, "priority": "MEDIUM", "raised_by": 4, "raised_by_name": "Ravi Resident", "resolved_at": "2026-08-02 12:18:47.661102", "status": "COMPLETED", "title": "Leaking ki…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -9260,6 +10668,10 @@ def test_status_flow_open_to_completed_sets_resolved_at(
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-187"></a>
 
 ### TC-187 · Regression: resolved_at used to survive a reopen
 
@@ -9293,7 +10705,7 @@ def test_status_flow_open_to_completed_sets_resolved_at(
       "assigned_worker_id": null,
       "assigned_worker_name": null,
       "category": "PLUMBING",
-      "created_at": "2026-08-02 11:57:20.579144",
+      "created_at": "2026-08-02 12:18:48.267592",
       "description": "Water drips continuously under the sink.",
       "flat_number": "A-101",
       "id": 1,
@@ -9326,6 +10738,10 @@ def test_reopening_a_closed_complaint_clears_resolved_at(
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-188"></a>
 
 ### TC-188 · Invalid status transition returns 400
 
@@ -9375,6 +10791,10 @@ def test_invalid_status_transition_returns_400(client, admin, resident,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-189"></a>
 
 ### TC-189 · Status update requires status field
 
@@ -9423,6 +10843,10 @@ def test_status_update_requires_status_field(client, admin, resident, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-190"></a>
 
 ### TC-190 · Status update bad enum returns 400
 
@@ -9470,6 +10894,10 @@ def test_status_update_bad_enum_returns_400(client, admin, resident, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-191"></a>
 
 ### TC-191 · Setting the same status is allowed
 
@@ -9503,7 +10931,7 @@ def test_status_update_bad_enum_returns_400(client, admin, resident, seed):
       "assigned_worker_id": null,
       "assigned_worker_name": null,
       "category": "PLUMBING",
-      "created_at": "2026-08-02 11:57:22.519850",
+      "created_at": "2026-08-02 12:18:50.585332",
       "description": "Water drips continuously under the sink.",
       "flat_number": "A-101",
       "id": 1,
@@ -9531,6 +10959,10 @@ def test_setting_the_same_status_is_allowed(client, admin, resident, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-192"></a>
 
 ### TC-192 · Unknown complaint id returns 404
 
@@ -9569,13 +11001,17 @@ def test_unknown_complaint_id_returns_404(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
 
 ---
 
 ## Invoices & Payments
 
-`Backend/tests/test_invoices.py` · US-01, US-05, US-06 · **53/53 passed**
+`Backend/tests/test_invoices.py` · US-01, US-05, US-06 · **53/53 passed** · [↑ back to index](#2-test-case-index)
 
+
+<a id="tc-193"></a>
 
 ### TC-193 · Admin creates invoice
 
@@ -9610,7 +11046,7 @@ def test_unknown_complaint_id_returns_404(client, admin, seed):
     {
       "amount": 2500.5,
       "apartment_id": 1,
-      "created_at": "2026-08-02 11:58:24.113963",
+      "created_at": "2026-08-02 12:20:10.957016",
       "due_date": "2026-07-15",
       "flat_number": "A-101",
       "id": 1,
@@ -9642,6 +11078,10 @@ def test_admin_creates_invoice(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-194"></a>
 
 ### TC-194 · Treasurer can create invoice
 
@@ -9675,7 +11115,7 @@ def test_admin_creates_invoice(client, admin, seed):
     {
       "amount": 2500.0,
       "apartment_id": 1,
-      "created_at": "2026-08-02 11:58:24.334206",
+      "created_at": "2026-08-02 12:20:11.252608",
       "due_date": null,
       "flat_number": "A-101",
       "id": 1,
@@ -9696,6 +11136,10 @@ def test_treasurer_can_create_invoice(client, treasurer, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-195"></a>
 
 ### TC-195 · Admin lists all invoices
 
@@ -9722,7 +11166,7 @@ def test_treasurer_can_create_invoice(client, treasurer, seed):
       {
         "amount": 2500.0,
         "apartment_id": 2,
-        "created_at": "2026-08-02 11:58:24.666524",
+        "created_at": "2026-08-02 12:20:11.552827",
         "due_date": null,
         "flat_number": "B-202",
         "id": 2,
@@ -9733,7 +11177,7 @@ def test_treasurer_can_create_invoice(client, treasurer, seed):
       {
         "amount": 2500.0,
         "apartment_id": 1,
-        "created_at": "2026-08-02 11:58:24.647570",
+        "created_at": "2026-08-02 12:20:11.542332",
         "due_date": null,
         "flat_number": "A-101",
         "id": 1,
@@ -9759,6 +11203,10 @@ def test_admin_lists_all_invoices(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-196"></a>
 
 ### TC-196 · Pay invoice returns receipt
 
@@ -9787,7 +11235,7 @@ def test_admin_lists_all_invoices(client, admin, seed):
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    {"invoice": {"amount": 2500.0, "apartment_id": 1, "created_at": "2026-08-02 11:58:25.027333", "due_date": null, "flat_number": "A-101", "id": 1, "month": 7, "status": "PAID", "year": 2026}, "message": "Invoice marked as paid", "receipt": {"amount": 2500.0, "flat_number": "A-101", "month": 7, "payment_date": "2026-08-02 11:58:25.063252", "payment_method": "UPI", "receipt_number": "RCP-0001", "tran…
+    {"invoice": {"amount": 2500.0, "apartment_id": 1, "created_at": "2026-08-02 12:20:11.979958", "due_date": null, "flat_number": "A-101", "id": 1, "month": 7, "status": "PAID", "year": 2026}, "message": "Invoice marked as paid", "receipt": {"amount": 2500.0, "flat_number": "A-101", "month": 7, "payment_date": "2026-08-02 12:20:12.024312", "payment_method": "UPI", "receipt_number": "RCP-0001", "tran…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -9811,6 +11259,10 @@ def test_pay_invoice_returns_receipt(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-197"></a>
 
 ### TC-197 · Payment method defaults to cash
 
@@ -9836,7 +11288,7 @@ def test_pay_invoice_returns_receipt(client, admin, seed):
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    {"invoice": {"amount": 2500.0, "apartment_id": 1, "created_at": "2026-08-02 11:58:25.403806", "due_date": null, "flat_number": "A-101", "id": 1, "month": 7, "status": "PAID", "year": 2026}, "message": "Invoice marked as paid", "receipt": {"amount": 2500.0, "flat_number": "A-101", "month": 7, "payment_date": "2026-08-02 11:58:25.432014", "payment_method": "CASH", "receipt_number": "RCP-0001", "tra…
+    {"invoice": {"amount": 2500.0, "apartment_id": 1, "created_at": "2026-08-02 12:20:12.531944", "due_date": null, "flat_number": "A-101", "id": 1, "month": 7, "status": "PAID", "year": 2026}, "message": "Invoice marked as paid", "receipt": {"amount": 2500.0, "flat_number": "A-101", "month": 7, "payment_date": "2026-08-02 12:20:12.570944", "payment_method": "CASH", "receipt_number": "RCP-0001", "tra…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -9853,6 +11305,10 @@ def test_payment_method_defaults_to_cash(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-198"></a>
 
 ### TC-198 · Get receipt for paid invoice
 
@@ -9879,7 +11335,7 @@ def test_payment_method_defaults_to_cash(client, admin, seed):
       "amount": 2500.0,
       "flat_number": "A-101",
       "month": 7,
-      "payment_date": "2026-08-02 11:58:25.864732",
+      "payment_date": "2026-08-02 12:20:12.874913",
       "payment_method": "UPI",
       "receipt_number": "RCP-0001",
       "transaction_reference": null,
@@ -9905,6 +11361,10 @@ def test_get_receipt_for_paid_invoice(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-199"></a>
 
 ### TC-199 · Resident can read own receipt
 
@@ -9932,7 +11392,7 @@ def test_get_receipt_for_paid_invoice(client, admin, seed):
       "amount": 2500.0,
       "flat_number": "A-101",
       "month": 7,
-      "payment_date": "2026-08-02 11:58:26.258465",
+      "payment_date": "2026-08-02 12:20:13.450575",
       "payment_method": "UPI",
       "receipt_number": "RCP-0001",
       "transaction_reference": null,
@@ -9955,6 +11415,10 @@ def test_resident_can_read_own_receipt(client, admin, resident, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-200"></a>
 
 ### TC-200 · Pending lists only unpaid
 
@@ -9981,7 +11445,7 @@ def test_resident_can_read_own_receipt(client, admin, resident, seed):
       {
         "amount": 2500.0,
         "apartment_id": 1,
-        "created_at": "2026-08-02 11:58:26.632730",
+        "created_at": "2026-08-02 12:20:13.949466",
         "due_date": null,
         "flat_number": "A-101",
         "id": 2,
@@ -10008,6 +11472,10 @@ def test_pending_lists_only_unpaid(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-201"></a>
 
 ### TC-201 · Bulk generate creates invoice for every flat
 
@@ -10064,6 +11532,10 @@ def test_bulk_generate_creates_invoice_for_every_flat(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-202"></a>
 
 ### TC-202 · Bulk generate skips flats that already have that month
 
@@ -10090,7 +11562,7 @@ def test_bulk_generate_creates_invoice_for_every_flat(client, admin, seed):
       {
         "amount": 3000.0,
         "apartment_id": 2,
-        "created_at": "2026-08-02 11:58:27.178889",
+        "created_at": "2026-08-02 12:20:14.741628",
         "due_date": null,
         "flat_number": "B-202",
         "id": 2,
@@ -10101,7 +11573,7 @@ def test_bulk_generate_creates_invoice_for_every_flat(client, admin, seed):
       {
         "amount": 2500.0,
         "apartment_id": 1,
-        "created_at": "2026-08-02 11:58:27.161623",
+        "created_at": "2026-08-02 12:20:14.718085",
         "due_date": null,
         "flat_number": "A-101",
         "id": 1,
@@ -10134,6 +11606,10 @@ def test_bulk_generate_skips_flats_that_already_have_that_month(
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-203"></a>
 
 ### TC-203 · Create invoice missing required field returns 400
 
@@ -10186,6 +11662,10 @@ def test_create_invoice_missing_required_field_returns_400(
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-204"></a>
 
 ### TC-204 · Create invoice missing required field returns 400
 
@@ -10238,6 +11718,10 @@ def test_create_invoice_missing_required_field_returns_400(
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-205"></a>
 
 ### TC-205 · Create invoice missing required field returns 400
 
@@ -10290,6 +11774,10 @@ def test_create_invoice_missing_required_field_returns_400(
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-206"></a>
 
 ### TC-206 · Create invoice missing required field returns 400
 
@@ -10342,6 +11830,10 @@ def test_create_invoice_missing_required_field_returns_400(
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-207"></a>
 
 ### TC-207 · Create invoice month out of range returns 400
 
@@ -10395,6 +11887,10 @@ def test_create_invoice_month_out_of_range_returns_400(client, admin, seed, mont
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-208"></a>
 
 ### TC-208 · Create invoice month out of range returns 400
 
@@ -10448,6 +11944,10 @@ def test_create_invoice_month_out_of_range_returns_400(client, admin, seed, mont
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-209"></a>
 
 ### TC-209 · Create invoice month out of range returns 400
 
@@ -10501,6 +12001,10 @@ def test_create_invoice_month_out_of_range_returns_400(client, admin, seed, mont
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-210"></a>
 
 ### TC-210 · Create invoice month out of range returns 400
 
@@ -10554,6 +12058,10 @@ def test_create_invoice_month_out_of_range_returns_400(client, admin, seed, mont
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-211"></a>
 
 ### TC-211 · Bulk generate month out of range returns 400
 
@@ -10603,6 +12111,10 @@ def test_bulk_generate_month_out_of_range_returns_400(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-212"></a>
 
 ### TC-212 · Create invoice year out of range returns 400
 
@@ -10655,6 +12167,10 @@ def test_create_invoice_year_out_of_range_returns_400(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-213"></a>
 
 ### TC-213 · Create invoice non numeric amount returns 400
 
@@ -10707,6 +12223,10 @@ def test_create_invoice_non_numeric_amount_returns_400(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-214"></a>
 
 ### TC-214 · Create invoice negative amount returns 400
 
@@ -10759,6 +12279,10 @@ def test_create_invoice_negative_amount_returns_400(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-215"></a>
 
 ### TC-215 · Create invoice bad due date returns 400
 
@@ -10812,6 +12336,10 @@ def test_create_invoice_bad_due_date_returns_400(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-216"></a>
 
 ### TC-216 · Regression: an empty due_date from the form used to 400 (or crash)
 
@@ -10847,7 +12375,7 @@ def test_create_invoice_bad_due_date_returns_400(client, admin, seed):
     {
       "amount": 2500.0,
       "apartment_id": 1,
-      "created_at": "2026-08-02 11:58:30.695743",
+      "created_at": "2026-08-02 12:20:19.619280",
       "due_date": null,
       "flat_number": "A-101",
       "id": 1,
@@ -10876,6 +12404,10 @@ def test_blank_due_date_is_stored_as_null_not_rejected(client, admin,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-217"></a>
 
 ### TC-217 · Regression: an empty due_date from the form used to 400 (or crash)
 
@@ -10911,7 +12443,7 @@ def test_blank_due_date_is_stored_as_null_not_rejected(client, admin,
     {
       "amount": 2500.0,
       "apartment_id": 1,
-      "created_at": "2026-08-02 11:58:31.024569",
+      "created_at": "2026-08-02 12:20:20.106995",
       "due_date": null,
       "flat_number": "A-101",
       "id": 1,
@@ -10940,6 +12472,10 @@ def test_blank_due_date_is_stored_as_null_not_rejected(client, admin,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-218"></a>
 
 ### TC-218 · Regression: an empty due_date from the form used to 400 (or crash)
 
@@ -10975,7 +12511,7 @@ def test_blank_due_date_is_stored_as_null_not_rejected(client, admin,
     {
       "amount": 2500.0,
       "apartment_id": 1,
-      "created_at": "2026-08-02 11:58:31.186472",
+      "created_at": "2026-08-02 12:20:20.552273",
       "due_date": null,
       "flat_number": "A-101",
       "id": 1,
@@ -11004,6 +12540,10 @@ def test_blank_due_date_is_stored_as_null_not_rejected(client, admin,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-219"></a>
 
 ### TC-219 · Create invoice unknown apartment returns 404
 
@@ -11055,6 +12595,10 @@ def test_create_invoice_unknown_apartment_returns_404(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-220"></a>
 
 ### TC-220 · Invoice malformed body returns 400
 
@@ -11104,6 +12648,10 @@ def test_invoice_malformed_body_returns_400(client, admin, seed, path,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-221"></a>
 
 ### TC-221 · Invoice malformed body returns 400
 
@@ -11153,6 +12701,10 @@ def test_invoice_malformed_body_returns_400(client, admin, seed, path,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-222"></a>
 
 ### TC-222 · Invoice malformed body returns 400
 
@@ -11202,6 +12754,10 @@ def test_invoice_malformed_body_returns_400(client, admin, seed, path,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-223"></a>
 
 ### TC-223 · Invoice malformed body returns 400
 
@@ -11251,6 +12807,10 @@ def test_invoice_malformed_body_returns_400(client, admin, seed, path,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-224"></a>
 
 ### TC-224 · Invoice endpoints require a token
 
@@ -11299,6 +12859,10 @@ def test_invoice_endpoints_require_a_token(client, seed, method, path):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-225"></a>
 
 ### TC-225 · Invoice endpoints require a token
 
@@ -11347,6 +12911,10 @@ def test_invoice_endpoints_require_a_token(client, seed, method, path):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-226"></a>
 
 ### TC-226 · Invoice endpoints require a token
 
@@ -11395,6 +12963,10 @@ def test_invoice_endpoints_require_a_token(client, seed, method, path):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-227"></a>
 
 ### TC-227 · Invoice endpoints require a token
 
@@ -11443,6 +13015,10 @@ def test_invoice_endpoints_require_a_token(client, seed, method, path):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-228"></a>
 
 ### TC-228 · Invoice endpoints require a token
 
@@ -11491,6 +13067,10 @@ def test_invoice_endpoints_require_a_token(client, seed, method, path):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-229"></a>
 
 ### TC-229 · Invoice endpoints require a token
 
@@ -11539,6 +13119,10 @@ def test_invoice_endpoints_require_a_token(client, seed, method, path):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-230"></a>
 
 ### TC-230 · Resident cannot create invoice
 
@@ -11591,6 +13175,10 @@ def test_resident_cannot_create_invoice(client, resident, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-231"></a>
 
 ### TC-231 · Resident cannot mark invoice paid
 
@@ -11618,7 +13206,7 @@ def test_resident_cannot_create_invoice(client, resident, seed):
       {
         "amount": 2500.0,
         "apartment_id": 1,
-        "created_at": "2026-08-02 11:58:33.996767",
+        "created_at": "2026-08-02 12:20:25.045679",
         "due_date": null,
         "flat_number": "A-101",
         "id": 1,
@@ -11645,6 +13233,10 @@ def test_resident_cannot_mark_invoice_paid(client, admin, resident, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-232"></a>
 
 ### TC-232 · Resident cannot bulk generate
 
@@ -11692,6 +13284,10 @@ def test_resident_cannot_bulk_generate(client, resident, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-233"></a>
 
 ### TC-233 · COMMITTEE_MEMBER manages the society but must not touch money
 
@@ -11742,6 +13338,10 @@ def test_committee_member_is_not_finance(client, tokens, seed, path):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-234"></a>
 
 ### TC-234 · COMMITTEE_MEMBER manages the society but must not touch money
 
@@ -11792,6 +13392,10 @@ def test_committee_member_is_not_finance(client, tokens, seed, path):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-235"></a>
 
 ### TC-235 · Resident cannot read another flats receipt
 
@@ -11835,6 +13439,10 @@ def test_resident_cannot_read_another_flats_receipt(client, admin,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-236"></a>
 
 ### TC-236 · Duplicate invoice for same flat month year returns 409
 
@@ -11862,7 +13470,7 @@ def test_resident_cannot_read_another_flats_receipt(client, admin,
       {
         "amount": 2500.0,
         "apartment_id": 1,
-        "created_at": "2026-08-02 11:58:35.249295",
+        "created_at": "2026-08-02 12:20:27.503299",
         "due_date": null,
         "flat_number": "A-101",
         "id": 1,
@@ -11893,6 +13501,10 @@ def test_duplicate_invoice_for_same_flat_month_year_returns_409(
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-237"></a>
 
 ### TC-237 · Same month different flat is allowed
 
@@ -11919,7 +13531,7 @@ def test_duplicate_invoice_for_same_flat_month_year_returns_409(
       {
         "amount": 2500.0,
         "apartment_id": 2,
-        "created_at": "2026-08-02 11:58:35.444930",
+        "created_at": "2026-08-02 12:20:28.073318",
         "due_date": null,
         "flat_number": "B-202",
         "id": 2,
@@ -11930,7 +13542,7 @@ def test_duplicate_invoice_for_same_flat_month_year_returns_409(
       {
         "amount": 2500.0,
         "apartment_id": 1,
-        "created_at": "2026-08-02 11:58:35.434731",
+        "created_at": "2026-08-02 12:20:28.041738",
         "due_date": null,
         "flat_number": "A-101",
         "id": 1,
@@ -11954,6 +13566,10 @@ def test_same_month_different_flat_is_allowed(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-238"></a>
 
 ### TC-238 · Regression: the second payment used to insert a duplicate Payment row
 
@@ -11981,7 +13597,7 @@ def test_same_month_different_flat_is_allowed(client, admin, seed):
       "amount": 2500.0,
       "flat_number": "A-101",
       "month": 7,
-      "payment_date": "2026-08-02 11:58:35.613346",
+      "payment_date": "2026-08-02 12:20:28.459573",
       "payment_method": "UPI",
       "receipt_number": "RCP-0001",
       "transaction_reference": "TXN-1",
@@ -12014,6 +13630,10 @@ def test_pay_invoice_twice_returns_409(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-239"></a>
 
 ### TC-239 · Receipt for unpaid invoice returns 400
 
@@ -12056,6 +13676,10 @@ def test_receipt_for_unpaid_invoice_returns_400(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-240"></a>
 
 ### TC-240 · Pay invoice for flat without resident returns 404
 
@@ -12103,6 +13727,10 @@ def test_pay_invoice_for_flat_without_resident_returns_404(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-241"></a>
 
 ### TC-241 · Unknown invoice returns 404
 
@@ -12142,6 +13770,10 @@ def test_unknown_invoice_returns_404(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-242"></a>
 
 ### TC-242 · Resident sees only own flat invoices
 
@@ -12168,7 +13800,7 @@ def test_unknown_invoice_returns_404(client, admin, seed):
       {
         "amount": 2500.0,
         "apartment_id": 1,
-        "created_at": "2026-08-02 11:58:36.229258",
+        "created_at": "2026-08-02 12:20:29.809658",
         "due_date": null,
         "flat_number": "A-101",
         "id": 1,
@@ -12194,6 +13826,10 @@ def test_resident_sees_only_own_flat_invoices(client, admin, resident, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-243"></a>
 
 ### TC-243 · Regression: /pending used to leak every flat's outstanding dues
 
@@ -12220,7 +13856,7 @@ def test_resident_sees_only_own_flat_invoices(client, admin, resident, seed):
       {
         "amount": 2500.0,
         "apartment_id": 1,
-        "created_at": "2026-08-02 11:58:36.412799",
+        "created_at": "2026-08-02 12:20:30.210192",
         "due_date": null,
         "flat_number": "A-101",
         "id": 1,
@@ -12249,6 +13885,10 @@ def test_resident_pending_is_scoped_to_own_flat(client, admin, resident, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-244"></a>
 
 ### TC-244 · User without a flat sees an empty list
 
@@ -12290,6 +13930,10 @@ def test_user_without_a_flat_sees_an_empty_list(client, admin, worker,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-245"></a>
 
 ### TC-245 · User without a flat sees an empty list
 
@@ -12331,13 +13975,17 @@ def test_user_without_a_flat_sees_an_empty_list(client, admin, worker,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
 
 ---
 
 ## Expenses
 
-`Backend/tests/test_expenses.py` · US-14 · **44/44 passed**
+`Backend/tests/test_expenses.py` · US-14 · **44/44 passed** · [↑ back to index](#2-test-case-index)
 
+
+<a id="tc-246"></a>
 
 ### TC-246 · Admin logs expense
 
@@ -12372,7 +14020,7 @@ def test_user_without_a_flat_sees_an_empty_list(client, admin, worker,
     {
       "amount": 12750.25,
       "category": "UTILITIES",
-      "created_at": "2026-08-02 11:58:08.530211",
+      "created_at": "2026-08-02 12:19:40.341725",
       "description": "Common area electricity bill",
       "expense_date": "2026-08-05",
       "id": 1,
@@ -12408,6 +14056,10 @@ def test_admin_logs_expense(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-247"></a>
 
 ### TC-247 · Treasurer can log expense
 
@@ -12441,7 +14093,7 @@ def test_admin_logs_expense(client, admin, seed):
     {
       "amount": 4500.0,
       "category": "MAINTENANCE",
-      "created_at": "2026-08-02 11:58:08.730124",
+      "created_at": "2026-08-02 12:19:40.908622",
       "description": "Lift annual servicing",
       "expense_date": "2026-08-05",
       "id": 1,
@@ -12462,6 +14114,10 @@ def test_treasurer_can_log_expense(client, treasurer, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-248"></a>
 
 ### TC-248 · Paid by defaults to the logged in user
 
@@ -12496,7 +14152,7 @@ def test_treasurer_can_log_expense(client, treasurer, seed):
     {
       "amount": 4500.0,
       "category": "MAINTENANCE",
-      "created_at": "2026-08-02 11:58:08.906531",
+      "created_at": "2026-08-02 12:19:41.470669",
       "description": "Lift annual servicing",
       "expense_date": "2026-08-05",
       "id": 1,
@@ -12517,6 +14173,10 @@ def test_paid_by_defaults_to_the_logged_in_user(client, treasurer, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-249"></a>
 
 ### TC-249 · Admin may attribute expense to another user
 
@@ -12551,7 +14211,7 @@ def test_paid_by_defaults_to_the_logged_in_user(client, treasurer, seed):
     {
       "amount": 4500.0,
       "category": "MAINTENANCE",
-      "created_at": "2026-08-02 11:58:09.062159",
+      "created_at": "2026-08-02 12:19:41.989734",
       "description": "Lift annual servicing",
       "expense_date": "2026-08-05",
       "id": 1,
@@ -12573,6 +14233,10 @@ def test_admin_may_attribute_expense_to_another_user(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-250"></a>
 
 ### TC-250 · Paid by unknown user returns 404
 
@@ -12626,6 +14290,10 @@ def test_paid_by_unknown_user_returns_404(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-251"></a>
 
 ### TC-251 · List expenses
 
@@ -12648,7 +14316,7 @@ def test_paid_by_unknown_user_returns_404(client, admin, seed):
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    [{"amount": 4500.0, "category": "MAINTENANCE", "created_at": "2026-08-02 11:58:09.353414", "description": "Second", "expense_date": "2026-08-20", "id": 2, "paid_by": 1, "paid_by_name": "Priya Admin", "receipt_url": null}, {"amount": 4500.0, "category": "MAINTENANCE", "created_at": "2026-08-02 11:58:09.346237", "description": "First", "expense_date": "2026-08-01", "id": 1, "paid_by": 1, "paid_by_n…
+    [{"amount": 4500.0, "category": "MAINTENANCE", "created_at": "2026-08-02 12:19:43.293087", "description": "Second", "expense_date": "2026-08-20", "id": 2, "paid_by": 1, "paid_by_name": "Priya Admin", "receipt_url": null}, {"amount": 4500.0, "category": "MAINTENANCE", "created_at": "2026-08-02 12:19:43.245032", "description": "First", "expense_date": "2026-08-01", "id": 1, "paid_by": 1, "paid_by_n…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -12668,6 +14336,10 @@ def test_list_expenses(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-252"></a>
 
 ### TC-252 · Update expense
 
@@ -12701,7 +14373,7 @@ def test_list_expenses(client, admin, seed):
     {
       "amount": 5200.0,
       "category": "CONSUMABLES",
-      "created_at": "2026-08-02 11:58:09.513586",
+      "created_at": "2026-08-02 12:19:43.856621",
       "description": "Lift servicing (revised)",
       "expense_date": "2026-08-05",
       "id": 1,
@@ -12736,6 +14408,10 @@ def test_update_expense(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-253"></a>
 
 ### TC-253 · Delete expense
 
@@ -12777,6 +14453,10 @@ def test_delete_expense(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-254"></a>
 
 ### TC-254 · Unknown expense returns 404
 
@@ -12816,6 +14496,10 @@ def test_unknown_expense_returns_404(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-255"></a>
 
 ### TC-255 · Summary for a month
 
@@ -12878,6 +14562,10 @@ def test_summary_for_a_month(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-256"></a>
 
 ### TC-256 · Summary without filters is all time
 
@@ -12925,6 +14613,10 @@ def test_summary_without_filters_is_all_time(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-257"></a>
 
 ### TC-257 · Regression: half a filter silently fell through to all-time totals
 
@@ -12968,6 +14660,10 @@ def test_summary_with_partial_filter_returns_400(client, admin, seed, query):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-258"></a>
 
 ### TC-258 · Regression: half a filter silently fell through to all-time totals
 
@@ -13011,6 +14707,10 @@ def test_summary_with_partial_filter_returns_400(client, admin, seed, query):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-259"></a>
 
 ### TC-259 · Regression: half a filter silently fell through to all-time totals
 
@@ -13054,6 +14754,10 @@ def test_summary_with_partial_filter_returns_400(client, admin, seed, query):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-260"></a>
 
 ### TC-260 · Regression: half a filter silently fell through to all-time totals
 
@@ -13097,6 +14801,10 @@ def test_summary_with_partial_filter_returns_400(client, admin, seed, query):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-261"></a>
 
 ### TC-261 · Summary month out of range returns 400
 
@@ -13137,6 +14845,10 @@ def test_summary_month_out_of_range_returns_400(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-262"></a>
 
 ### TC-262 · Summary non numeric month returns 400
 
@@ -13178,6 +14890,10 @@ def test_summary_non_numeric_month_returns_400(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-263"></a>
 
 ### TC-263 · Add expense missing required field returns 400
 
@@ -13231,6 +14947,10 @@ def test_add_expense_missing_required_field_returns_400(client, admin,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-264"></a>
 
 ### TC-264 · Add expense missing required field returns 400
 
@@ -13284,6 +15004,10 @@ def test_add_expense_missing_required_field_returns_400(client, admin,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-265"></a>
 
 ### TC-265 · Add expense missing required field returns 400
 
@@ -13337,6 +15061,10 @@ def test_add_expense_missing_required_field_returns_400(client, admin,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-266"></a>
 
 ### TC-266 · Add expense missing required field returns 400
 
@@ -13390,6 +15118,10 @@ def test_add_expense_missing_required_field_returns_400(client, admin,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-267"></a>
 
 ### TC-267 · Add expense bad category returns 400
 
@@ -13441,6 +15173,10 @@ def test_add_expense_bad_category_returns_400(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-268"></a>
 
 ### TC-268 · Regression: raw strings used to reach the Date column and 500
 
@@ -13495,6 +15231,10 @@ def test_add_expense_bad_date_returns_400(client, admin, seed, bad_date):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-269"></a>
 
 ### TC-269 · Regression: raw strings used to reach the Date column and 500
 
@@ -13549,6 +15289,10 @@ def test_add_expense_bad_date_returns_400(client, admin, seed, bad_date):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-270"></a>
 
 ### TC-270 · Regression: raw strings used to reach the Date column and 500
 
@@ -13603,6 +15347,10 @@ def test_add_expense_bad_date_returns_400(client, admin, seed, bad_date):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-271"></a>
 
 ### TC-271 · expense_date is required, so a blank one is rejected by require()
 
@@ -13656,6 +15404,10 @@ def test_add_expense_blank_date_returns_400(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-272"></a>
 
 ### TC-272 · Add expense non numeric amount returns 400
 
@@ -13708,6 +15460,10 @@ def test_add_expense_non_numeric_amount_returns_400(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-273"></a>
 
 ### TC-273 · Add expense negative amount returns 400
 
@@ -13760,6 +15516,10 @@ def test_add_expense_negative_amount_returns_400(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-274"></a>
 
 ### TC-274 · Update expense bad category returns 400
 
@@ -13807,6 +15567,10 @@ def test_update_expense_bad_category_returns_400(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-275"></a>
 
 ### TC-275 · Update expense non numeric amount returns 400
 
@@ -13855,6 +15619,10 @@ def test_update_expense_non_numeric_amount_returns_400(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-276"></a>
 
 ### TC-276 · Add expense malformed body returns 400
 
@@ -13903,6 +15671,10 @@ def test_add_expense_malformed_body_returns_400(client, admin, seed,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-277"></a>
 
 ### TC-277 · Add expense malformed body returns 400
 
@@ -13951,6 +15723,10 @@ def test_add_expense_malformed_body_returns_400(client, admin, seed,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-278"></a>
 
 ### TC-278 · Expense endpoints require a token
 
@@ -13998,6 +15774,10 @@ def test_expense_endpoints_require_a_token(client, seed, method, path):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-279"></a>
 
 ### TC-279 · Expense endpoints require a token
 
@@ -14045,6 +15825,10 @@ def test_expense_endpoints_require_a_token(client, seed, method, path):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-280"></a>
 
 ### TC-280 · Expense endpoints require a token
 
@@ -14092,6 +15876,10 @@ def test_expense_endpoints_require_a_token(client, seed, method, path):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-281"></a>
 
 ### TC-281 · Expense endpoints require a token
 
@@ -14139,6 +15927,10 @@ def test_expense_endpoints_require_a_token(client, seed, method, path):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-282"></a>
 
 ### TC-282 · Expense endpoints require a token
 
@@ -14186,6 +15978,10 @@ def test_expense_endpoints_require_a_token(client, seed, method, path):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-283"></a>
 
 ### TC-283 · Resident cannot list expenses
 
@@ -14226,6 +16022,10 @@ def test_resident_cannot_list_expenses(client, resident, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-284"></a>
 
 ### TC-284 · Resident cannot add expense
 
@@ -14278,6 +16078,10 @@ def test_resident_cannot_add_expense(client, resident, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-285"></a>
 
 ### TC-285 · Resident cannot delete expense
 
@@ -14304,7 +16108,7 @@ def test_resident_cannot_add_expense(client, resident, seed):
       {
         "amount": 4500.0,
         "category": "MAINTENANCE",
-        "created_at": "2026-08-02 11:58:15.979480",
+        "created_at": "2026-08-02 12:20:00.359608",
         "description": "Lift annual servicing",
         "expense_date": "2026-08-05",
         "id": 1,
@@ -14329,6 +16133,10 @@ def test_resident_cannot_delete_expense(client, admin, resident, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-286"></a>
 
 ### TC-286 · Worker cannot read the ledger
 
@@ -14367,6 +16175,10 @@ def test_worker_cannot_read_the_ledger(client, worker, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-287"></a>
 
 ### TC-287 · COMMITTEE_MEMBER is an admin role but must not reach the ledger
 
@@ -14423,6 +16235,10 @@ def test_committee_member_is_not_finance(client, tokens, seed, method, path):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-288"></a>
 
 ### TC-288 · COMMITTEE_MEMBER is an admin role but must not reach the ledger
 
@@ -14479,6 +16295,10 @@ def test_committee_member_is_not_finance(client, tokens, seed, method, path):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-289"></a>
 
 ### TC-289 · COMMITTEE_MEMBER is an admin role but must not reach the ledger
 
@@ -14535,13 +16355,17 @@ def test_committee_member_is_not_finance(client, tokens, seed, method, path):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
 
 ---
 
 ## Notices
 
-`Backend/tests/test_notices.py` · US-10 · **18/18 passed**
+`Backend/tests/test_notices.py` · US-10 · **18/18 passed** · [↑ back to index](#2-test-case-index)
 
+
+<a id="tc-290"></a>
 
 ### TC-290 · Admin can publish a notice
 
@@ -14574,7 +16398,7 @@ def test_committee_member_is_not_finance(client, tokens, seed, method, path):
     {
       "category": "MAINTENANCE",
       "content": "No water 9am-1pm on Friday.",
-      "created_at": "2026-08-02 11:59:17.610994",
+      "created_at": "2026-08-02 12:21:25.550176",
       "id": 1,
       "is_active": true,
       "published_by": 1,
@@ -14599,6 +16423,10 @@ def test_admin_can_publish_a_notice(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-291"></a>
 
 ### TC-291 · Category defaults to general when omitted
 
@@ -14630,7 +16458,7 @@ def test_admin_can_publish_a_notice(client, seed, admin):
     {
       "category": "GENERAL",
       "content": "No water 9am-1pm on Friday.",
-      "created_at": "2026-08-02 11:59:18.021720",
+      "created_at": "2026-08-02 12:21:25.985919",
       "id": 1,
       "is_active": true,
       "published_by": 1,
@@ -14650,6 +16478,10 @@ def test_category_defaults_to_general_when_omitted(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-292"></a>
 
 ### TC-292 · Treasurer is also allowed to publish
 
@@ -14681,7 +16513,7 @@ def test_category_defaults_to_general_when_omitted(client, seed, admin):
     {
       "category": "GENERAL",
       "content": "No water 9am-1pm on Friday.",
-      "created_at": "2026-08-02 11:59:18.309329",
+      "created_at": "2026-08-02 12:21:26.590459",
       "id": 1,
       "is_active": true,
       "published_by": 2,
@@ -14700,6 +16532,10 @@ def test_treasurer_is_also_allowed_to_publish(client, seed, treasurer):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-293"></a>
 
 ### TC-293 · Notice list returns newest notices
 
@@ -14722,7 +16558,7 @@ def test_treasurer_is_also_allowed_to_publish(client, seed, treasurer):
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    [{"category": "GENERAL", "content": "No water 9am-1pm on Friday.", "created_at": "2026-08-02 11:59:18.670347", "id": 2, "is_active": true, "published_by": 1, "published_by_name": "Priya Admin", "title": "Second"}, {"category": "GENERAL", "content": "No water 9am-1pm on Friday.", "created_at": "2026-08-02 11:59:18.608110", "id": 1, "is_active": true, "published_by": 1, "published_by_name": "Priya …
+    [{"category": "GENERAL", "content": "No water 9am-1pm on Friday.", "created_at": "2026-08-02 12:21:27.230467", "id": 2, "is_active": true, "published_by": 1, "published_by_name": "Priya Admin", "title": "Second"}, {"category": "GENERAL", "content": "No water 9am-1pm on Friday.", "created_at": "2026-08-02 12:21:27.172328", "id": 1, "is_active": true, "published_by": 1, "published_by_name": "Priya …
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -14741,6 +16577,10 @@ def test_notice_list_returns_newest_notices(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-294"></a>
 
 ### TC-294 · Admin can update a notice
 
@@ -14772,7 +16612,7 @@ def test_notice_list_returns_newest_notices(client, seed, admin):
     {
       "category": "EMERGENCY",
       "content": "No water 9am-1pm on Friday.",
-      "created_at": "2026-08-02 11:59:19.399435",
+      "created_at": "2026-08-02 12:21:27.661504",
       "id": 1,
       "is_active": true,
       "published_by": 1,
@@ -14799,6 +16639,10 @@ def test_admin_can_update_a_notice(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-295"></a>
 
 ### TC-295 · Delete soft deletes and hides the notice from the list
 
@@ -14842,6 +16686,10 @@ def test_delete_soft_deletes_and_hides_the_notice_from_the_list(client, seed, ad
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-296"></a>
 
 ### TC-296 · Updating a missing notice returns 404
 
@@ -14884,6 +16732,10 @@ def test_updating_a_missing_notice_returns_404(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-297"></a>
 
 ### TC-297 · Notice without title is rejected
 
@@ -14929,6 +16781,10 @@ def test_notice_without_title_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-298"></a>
 
 ### TC-298 · Notice without content is rejected
 
@@ -14974,6 +16830,10 @@ def test_notice_without_content_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-299"></a>
 
 ### TC-299 · Blank title is rejected
 
@@ -15020,6 +16880,10 @@ def test_blank_title_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-300"></a>
 
 ### TC-300 · Unknown category is rejected instead of being stored
 
@@ -15066,6 +16930,10 @@ def test_unknown_category_is_rejected_instead_of_being_stored(client, seed, admi
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-301"></a>
 
 ### TC-301 · Unknown category on update is rejected
 
@@ -15111,6 +16979,10 @@ def test_unknown_category_on_update_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-302"></a>
 
 ### TC-302 · Null body is rejected
 
@@ -15155,6 +17027,10 @@ def test_null_body_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-303"></a>
 
 ### TC-303 · List body is rejected
 
@@ -15199,6 +17075,10 @@ def test_list_body_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-304"></a>
 
 ### TC-304 · Notices require authentication
 
@@ -15243,6 +17123,10 @@ def test_notices_require_authentication(client, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-305"></a>
 
 ### TC-305 · Resident can read notices
 
@@ -15269,7 +17153,7 @@ def test_notices_require_authentication(client, seed):
       {
         "category": "GENERAL",
         "content": "No water 9am-1pm on Friday.",
-        "created_at": "2026-08-02 11:59:23.269768",
+        "created_at": "2026-08-02 12:21:31.834387",
         "id": 1,
         "is_active": true,
         "published_by": 1,
@@ -15292,6 +17176,10 @@ def test_resident_can_read_notices(client, seed, admin, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-306"></a>
 
 ### TC-306 · Resident cannot publish a notice
 
@@ -15338,6 +17226,10 @@ def test_resident_cannot_publish_a_notice(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-307"></a>
 
 ### TC-307 · Resident cannot update or delete a notice
 
@@ -15378,13 +17270,17 @@ def test_resident_cannot_update_or_delete_a_notice(client, seed, admin, resident
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
 
 ---
 
 ## Polls & Voting
 
-`Backend/tests/test_polls.py` · US-13 · **29/29 passed**
+`Backend/tests/test_polls.py` · US-13 · **29/29 passed** · [↑ back to index](#2-test-case-index)
 
+
+<a id="tc-308"></a>
 
 ### TC-308 · Admin can create a poll with options
 
@@ -15418,7 +17314,7 @@ def test_resident_cannot_update_or_delete_a_notice(client, seed, admin, resident
 - HTTP Status Code: `201`
 - JSON:
     ```json
-    {"created_at": "2026-08-02 11:59:36.807447", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE", "title": "New gym equipment?", "total_votes":…
+    {"created_at": "2026-08-02 12:21:49.502125", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE", "title": "New gym equipment?", "total_votes":…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -15438,6 +17334,10 @@ def test_admin_can_create_a_poll_with_options(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-309"></a>
 
 ### TC-309 · Start date defaults to today when omitted
 
@@ -15471,7 +17371,7 @@ def test_admin_can_create_a_poll_with_options(client, seed, admin):
 - HTTP Status Code: `201`
 - JSON:
     ```json
-    {"created_at": "2026-08-02 11:59:38.455876", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE", "title": "New gym equipment?", "total_votes":…
+    {"created_at": "2026-08-02 12:21:49.904858", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE", "title": "New gym equipment?", "total_votes":…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -15486,6 +17386,10 @@ def test_start_date_defaults_to_today_when_omitted(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-310"></a>
 
 ### TC-310 · Explicit start date is kept
 
@@ -15520,7 +17424,7 @@ def test_start_date_defaults_to_today_when_omitted(client, seed, admin):
 - HTTP Status Code: `201`
 - JSON:
     ```json
-    {"created_at": "2026-08-02 11:59:40.302834", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-07-31", "status": "ACTIVE", "title": "New gym equipment?", "total_votes":…
+    {"created_at": "2026-08-02 12:21:50.249833", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-07-31", "status": "ACTIVE", "title": "New gym equipment?", "total_votes":…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -15534,6 +17438,10 @@ def test_explicit_start_date_is_kept(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-311"></a>
 
 ### TC-311 · Single poll can be fetched
 
@@ -15556,7 +17464,7 @@ def test_explicit_start_date_is_kept(client, seed, admin):
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    {"created_at": "2026-08-02 11:59:42.038583", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE", "title": "New gym equipment?", "total_votes":…
+    {"created_at": "2026-08-02 12:21:50.539285", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE", "title": "New gym equipment?", "total_votes":…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -15572,6 +17480,10 @@ def test_single_poll_can_be_fetched(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-312"></a>
 
 ### TC-312 · Resident can vote and results are tallied
 
@@ -15599,7 +17511,7 @@ def test_single_poll_can_be_fetched(client, seed, admin):
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    {"message": "Vote cast successfully", "poll": {"created_at": "2026-08-02 11:59:43.894699", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": true, "id": 1, "my_option_id": 1, "options": [{"id": 1, "percentage": 100.0, "text": "Yes", "votes": 1}, {"id": 2, "percentage": 0.0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE…
+    {"message": "Vote cast successfully", "poll": {"created_at": "2026-08-02 12:21:51.052930", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": true, "id": 1, "my_option_id": 1, "options": [{"id": 1, "percentage": 100.0, "text": "Yes", "votes": 1}, {"id": 2, "percentage": 0.0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -15621,6 +17533,10 @@ def test_resident_can_vote_and_results_are_tallied(client, seed, admin, resident
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-313"></a>
 
 ### TC-313 · Admin can close a poll
 
@@ -15643,7 +17559,7 @@ def test_resident_can_vote_and_results_are_tallied(client, seed, admin, resident
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    {"message": "Poll closed", "poll": {"created_at": "2026-08-02 11:59:44.589351", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "CLOSED", "title": "…
+    {"message": "Poll closed", "poll": {"created_at": "2026-08-02 12:21:51.274916", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "CLOSED", "title": "…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -15659,6 +17575,10 @@ def test_admin_can_close_a_poll(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-314"></a>
 
 ### TC-314 · Admin can delete a poll
 
@@ -15698,6 +17618,10 @@ def test_admin_can_delete_a_poll(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-315"></a>
 
 ### TC-315 · Poll list reports has voted per user
 
@@ -15721,7 +17645,7 @@ def test_admin_can_delete_a_poll(client, seed, admin):
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    [{"created_at": "2026-08-02 11:59:46.284225", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 100.0, "text": "Yes", "votes": 1}, {"id": 2, "percentage": 0.0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE", "title": "New gym equipment?", "total_…
+    [{"created_at": "2026-08-02 12:21:52.051488", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 100.0, "text": "Yes", "votes": 1}, {"id": 2, "percentage": 0.0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE", "title": "New gym equipment?", "total_…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -15748,6 +17672,10 @@ def test_poll_list_reports_has_voted_per_user(client, seed, admin, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-316"></a>
 
 ### TC-316 · Voting twice returns 409
 
@@ -15798,6 +17726,10 @@ def test_voting_twice_returns_409(client, seed, admin, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-317"></a>
 
 ### TC-317 · Voting on a closed poll is rejected
 
@@ -15847,6 +17779,10 @@ def test_voting_on_a_closed_poll_is_rejected(client, seed, admin, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-318"></a>
 
 ### TC-318 · Voting before the window opens is rejected
 
@@ -15895,6 +17831,10 @@ def test_voting_before_the_window_opens_is_rejected(client, seed, admin, residen
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-319"></a>
 
 ### TC-319 · Voting after the window closes is rejected
 
@@ -15944,6 +17884,10 @@ def test_voting_after_the_window_closes_is_rejected(client, seed, admin, residen
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-320"></a>
 
 ### TC-320 · Voting for an option of another poll is rejected
 
@@ -15993,6 +17937,10 @@ def test_voting_for_an_option_of_another_poll_is_rejected(client, seed, admin, r
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-321"></a>
 
 ### TC-321 · Poll requires an end date
 
@@ -16044,6 +17992,10 @@ def test_poll_requires_an_end_date(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-322"></a>
 
 ### TC-322 · Poll requires a title
 
@@ -16095,6 +18047,10 @@ def test_poll_requires_a_title(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-323"></a>
 
 ### TC-323 · "abc" used to be split into three single-letter options
 
@@ -16144,6 +18100,10 @@ def test_options_given_as_a_string_are_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-324"></a>
 
 ### TC-324 · Missing options are rejected
 
@@ -16192,6 +18152,10 @@ def test_missing_options_are_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-325"></a>
 
 ### TC-325 · Fewer than two options are rejected
 
@@ -16242,6 +18206,10 @@ def test_fewer_than_two_options_are_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-326"></a>
 
 ### TC-326 · Blank options do not count towards the minimum
 
@@ -16294,6 +18262,10 @@ def test_blank_options_do_not_count_towards_the_minimum(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-327"></a>
 
 ### TC-327 · Unparseable end date is rejected
 
@@ -16345,6 +18317,10 @@ def test_unparseable_end_date_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-328"></a>
 
 ### TC-328 · End date before start date is rejected
 
@@ -16398,6 +18374,10 @@ def test_end_date_before_start_date_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-329"></a>
 
 ### TC-329 · Unknown status is rejected
 
@@ -16449,6 +18429,10 @@ def test_unknown_status_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-330"></a>
 
 ### TC-330 · Vote requires an option id
 
@@ -16493,6 +18477,10 @@ def test_vote_requires_an_option_id(client, seed, admin, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-331"></a>
 
 ### TC-331 · Non numeric option id is rejected
 
@@ -16539,6 +18527,10 @@ def test_non_numeric_option_id_is_rejected(client, seed, admin, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-332"></a>
 
 ### TC-332 · Null body is rejected
 
@@ -16583,6 +18575,10 @@ def test_null_body_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-333"></a>
 
 ### TC-333 · List body is rejected
 
@@ -16627,6 +18623,10 @@ def test_list_body_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-334"></a>
 
 ### TC-334 · Polls require authentication
 
@@ -16670,6 +18670,10 @@ def test_polls_require_authentication(client, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-335"></a>
 
 ### TC-335 · Resident can read the poll list
 
@@ -16692,7 +18696,7 @@ def test_polls_require_authentication(client, seed):
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    [{"created_at": "2026-08-02 11:59:53.301701", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE", "title": "New gym equipment?", "total_votes"…
+    [{"created_at": "2026-08-02 12:21:59.781276", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE", "title": "New gym equipment?", "total_votes"…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -16708,6 +18712,10 @@ def test_resident_can_read_the_poll_list(client, seed, admin, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-336"></a>
 
 ### TC-336 · Resident cannot create close or delete a poll
 
@@ -16753,13 +18761,17 @@ def test_resident_cannot_create_close_or_delete_a_poll(client, seed, admin, resi
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
 
 ---
 
 ## Maintenance Tasks
 
-`Backend/tests/test_maintenance.py` · US-11 · **24/24 passed**
+`Backend/tests/test_maintenance.py` · US-11 · **24/24 passed** · [↑ back to index](#2-test-case-index)
 
+
+<a id="tc-337"></a>
 
 ### TC-337 · Admin can create a task
 
@@ -16822,6 +18834,10 @@ def test_admin_can_create_a_task(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-338"></a>
 
 ### TC-338 · Task can be assigned to a worker
 
@@ -16879,6 +18895,10 @@ def test_task_can_be_assigned_to_a_worker(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-339"></a>
 
 ### TC-339 · Task list is returned
 
@@ -16930,6 +18950,10 @@ def test_task_list_is_returned(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-340"></a>
 
 ### TC-340 · Admin can update a task
 
@@ -16998,6 +19022,10 @@ def test_admin_can_update_a_task(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-341"></a>
 
 ### TC-341 · Admin can complete a task
 
@@ -17025,7 +19053,7 @@ def test_admin_can_update_a_task(client, seed, admin):
       "assigned_to": null,
       "assigned_to_name": null,
       "category": "GENERATOR",
-      "completed_at": "2026-08-02 11:58:38.718598",
+      "completed_at": "2026-08-02 12:20:33.045630",
       "created_by": 1,
       "description": "Quarterly diesel generator service",
       "id": 1,
@@ -17050,6 +19078,10 @@ def test_admin_can_complete_a_task(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-342"></a>
 
 ### TC-342 · Admin can delete a task
 
@@ -17090,6 +19122,10 @@ def test_admin_can_delete_a_task(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-343"></a>
 
 ### TC-343 · Completing a missing task returns 404
 
@@ -17127,6 +19163,10 @@ def test_completing_a_missing_task_returns_404(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-344"></a>
 
 ### TC-344 · Completing an already completed task returns 409
 
@@ -17170,6 +19210,10 @@ def test_completing_an_already_completed_task_returns_409(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-345"></a>
 
 ### TC-345 · Updating status to completed stamps completed at
 
@@ -17202,7 +19246,7 @@ def test_completing_an_already_completed_task_returns_409(client, seed, admin):
       "assigned_to": null,
       "assigned_to_name": null,
       "category": "GENERATOR",
-      "completed_at": "2026-08-02 11:58:39.935211",
+      "completed_at": "2026-08-02 12:20:34.398087",
       "created_by": 1,
       "description": "Quarterly diesel generator service",
       "id": 1,
@@ -17227,6 +19271,10 @@ def test_updating_status_to_completed_stamps_completed_at(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-346"></a>
 
 ### TC-346 · Reopening a completed task clears completed at
 
@@ -17286,6 +19334,10 @@ def test_reopening_a_completed_task_clears_completed_at(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-347"></a>
 
 ### TC-347 · Task requires a title
 
@@ -17334,6 +19386,10 @@ def test_task_requires_a_title(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-348"></a>
 
 ### TC-348 · Task requires a scheduled date
 
@@ -17382,6 +19438,10 @@ def test_task_requires_a_scheduled_date(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-349"></a>
 
 ### TC-349 · Blank scheduled date is rejected
 
@@ -17430,6 +19490,10 @@ def test_blank_scheduled_date_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-350"></a>
 
 ### TC-350 · Day first scheduled date is rejected
 
@@ -17478,6 +19542,10 @@ def test_day_first_scheduled_date_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-351"></a>
 
 ### TC-351 · Unknown category is rejected
 
@@ -17525,6 +19593,10 @@ def test_unknown_category_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-352"></a>
 
 ### TC-352 · Unknown status on update is rejected
 
@@ -17570,6 +19642,10 @@ def test_unknown_status_on_update_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-353"></a>
 
 ### TC-353 · Bad scheduled date on update is rejected
 
@@ -17617,6 +19693,10 @@ def test_bad_scheduled_date_on_update_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-354"></a>
 
 ### TC-354 · Non numeric assignee is rejected
 
@@ -17666,6 +19746,10 @@ def test_non_numeric_assignee_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-355"></a>
 
 ### TC-355 · Null body is rejected
 
@@ -17710,6 +19794,10 @@ def test_null_body_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-356"></a>
 
 ### TC-356 · List body is rejected
 
@@ -17754,6 +19842,10 @@ def test_list_body_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-357"></a>
 
 ### TC-357 · Maintenance requires authentication
 
@@ -17797,6 +19889,10 @@ def test_maintenance_requires_authentication(client, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-358"></a>
 
 ### TC-358 · Resident can read the task list
 
@@ -17848,6 +19944,10 @@ def test_resident_can_read_the_task_list(client, seed, admin, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-359"></a>
 
 ### TC-359 · Worker cannot create a task
 
@@ -17896,6 +19996,10 @@ def test_worker_cannot_create_a_task(client, seed, worker):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-360"></a>
 
 ### TC-360 · Resident cannot update complete or delete a task
 
@@ -17937,13 +20041,17 @@ def test_resident_cannot_update_complete_or_delete_a_task(client, seed, admin, r
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
 
 ---
 
 ## Equipment / Maintenance Predictor
 
-`Backend/tests/test_equipment.py` · US-15 · **28/28 passed**
+`Backend/tests/test_equipment.py` · US-15 · **28/28 passed** · [↑ back to index](#2-test-case-index)
 
+
+<a id="tc-361"></a>
 
 ### TC-361 · Admin can add equipment
 
@@ -17977,7 +20085,7 @@ def test_resident_cannot_update_complete_or_delete_a_task(client, seed, admin, r
     ```json
     {
       "category": "GENERATOR",
-      "created_at": "2026-08-02 11:58:00.124545",
+      "created_at": "2026-08-02 12:19:27.077959",
       "days_until_due": 80,
       "estimated_service_cost": 4500.0,
       "id": 1,
@@ -18006,6 +20114,10 @@ def test_admin_can_add_equipment(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-362"></a>
 
 ### TC-362 · Equipment list is readable
 
@@ -18031,7 +20143,7 @@ def test_admin_can_add_equipment(client, seed, admin):
     [
       {
         "category": "GENERATOR",
-        "created_at": "2026-08-02 11:58:00.631333",
+        "created_at": "2026-08-02 12:19:27.587199",
         "days_until_due": 80,
         "estimated_service_cost": 4500.0,
         "id": 1,
@@ -18056,6 +20168,10 @@ def test_equipment_list_is_readable(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-363"></a>
 
 ### TC-363 · Overdue equipment reports negative days and high risk
 
@@ -18089,7 +20205,7 @@ def test_equipment_list_is_readable(client, seed, admin):
     ```json
     {
       "category": "GENERATOR",
-      "created_at": "2026-08-02 11:58:01.335203",
+      "created_at": "2026-08-02 12:19:28.026046",
       "days_until_due": -30,
       "estimated_service_cost": 4500.0,
       "id": 1,
@@ -18116,6 +20232,10 @@ def test_overdue_equipment_reports_negative_days_and_high_risk(client, seed, adm
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-364"></a>
 
 ### TC-364 · Equipment nearing its due date is medium risk
 
@@ -18149,7 +20269,7 @@ def test_overdue_equipment_reports_negative_days_and_high_risk(client, seed, adm
     ```json
     {
       "category": "GENERATOR",
-      "created_at": "2026-08-02 11:58:02.137726",
+      "created_at": "2026-08-02 12:19:28.460819",
       "days_until_due": 15,
       "estimated_service_cost": 4500.0,
       "id": 1,
@@ -18175,6 +20295,10 @@ def test_equipment_nearing_its_due_date_is_medium_risk(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-365"></a>
 
 ### TC-365 · Marking serviced updates the last serviced date
 
@@ -18207,7 +20331,7 @@ def test_equipment_nearing_its_due_date_is_medium_risk(client, seed, admin):
     {
       "equipment": {
         "category": "GENERATOR",
-        "created_at": "2026-08-02 11:58:02.488363",
+        "created_at": "2026-08-02 12:19:28.741348",
         "days_until_due": 90,
         "estimated_service_cost": 4500.0,
         "id": 1,
@@ -18239,6 +20363,10 @@ def test_marking_serviced_updates_the_last_serviced_date(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-366"></a>
 
 ### TC-366 · Service can be backdated
 
@@ -18269,7 +20397,7 @@ def test_marking_serviced_updates_the_last_serviced_date(client, seed, admin):
     {
       "equipment": {
         "category": "GENERATOR",
-        "created_at": "2026-08-02 11:58:02.756118",
+        "created_at": "2026-08-02 12:19:29.182089",
         "days_until_due": 85,
         "estimated_service_cost": 4500.0,
         "id": 1,
@@ -18297,6 +20425,10 @@ def test_service_can_be_backdated(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-367"></a>
 
 ### TC-367 · Service history lists logged services
 
@@ -18351,6 +20483,10 @@ def test_service_history_lists_logged_services(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-368"></a>
 
 ### TC-368 · History of unserviced equipment is empty
 
@@ -18387,6 +20523,10 @@ def test_history_of_unserviced_equipment_is_empty(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-369"></a>
 
 ### TC-369 · Forecast returns items due within 30 days
 
@@ -18448,6 +20588,10 @@ def test_forecast_returns_items_due_within_30_days(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-370"></a>
 
 ### TC-370 · Forecast works with no equipment
 
@@ -18489,6 +20633,10 @@ def test_forecast_works_with_no_equipment(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-371"></a>
 
 ### TC-371 · Admin can delete equipment
 
@@ -18529,6 +20677,10 @@ def test_admin_can_delete_equipment(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-372"></a>
 
 ### TC-372 · History of missing equipment returns 404
 
@@ -18566,6 +20718,10 @@ def test_history_of_missing_equipment_returns_404(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-373"></a>
 
 ### TC-373 · Equipment requires a name
 
@@ -18617,6 +20773,10 @@ def test_equipment_requires_a_name(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-374"></a>
 
 ### TC-374 · Equipment requires a last serviced date
 
@@ -18667,6 +20827,10 @@ def test_equipment_requires_a_last_serviced_date(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-375"></a>
 
 ### TC-375 · Blank last serviced date is rejected
 
@@ -18716,6 +20880,10 @@ def test_blank_last_serviced_date_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-376"></a>
 
 ### TC-376 · Bad last serviced date is rejected
 
@@ -18765,6 +20933,10 @@ def test_bad_last_serviced_date_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-377"></a>
 
 ### TC-377 · A 0 frequency used to be stored and then divided by on every GET
 
@@ -18815,6 +20987,10 @@ def test_zero_service_frequency_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-378"></a>
 
 ### TC-378 · Zero service frequency as a string is rejected
 
@@ -18864,6 +21040,10 @@ def test_zero_service_frequency_as_a_string_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-379"></a>
 
 ### TC-379 · Missing service frequency is rejected
 
@@ -18914,6 +21094,10 @@ def test_missing_service_frequency_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-380"></a>
 
 ### TC-380 · Negative estimated cost is rejected
 
@@ -18963,6 +21147,10 @@ def test_negative_estimated_cost_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-381"></a>
 
 ### TC-381 · Unknown category is rejected
 
@@ -19011,6 +21199,10 @@ def test_unknown_category_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-382"></a>
 
 ### TC-382 · An empty cost box in the UI must mean "not recorded", not an error
 
@@ -19062,6 +21254,10 @@ def test_blank_cost_when_marking_serviced_is_accepted(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-383"></a>
 
 ### TC-383 · Non numeric cost when marking serviced is rejected
 
@@ -19108,6 +21304,10 @@ def test_non_numeric_cost_when_marking_serviced_is_rejected(client, seed, admin)
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-384"></a>
 
 ### TC-384 · Null body is rejected
 
@@ -19152,6 +21352,10 @@ def test_null_body_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-385"></a>
 
 ### TC-385 · List body is rejected
 
@@ -19196,6 +21400,10 @@ def test_list_body_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-386"></a>
 
 ### TC-386 · Equipment requires authentication
 
@@ -19240,6 +21448,10 @@ def test_equipment_requires_authentication(client, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-387"></a>
 
 ### TC-387 · Resident can read equipment and forecast
 
@@ -19281,6 +21493,10 @@ def test_resident_can_read_equipment_and_forecast(client, seed, admin, resident)
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-388"></a>
 
 ### TC-388 · Resident cannot add service or delete equipment
 
@@ -19327,13 +21543,17 @@ def test_resident_cannot_add_service_or_delete_equipment(client, seed, admin, re
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
 
 ---
 
 ## Society Health Score
 
-`Backend/tests/test_health.py` · US-17 · **20/20 passed**
+`Backend/tests/test_health.py` · US-17 · **20/20 passed** · [↑ back to index](#2-test-case-index)
 
+
+<a id="tc-389"></a>
 
 ### TC-389 · Get calculate returns the full score shape
 
@@ -19386,6 +21606,10 @@ def test_get_calculate_returns_the_full_score_shape(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-390"></a>
 
 ### TC-390 · Post calculate uses the same view as get
 
@@ -19438,6 +21662,10 @@ def test_post_calculate_uses_the_same_view_as_get(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-391"></a>
 
 ### TC-391 · Calculate accepts explicit month and year
 
@@ -19489,6 +21717,10 @@ def test_calculate_accepts_explicit_month_and_year(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-392"></a>
 
 ### TC-392 · Calculate is an upsert for the month
 
@@ -19514,7 +21746,7 @@ def test_calculate_accepts_explicit_month_and_year(client, seed, admin):
     [
       {
         "alert_reason": "No notices posted this month | not scored (no data): complaint, maintenance, payment, poll",
-        "calculated_at": "2026-08-02 11:58:17.893675",
+        "calculated_at": "2026-08-02 12:20:03.749724",
         "complaint_score": 0.0,
         "grade": "RED",
         "id": 1,
@@ -19543,6 +21775,10 @@ def test_calculate_is_an_upsert_for_the_month(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-393"></a>
 
 ### TC-393 · History is empty before anything is calculated
 
@@ -19580,6 +21816,10 @@ def test_history_is_empty_before_anything_is_calculated(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-394"></a>
 
 ### TC-394 · History returns the saved score
 
@@ -19605,7 +21845,7 @@ def test_history_is_empty_before_anything_is_calculated(client, seed, admin):
     [
       {
         "alert_reason": "No notices posted this month | not scored (no data): complaint, maintenance, payment, poll",
-        "calculated_at": "2026-08-02 11:58:18.309043",
+        "calculated_at": "2026-08-02 12:20:04.740913",
         "complaint_score": 0.0,
         "grade": "RED",
         "id": 1,
@@ -19639,6 +21879,10 @@ def test_history_returns_the_saved_score(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-395"></a>
 
 ### TC-395 · Empty society is not awarded a perfect score
 
@@ -19688,6 +21932,10 @@ def test_empty_society_is_not_awarded_a_perfect_score(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-396"></a>
 
 ### TC-396 · Empty society does not report nonsense invoice alerts
 
@@ -19737,6 +21985,10 @@ def test_empty_society_does_not_report_nonsense_invoice_alerts(client, seed, adm
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-397"></a>
 
 ### TC-397 · Components without data are named as not scored
 
@@ -19787,6 +22039,10 @@ def test_components_without_data_are_named_as_not_scored(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-398"></a>
 
 ### TC-398 · Missing notices are flagged
 
@@ -19836,6 +22092,10 @@ def test_missing_notices_are_flagged(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-399"></a>
 
 ### TC-399 · Only the notice component has data, so a posted notice is a full score
 
@@ -19893,6 +22153,10 @@ def test_total_is_scaled_over_applicable_components_only(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-400"></a>
 
 ### TC-400 · Month above twelve is rejected
 
@@ -19933,6 +22197,10 @@ def test_month_above_twelve_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-401"></a>
 
 ### TC-401 · Month below one is rejected
 
@@ -19973,6 +22241,10 @@ def test_month_below_one_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-402"></a>
 
 ### TC-402 · Non numeric month is rejected
 
@@ -20013,6 +22285,10 @@ def test_non_numeric_month_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-403"></a>
 
 ### TC-403 · Year before 2000 is rejected
 
@@ -20053,6 +22329,10 @@ def test_year_before_2000_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-404"></a>
 
 ### TC-404 · Health endpoints require authentication
 
@@ -20092,6 +22372,10 @@ def test_health_endpoints_require_authentication(client, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-405"></a>
 
 ### TC-405 · Resident cannot calculate the score
 
@@ -20133,6 +22417,10 @@ def test_resident_cannot_calculate_the_score(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-406"></a>
 
 ### TC-406 · Worker cannot calculate the score
 
@@ -20170,6 +22458,10 @@ def test_worker_cannot_calculate_the_score(client, seed, worker):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-407"></a>
 
 ### TC-407 · Treasurer can calculate the score
 
@@ -20217,6 +22509,10 @@ def test_treasurer_can_calculate_the_score(client, seed, treasurer):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-408"></a>
 
 ### TC-408 · Any authenticated user can read the history
 
@@ -20242,7 +22538,7 @@ def test_treasurer_can_calculate_the_score(client, seed, treasurer):
     [
       {
         "alert_reason": "No notices posted this month | not scored (no data): complaint, maintenance, payment, poll",
-        "calculated_at": "2026-08-02 11:58:23.866767",
+        "calculated_at": "2026-08-02 12:20:10.517301",
         "complaint_score": 0.0,
         "grade": "RED",
         "id": 1,
@@ -20269,13 +22565,17 @@ def test_any_authenticated_user_can_read_the_history(client, seed, admin, reside
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
 
 ---
 
 ## Neighbour Conflict Resolver
 
-`Backend/tests/test_conflicts.py` · US-16 · **27/27 passed**
+`Backend/tests/test_conflicts.py` · US-16 · **27/27 passed** · [↑ back to index](#2-test-case-index)
 
+
+<a id="tc-409"></a>
 
 ### TC-409 · Resident can raise a conflict against another flat
 
@@ -20325,6 +22625,10 @@ def test_resident_can_raise_a_conflict_against_another_flat(client, seed, reside
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-410"></a>
 
 ### TC-410 · Admin sees every report with the reporter named
 
@@ -20350,7 +22654,7 @@ def test_resident_can_raise_a_conflict_against_another_flat(client, seed, reside
     [
       {
         "category": "NOISE",
-        "created_at": "2026-08-02 11:57:23.852717",
+        "created_at": "2026-08-02 12:18:52.236160",
         "description": "Loud music after 11pm on weekdays.",
         "id": 1,
         "reported_apartment_id": 2,
@@ -20384,6 +22688,10 @@ def test_admin_sees_every_report_with_the_reporter_named(client, seed, resident,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-411"></a>
 
 ### TC-411 · Reported flat can submit its side
 
@@ -20410,7 +22718,7 @@ def test_admin_sees_every_report_with_the_reporter_named(client, seed, resident,
     [
       {
         "category": "NOISE",
-        "created_at": "2026-08-02 11:57:24.221126",
+        "created_at": "2026-08-02 12:18:52.572741",
         "description": "Loud music after 11pm on weekdays.",
         "id": 1,
         "reported_apartment_id": 1,
@@ -20418,7 +22726,7 @@ def test_admin_sees_every_report_with_the_reporter_named(client, seed, resident,
         "reported_flat_response": "The music was for a birthday, sorry.",
         "resolution_note": null,
         "resolved_at": null,
-        "response_submitted_at": "2026-08-02 11:57:24.249054",
+        "response_submitted_at": "2026-08-02 12:18:52.605087",
         "status": "UNDER_REVIEW"
       }
     ]
@@ -20445,6 +22753,10 @@ def test_reported_flat_can_submit_its_side(client, seed, worker, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-412"></a>
 
 ### TC-412 · Admin can resolve a report
 
@@ -20473,7 +22785,7 @@ def test_reported_flat_can_submit_its_side(client, seed, worker, resident):
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    {"message": "Conflict resolved", "report": {"category": "NOISE", "created_at": "2026-08-02 11:57:24.761949", "description": "Loud music after 11pm on weekdays.", "id": 1, "reported_apartment_id": 2, "reported_by": 4, "reported_by_name": "Ravi Resident", "reported_flat": "B-202", "reported_flat_response": null, "resolution_note": "Both parties agreed on quiet hours.", "resolved_at": "2026-08-02 11…
+    {"message": "Conflict resolved", "report": {"category": "NOISE", "created_at": "2026-08-02 12:18:53.122860", "description": "Loud music after 11pm on weekdays.", "id": 1, "reported_apartment_id": 2, "reported_by": 4, "reported_by_name": "Ravi Resident", "reported_flat": "B-202", "reported_flat_response": null, "resolution_note": "Both parties agreed on quiet hours.", "resolved_at": "2026-08-02 12…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -20497,6 +22809,10 @@ def test_admin_can_resolve_a_report(client, seed, resident, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-413"></a>
 
 ### TC-413 · Resolution note defaults when not supplied
 
@@ -20522,7 +22838,7 @@ def test_admin_can_resolve_a_report(client, seed, resident, admin):
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    {"message": "Conflict resolved", "report": {"category": "NOISE", "created_at": "2026-08-02 11:57:25.277445", "description": "Loud music after 11pm on weekdays.", "id": 1, "reported_apartment_id": 2, "reported_by": 4, "reported_by_name": "Ravi Resident", "reported_flat": "B-202", "reported_flat_response": null, "resolution_note": "Resolved by secretary", "resolved_at": "2026-08-02 11:57:25.314688"…
+    {"message": "Conflict resolved", "report": {"category": "NOISE", "created_at": "2026-08-02 12:18:53.379333", "description": "Loud music after 11pm on weekdays.", "id": 1, "reported_apartment_id": 2, "reported_by": 4, "reported_by_name": "Ravi Resident", "reported_flat": "B-202", "reported_flat_response": null, "resolution_note": "Resolved by secretary", "resolved_at": "2026-08-02 12:18:53.390318"…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -20538,6 +22854,10 @@ def test_resolution_note_defaults_when_not_supplied(client, seed, resident, admi
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-414"></a>
 
 ### TC-414 · Pending lists open and under review reports for admin
 
@@ -20560,7 +22880,7 @@ def test_resolution_note_defaults_when_not_supplied(client, seed, resident, admi
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    [{"category": "NOISE", "created_at": "2026-08-02 11:57:25.724734", "description": "Loud music after 11pm on weekdays.", "id": 1, "reported_apartment_id": 2, "reported_by": 4, "reported_by_name": "Ravi Resident", "reported_flat": "B-202", "reported_flat_response": null, "resolution_note": null, "resolved_at": null, "response_submitted_at": null, "status": "OPEN"}, {"category": "NOISE", "created_at…
+    [{"category": "NOISE", "created_at": "2026-08-02 12:18:53.544279", "description": "Loud music after 11pm on weekdays.", "id": 1, "reported_apartment_id": 2, "reported_by": 4, "reported_by_name": "Ravi Resident", "reported_flat": "B-202", "reported_flat_response": null, "resolution_note": null, "resolved_at": null, "response_submitted_at": null, "status": "OPEN"}, {"category": "NOISE", "created_at…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -20587,6 +22907,10 @@ def test_pending_lists_open_and_under_review_reports_for_admin(client, seed,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-415"></a>
 
 ### TC-415 · Responding to a missing report returns 404
 
@@ -20630,6 +22954,10 @@ def test_responding_to_a_missing_report_returns_404(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-416"></a>
 
 ### TC-416 · The accused flat must not learn who reported them
 
@@ -20655,7 +22983,7 @@ def test_responding_to_a_missing_report_returns_404(client, seed, admin):
     [
       {
         "category": "NOISE",
-        "created_at": "2026-08-02 11:57:26.724874",
+        "created_at": "2026-08-02 12:18:53.930055",
         "description": "Loud music after 11pm on weekdays.",
         "id": 1,
         "reported_apartment_id": 1,
@@ -20689,6 +23017,10 @@ def test_resident_view_never_exposes_the_reporter(client, seed, worker, resident
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-417"></a>
 
 ### TC-417 · Reporter own report is also returned without identity fields
 
@@ -20714,7 +23046,7 @@ def test_resident_view_never_exposes_the_reporter(client, seed, worker, resident
     [
       {
         "category": "NOISE",
-        "created_at": "2026-08-02 11:57:27.148961",
+        "created_at": "2026-08-02 12:18:54.095267",
         "description": "Loud music after 11pm on weekdays.",
         "id": 1,
         "reported_apartment_id": 2,
@@ -20742,6 +23074,10 @@ def test_reporter_own_report_is_also_returned_without_identity_fields(client, se
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-418"></a>
 
 ### TC-418 · Resident cannot see unrelated reports
 
@@ -20778,6 +23114,10 @@ def test_resident_cannot_see_unrelated_reports(client, seed, worker, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-419"></a>
 
 ### TC-419 · This endpoint reveals reporter identities, so residents get a 403
 
@@ -20820,6 +23160,10 @@ def test_pending_is_admin_only(client, seed, resident, worker):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-420"></a>
 
 ### TC-420 · Reporting your own flat is rejected
 
@@ -20867,6 +23211,10 @@ def test_reporting_your_own_flat_is_rejected(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-421"></a>
 
 ### TC-421 · Reporting an unknown flat returns 404
 
@@ -20914,6 +23262,10 @@ def test_reporting_an_unknown_flat_returns_404(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-422"></a>
 
 ### TC-422 · A user from another flat cannot respond
 
@@ -20963,6 +23315,10 @@ def test_a_user_from_another_flat_cannot_respond(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-423"></a>
 
 ### TC-423 · A user with no flat cannot respond
 
@@ -21008,6 +23364,10 @@ def test_a_user_with_no_flat_cannot_respond(client, seed, worker, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-424"></a>
 
 ### TC-424 · Responding twice returns 409
 
@@ -21058,6 +23418,10 @@ def test_responding_twice_returns_409(client, seed, worker, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-425"></a>
 
 ### TC-425 · Responding to a resolved report returns 409
 
@@ -21107,6 +23471,10 @@ def test_responding_to_a_resolved_report_returns_409(client, seed, worker, resid
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-426"></a>
 
 ### TC-426 · Resolving twice returns 409
 
@@ -21154,6 +23522,10 @@ def test_resolving_twice_returns_409(client, seed, resident, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-427"></a>
 
 ### TC-427 · Conflict requires a description
 
@@ -21203,6 +23575,10 @@ def test_conflict_requires_a_description(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-428"></a>
 
 ### TC-428 · Conflict requires a reported apartment
 
@@ -21251,6 +23627,10 @@ def test_conflict_requires_a_reported_apartment(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-429"></a>
 
 ### TC-429 · Unknown category is rejected
 
@@ -21297,6 +23677,10 @@ def test_unknown_category_is_rejected(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-430"></a>
 
 ### TC-430 · Non numeric apartment id is rejected
 
@@ -21344,6 +23728,10 @@ def test_non_numeric_apartment_id_is_rejected(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-431"></a>
 
 ### TC-431 · Response text is required
 
@@ -21388,6 +23776,10 @@ def test_response_text_is_required(client, seed, worker, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-432"></a>
 
 ### TC-432 · Null body is rejected
 
@@ -21432,6 +23824,10 @@ def test_null_body_is_rejected(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-433"></a>
 
 ### TC-433 · List body is rejected
 
@@ -21476,6 +23872,10 @@ def test_list_body_is_rejected(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-434"></a>
 
 ### TC-434 · Conflicts require authentication
 
@@ -21519,6 +23919,10 @@ def test_conflicts_require_authentication(client, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-435"></a>
 
 ### TC-435 · Resident cannot resolve a report
 
@@ -21564,13 +23968,17 @@ def test_resident_cannot_resolve_a_report(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
 
 ---
 
 ## Visitor Parking
 
-`Backend/tests/test_parking.py` · US-12 · **27/27 passed**
+`Backend/tests/test_parking.py` · US-12 · **27/27 passed** · [↑ back to index](#2-test-case-index)
 
+
+<a id="tc-436"></a>
 
 ### TC-436 · Admin can add a slot
 
@@ -21627,6 +24035,10 @@ def test_admin_can_add_a_slot(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-437"></a>
 
 ### TC-437 · Slot can be created with an explicit status
 
@@ -21679,6 +24091,10 @@ def test_slot_can_be_created_with_an_explicit_status(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-438"></a>
 
 ### TC-438 · Slot list is ordered by slot number
 
@@ -21719,6 +24135,10 @@ def test_slot_list_is_ordered_by_slot_number(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-439"></a>
 
 ### TC-439 · Available returns only free slots
 
@@ -21772,6 +24192,10 @@ def test_available_returns_only_free_slots(client, seed, admin, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-440"></a>
 
 ### TC-440 · Resident can reserve a slot for a visitor
 
@@ -21841,6 +24265,10 @@ def test_resident_can_reserve_a_slot_for_a_visitor(client, seed, resident, admin
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-441"></a>
 
 ### TC-441 · Occupying a reserved slot keeps the reserving flat
 
@@ -21874,7 +24302,7 @@ def test_resident_can_reserve_a_slot_for_a_visitor(client, seed, resident, admin
         "flat_number": "A-101",
         "id": 1,
         "occupied_by_apartment_id": 1,
-        "occupied_since": "2026-08-02 11:59:28.845233",
+        "occupied_since": "2026-08-02 12:21:38.489649",
         "slot_number": "P1",
         "status": "OCCUPIED",
         "visitor_name": "Anil Kumar",
@@ -21902,6 +24330,10 @@ def test_occupying_a_reserved_slot_keeps_the_reserving_flat(client, seed, reside
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-442"></a>
 
 ### TC-442 · Occupying a free slot attributes it to the caller
 
@@ -21936,7 +24368,7 @@ def test_occupying_a_reserved_slot_keeps_the_reserving_flat(client, seed, reside
         "flat_number": "A-101",
         "id": 1,
         "occupied_by_apartment_id": 1,
-        "occupied_since": "2026-08-02 11:59:29.124086",
+        "occupied_since": "2026-08-02 12:21:39.059815",
         "slot_number": "P1",
         "status": "OCCUPIED",
         "visitor_name": "Walk-in",
@@ -21961,6 +24393,10 @@ def test_occupying_a_free_slot_attributes_it_to_the_caller(client, seed, residen
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-443"></a>
 
 ### TC-443 · Resident can release their own reservation
 
@@ -22026,6 +24462,10 @@ def test_resident_can_release_their_own_reservation(client, seed, resident, admi
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-444"></a>
 
 ### TC-444 · Admin can release any slot
 
@@ -22081,6 +24521,10 @@ def test_admin_can_release_any_slot(client, seed, resident, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-445"></a>
 
 ### TC-445 · Admin can delete a slot
 
@@ -22121,6 +24565,10 @@ def test_admin_can_delete_a_slot(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-446"></a>
 
 ### TC-446 · Reserving a missing slot returns 404
 
@@ -22162,6 +24610,10 @@ def test_reserving_a_missing_slot_returns_404(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-447"></a>
 
 ### TC-447 · Reserving an already reserved slot is rejected
 
@@ -22211,6 +24663,10 @@ def test_reserving_an_already_reserved_slot_is_rejected(client, seed, resident, 
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-448"></a>
 
 ### TC-448 · Occupying an already occupied slot is rejected
 
@@ -22258,6 +24714,10 @@ def test_occupying_an_already_occupied_slot_is_rejected(client, seed, resident, 
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-449"></a>
 
 ### TC-449 · Releasing someone elses reservation is forbidden
 
@@ -22315,6 +24775,10 @@ def test_releasing_someone_elses_reservation_is_forbidden(client, seed, resident
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-450"></a>
 
 ### TC-450 · Duplicate slot number returns 409
 
@@ -22361,6 +24825,10 @@ def test_duplicate_slot_number_returns_409(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-451"></a>
 
 ### TC-451 · The UI sends "" when the arrival time box is left empty
 
@@ -22421,6 +24889,10 @@ def test_blank_expected_arrival_time_is_accepted(client, seed, resident, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-452"></a>
 
 ### TC-452 · Date only expected arrival time is accepted
 
@@ -22479,6 +24951,10 @@ def test_date_only_expected_arrival_time_is_accepted(client, seed, resident, adm
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-453"></a>
 
 ### TC-453 · Unparseable expected arrival time is rejected
 
@@ -22527,6 +25003,10 @@ def test_unparseable_expected_arrival_time_is_rejected(client, seed, resident, a
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-454"></a>
 
 ### TC-454 · Slot number is required
 
@@ -22572,6 +25052,10 @@ def test_slot_number_is_required(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-455"></a>
 
 ### TC-455 · Blank slot number is rejected
 
@@ -22617,6 +25101,10 @@ def test_blank_slot_number_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-456"></a>
 
 ### TC-456 · Unknown status is rejected
 
@@ -22662,6 +25150,10 @@ def test_unknown_status_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-457"></a>
 
 ### TC-457 · Null body is rejected
 
@@ -22706,6 +25198,10 @@ def test_null_body_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-458"></a>
 
 ### TC-458 · List body is rejected
 
@@ -22750,6 +25246,10 @@ def test_list_body_is_rejected(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-459"></a>
 
 ### TC-459 · Null body on reserve is rejected
 
@@ -22795,6 +25295,10 @@ def test_null_body_on_reserve_is_rejected(client, seed, resident, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-460"></a>
 
 ### TC-460 · Parking requires authentication
 
@@ -22838,6 +25342,10 @@ def test_parking_requires_authentication(client, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-461"></a>
 
 ### TC-461 · Resident can read slots
 
@@ -22887,6 +25395,10 @@ def test_resident_can_read_slots(client, seed, admin, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-462"></a>
 
 ### TC-462 · Resident cannot add or delete slots
 
@@ -22931,13 +25443,17 @@ def test_resident_cannot_add_or_delete_slots(client, seed, admin, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
 
 ---
 
 ## Emergency Contacts
 
-`Backend/tests/test_emergency.py` · US-07 · **50/50 passed**
+`Backend/tests/test_emergency.py` · US-07 · **50/50 passed** · [↑ back to index](#2-test-case-index)
 
+
+<a id="tc-463"></a>
 
 ### TC-463 · Create contact returns 201
 
@@ -22994,6 +25510,10 @@ def test_create_contact_returns_201(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-464"></a>
 
 ### TC-464 · Create contact returns only real columns
 
@@ -23044,6 +25564,10 @@ def test_create_contact_returns_only_real_columns(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-465"></a>
 
 ### TC-465 · Create contact uppercases the service type
 
@@ -23097,6 +25621,10 @@ def test_create_contact_uppercases_the_service_type(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-466"></a>
 
 ### TC-466 · Create contact blank availability becomes null
 
@@ -23150,6 +25678,10 @@ def test_create_contact_blank_availability_becomes_null(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-467"></a>
 
 ### TC-467 · Create contact omitted availability is null
 
@@ -23202,6 +25734,10 @@ def test_create_contact_omitted_availability_is_null(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-468"></a>
 
 ### TC-468 · phone has no UNIQUE constraint — two services can share a number
 
@@ -23255,6 +25791,10 @@ def test_create_two_contacts_may_share_a_phone(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-469"></a>
 
 ### TC-469 · Create contact missing required field returns 400
 
@@ -23303,6 +25843,10 @@ def test_create_contact_missing_required_field_returns_400(client, seed, admin, 
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-470"></a>
 
 ### TC-470 · Create contact missing required field returns 400
 
@@ -23351,6 +25895,10 @@ def test_create_contact_missing_required_field_returns_400(client, seed, admin, 
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-471"></a>
 
 ### TC-471 · Create contact missing required field returns 400
 
@@ -23399,6 +25947,10 @@ def test_create_contact_missing_required_field_returns_400(client, seed, admin, 
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-472"></a>
 
 ### TC-472 · Create contact unknown service type returns 400
 
@@ -23447,6 +25999,10 @@ def test_create_contact_unknown_service_type_returns_400(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-473"></a>
 
 ### TC-473 · Create contact phone without digits returns 400
 
@@ -23496,6 +26052,10 @@ def test_create_contact_phone_without_digits_returns_400(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-474"></a>
 
 ### TC-474 · Create contact phone longer than 15 chars returns 400
 
@@ -23545,6 +26105,10 @@ def test_create_contact_phone_longer_than_15_chars_returns_400(client, seed, adm
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-475"></a>
 
 ### TC-475 · Create contact malformed body returns 400
 
@@ -23593,6 +26157,10 @@ def test_create_contact_malformed_body_returns_400(client, seed, admin, raw, exp
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-476"></a>
 
 ### TC-476 · Create contact malformed body returns 400
 
@@ -23641,6 +26209,10 @@ def test_create_contact_malformed_body_returns_400(client, seed, admin, raw, exp
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-477"></a>
 
 ### TC-477 · Create contact malformed body returns 400
 
@@ -23689,6 +26261,10 @@ def test_create_contact_malformed_body_returns_400(client, seed, admin, raw, exp
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-478"></a>
 
 ### TC-478 · Create contact as resident returns 403
 
@@ -23737,6 +26313,10 @@ def test_create_contact_as_resident_returns_403(client, seed, resident):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-479"></a>
 
 ### TC-479 · Create contact as worker returns 403
 
@@ -23782,6 +26362,10 @@ def test_create_contact_as_worker_returns_403(client, seed, worker):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-480"></a>
 
 ### TC-480 · Create contact as treasurer returns 201
 
@@ -23831,6 +26415,10 @@ def test_create_contact_as_treasurer_returns_201(client, seed, treasurer):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-481"></a>
 
 ### TC-481 · Create contact without token returns 401
 
@@ -23875,6 +26463,10 @@ def test_create_contact_without_token_returns_401(client, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-482"></a>
 
 ### TC-482 · List contacts empty directory returns empty list
 
@@ -23912,6 +26504,10 @@ def test_list_contacts_empty_directory_returns_empty_list(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-483"></a>
 
 ### TC-483 · List contacts returns the created contact
 
@@ -23959,6 +26555,10 @@ def test_list_contacts_returns_the_created_contact(client, seed, admin, contact_
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-484"></a>
 
 ### TC-484 · List contacts is ordered by service type then name
 
@@ -24005,6 +26605,10 @@ def test_list_contacts_is_ordered_by_service_type_then_name(client, seed, admin)
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-485"></a>
 
 ### TC-485 · Every role may read the emergency directory
 
@@ -24051,6 +26655,10 @@ def test_list_contacts_as_resident_returns_200(client, seed, resident, contact_i
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-486"></a>
 
 ### TC-486 · List contacts is open to every role
 
@@ -24088,6 +26696,10 @@ def test_list_contacts_is_open_to_every_role(client, request, role_fixture):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-487"></a>
 
 ### TC-487 · List contacts is open to every role
 
@@ -24125,6 +26737,10 @@ def test_list_contacts_is_open_to_every_role(client, request, role_fixture):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-488"></a>
 
 ### TC-488 · List contacts is open to every role
 
@@ -24162,6 +26778,10 @@ def test_list_contacts_is_open_to_every_role(client, request, role_fixture):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-489"></a>
 
 ### TC-489 · List contacts is open to every role
 
@@ -24199,6 +26819,10 @@ def test_list_contacts_is_open_to_every_role(client, request, role_fixture):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-490"></a>
 
 ### TC-490 · List contacts without token returns 401
 
@@ -24235,6 +26859,10 @@ def test_list_contacts_without_token_returns_401(client, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-491"></a>
 
 ### TC-491 · Update contact returns 200
 
@@ -24293,6 +26921,10 @@ def test_update_contact_returns_200(client, seed, admin, contact_id):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-492"></a>
 
 ### TC-492 · Update contact leaves omitted fields untouched
 
@@ -24346,6 +26978,10 @@ def test_update_contact_leaves_omitted_fields_untouched(client, seed, admin, con
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-493"></a>
 
 ### TC-493 · Update contact blank service type keeps the current one
 
@@ -24396,6 +27032,10 @@ def test_update_contact_blank_service_type_keeps_the_current_one(client, seed, a
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-494"></a>
 
 ### TC-494 · Update contact blank availability clears it
 
@@ -24446,6 +27086,10 @@ def test_update_contact_blank_availability_clears_it(client, seed, admin, contac
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-495"></a>
 
 ### TC-495 · Update contact unknown service type returns 400
 
@@ -24491,6 +27135,10 @@ def test_update_contact_unknown_service_type_returns_400(client, seed, admin, co
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-496"></a>
 
 ### TC-496 · Update contact blank phone returns 400
 
@@ -24536,6 +27184,10 @@ def test_update_contact_blank_phone_returns_400(client, seed, admin, contact_id)
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-497"></a>
 
 ### TC-497 · Update contact phone without digits returns 400
 
@@ -24581,6 +27233,10 @@ def test_update_contact_phone_without_digits_returns_400(client, seed, admin, co
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-498"></a>
 
 ### TC-498 · Update contact phone longer than 15 chars returns 400
 
@@ -24627,6 +27283,10 @@ def test_update_contact_phone_longer_than_15_chars_returns_400(client, seed, adm
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-499"></a>
 
 ### TC-499 · Update contact malformed body returns 400
 
@@ -24676,6 +27336,10 @@ def test_update_contact_malformed_body_returns_400(client, seed, admin, contact_
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-500"></a>
 
 ### TC-500 · Update contact malformed body returns 400
 
@@ -24725,6 +27389,10 @@ def test_update_contact_malformed_body_returns_400(client, seed, admin, contact_
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-501"></a>
 
 ### TC-501 · Update contact malformed body returns 400
 
@@ -24774,6 +27442,10 @@ def test_update_contact_malformed_body_returns_400(client, seed, admin, contact_
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-502"></a>
 
 ### TC-502 · Update unknown contact returns 404
 
@@ -24817,6 +27489,10 @@ def test_update_unknown_contact_returns_404(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-503"></a>
 
 ### TC-503 · Update contact as resident returns 403
 
@@ -24863,6 +27539,10 @@ def test_update_contact_as_resident_returns_403(client, seed, resident, contact_
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-504"></a>
 
 ### TC-504 · Update contact as worker returns 403
 
@@ -24906,6 +27586,10 @@ def test_update_contact_as_worker_returns_403(client, seed, worker, contact_id):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-505"></a>
 
 ### TC-505 · Update contact without token returns 401
 
@@ -24949,6 +27633,10 @@ def test_update_contact_without_token_returns_401(client, seed, contact_id):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-506"></a>
 
 ### TC-506 · Delete contact returns 200
 
@@ -24989,6 +27677,10 @@ def test_delete_contact_returns_200(client, seed, admin, contact_id):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-507"></a>
 
 ### TC-507 · Delete contact is a hard delete
 
@@ -25025,6 +27717,10 @@ def test_delete_contact_is_a_hard_delete(client, seed, admin, contact_id):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-508"></a>
 
 ### TC-508 · Delete contact twice returns 404
 
@@ -25063,6 +27759,10 @@ def test_delete_contact_twice_returns_404(client, seed, admin, contact_id):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-509"></a>
 
 ### TC-509 · Delete unknown contact returns 404
 
@@ -25100,6 +27800,10 @@ def test_delete_unknown_contact_returns_404(client, seed, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-510"></a>
 
 ### TC-510 · Delete contact as resident returns 403
 
@@ -25140,6 +27844,10 @@ def test_delete_contact_as_resident_returns_403(client, seed, resident, contact_
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-511"></a>
 
 ### TC-511 · Delete contact as worker returns 403
 
@@ -25177,6 +27885,10 @@ def test_delete_contact_as_worker_returns_403(client, seed, worker, contact_id):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-512"></a>
 
 ### TC-512 · Delete contact without token returns 401
 
@@ -25214,13 +27926,17 @@ def test_delete_contact_without_token_returns_401(client, seed, contact_id):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
 
 ---
 
 ## Regression suite — defects already fixed
 
-`Backend/tests/test_regressions.py` · all · **21/21 passed**
+`Backend/tests/test_regressions.py` · all · **21/21 passed** · [↑ back to index](#2-test-case-index)
 
+
+<a id="tc-513"></a>
 
 ### TC-513 · Duplicate phone returns 409 not 500
 
@@ -25280,6 +27996,10 @@ def test_delete_contact_without_token_returns_401(client, seed, contact_id):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-514"></a>
 
 ### TC-514 · The same bug in its nastier form: '' is not NULL, so the SECOND
 
@@ -25315,7 +28035,7 @@ def test_delete_contact_without_token_returns_401(client, seed, contact_id):
       "message": "User registered successfully",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 11:59:55.217412",
+        "created_at": "2026-08-02 12:22:01.828758",
         "email": "blank2@x.com",
         "id": 8,
         "is_active": true,
@@ -25344,6 +28064,10 @@ def test_delete_contact_without_token_returns_401(client, seed, contact_id):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-515"></a>
 
 ### TC-515 · DEFECT-02  Four endpoints were 100% dead
 
@@ -25377,7 +28101,7 @@ def test_delete_contact_without_token_returns_401(client, seed, contact_id):
     {
       "amount": 500.0,
       "category": "UTILITIES",
-      "created_at": "2026-08-02 11:59:55.495137",
+      "created_at": "2026-08-02 12:22:02.184134",
       "description": "Water bill",
       "expense_date": "2026-08-01",
       "id": 1,
@@ -25424,6 +28148,10 @@ def test_date_accepting_endpoints_create_successfully(client, admin, label, url,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-516"></a>
 
 ### TC-516 · DEFECT-02  Four endpoints were 100% dead
 
@@ -25504,6 +28232,10 @@ def test_date_accepting_endpoints_create_successfully(client, admin, label, url,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-517"></a>
 
 ### TC-517 · DEFECT-02  Four endpoints were 100% dead
 
@@ -25536,7 +28268,7 @@ def test_date_accepting_endpoints_create_successfully(client, admin, label, url,
     ```json
     {
       "category": "LIFT",
-      "created_at": "2026-08-02 11:59:56.200107",
+      "created_at": "2026-08-02 12:22:02.728041",
       "days_until_due": 28,
       "estimated_service_cost": null,
       "id": 1,
@@ -25584,6 +28316,10 @@ def test_date_accepting_endpoints_create_successfully(client, admin, label, url,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-518"></a>
 
 ### TC-518 · DEFECT-02  Four endpoints were 100% dead
 
@@ -25617,7 +28353,7 @@ def test_date_accepting_endpoints_create_successfully(client, admin, label, url,
 - JSON:
     ```json
     {
-      "created_at": "2026-08-02 11:59:56.589315",
+      "created_at": "2026-08-02 12:22:02.892939",
       "created_by": 1,
       "description": null,
       "end_date": "2026-12-31",
@@ -25682,6 +28418,10 @@ def test_date_accepting_endpoints_create_successfully(client, admin, label, url,
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-519"></a>
 
 ### TC-519 · The flip side: a genuinely bad date must be a 400, not a 500
 
@@ -25735,6 +28475,10 @@ def test_invalid_date_is_a_clean_400(client, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-520"></a>
 
 ### TC-520 · Pending is admin only
 
@@ -25774,6 +28518,10 @@ def test_invalid_date_is_a_clean_400(client, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-521"></a>
 
 ### TC-521 · Resident listing never exposes the reporter
 
@@ -25799,7 +28547,7 @@ def test_invalid_date_is_a_clean_400(client, admin):
     [
       {
         "category": "NOISE",
-        "created_at": "2026-08-02 11:59:57.718519",
+        "created_at": "2026-08-02 12:22:04.380340",
         "description": "Loud music after midnight",
         "id": 1,
         "reported_apartment_id": 2,
@@ -25828,6 +28576,10 @@ def test_invalid_date_is_a_clean_400(client, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-522"></a>
 
 ### TC-522 · Assign without worker is rejected
 
@@ -25870,6 +28622,10 @@ def test_invalid_date_is_a_clean_400(client, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-523"></a>
 
 ### TC-523 · Assign to non worker is rejected
 
@@ -25918,6 +28674,10 @@ def test_invalid_date_is_a_clean_400(client, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-524"></a>
 
 ### TC-524 · Assigned worker sees the job
 
@@ -25947,7 +28707,7 @@ def test_invalid_date_is_a_clean_400(client, admin):
         "assigned_worker_id": 6,
         "assigned_worker_name": "Ramesh Worker",
         "category": "ELECTRICAL",
-        "created_at": "2026-08-02 11:59:58.669712",
+        "created_at": "2026-08-02 12:22:06.137611",
         "description": null,
         "flat_number": "A-101",
         "id": 1,
@@ -25980,6 +28740,10 @@ def test_invalid_date_is_a_clean_400(client, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-525"></a>
 
 ### TC-525 · DEFECT-05  PUT /api/invoices/<id>/pay was not idempotent
 
@@ -26043,6 +28807,10 @@ def test_paying_an_invoice_twice_is_rejected(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-526"></a>
 
 ### TC-526 · DEFECT-06  POST /api/equipment with service_frequency_days = 0
 
@@ -26096,6 +28864,10 @@ def test_zero_service_frequency_is_rejected(client, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-527"></a>
 
 ### TC-527 · DEFECT-07  Any endpoint, with a body of null / [] / "str"
 
@@ -26145,6 +28917,10 @@ def test_malformed_json_bodies_return_400(client, body):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-528"></a>
 
 ### TC-528 · DEFECT-07  Any endpoint, with a body of null / [] / "str"
 
@@ -26194,6 +28970,10 @@ def test_malformed_json_bodies_return_400(client, body):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-529"></a>
 
 ### TC-529 · DEFECT-07  Any endpoint, with a body of null / [] / "str"
 
@@ -26243,6 +29023,10 @@ def test_malformed_json_bodies_return_400(client, body):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-530"></a>
 
 ### TC-530 · DEFECT-07b  PUT /api/auth/change-password
 
@@ -26293,6 +29077,10 @@ def test_change_password_without_new_password_returns_400(client, admin):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-531"></a>
 
 ### TC-531 · DEFECT-08  There was not a single `except` block in api/ or auth/
 
@@ -26367,6 +29155,10 @@ def test_errors_are_always_json_never_html(client, admin, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-532"></a>
 
 ### TC-532 · DEFECT-09  Every mutating endpoint was bare @jwt_required()
 
@@ -26427,6 +29219,10 @@ def test_residents_cannot_perform_privileged_actions(client, resident, seed):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-533"></a>
 
 ### TC-533 · DEFECT-09b  DELETE /api/members/apartments/<id>
 
@@ -26475,13 +29271,17 @@ def test_apartment_delete_no_longer_cascades_away_residents(client, admin, seed)
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
 
 ---
 
 ## Open defects — EXPECTED TO FAIL
 
-`Backend/tests/test_open_defects.py` · all · **0/6 passed**
+`Backend/tests/test_open_defects.py` · all · **0/6 passed** · [↑ back to index](#2-test-case-index)
 
+
+<a id="tc-534"></a>
 
 ### TC-534 · OD-01 · Auth errors use a different JSON envelope from the rest of the API
 
@@ -26543,6 +29343,10 @@ def test_unauthenticated_error_uses_the_documented_json_envelope(client):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-535"></a>
 
 ### TC-535 · OD-02 · Anyone on the internet can create an ADMIN account.  [SECURITY]
 
@@ -26576,7 +29380,7 @@ def test_unauthenticated_error_uses_the_documented_json_envelope(client):
       "message": "User registered successfully",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 11:59:25.171972",
+        "created_at": "2026-08-02 12:21:33.647133",
         "email": "escalate@test.com",
         "id": 1,
         "is_active": true,
@@ -26628,6 +29432,10 @@ def test_public_registration_cannot_grant_itself_admin(client):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-536"></a>
 
 ### TC-536 · OD-02b · Proves the escalation above is exploitable, not cosmetic
 
@@ -26677,6 +29485,10 @@ def test_admin_token_from_public_signup_cannot_reach_admin_endpoints(client):
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-537"></a>
 
 ### TC-537 · OD-03 · Invoices never become OVERDUE
 
@@ -26703,7 +29515,7 @@ def test_admin_token_from_public_signup_cannot_reach_admin_endpoints(client):
       {
         "amount": 1500.0,
         "apartment_id": 1,
-        "created_at": "2026-08-02 11:59:26.064039",
+        "created_at": "2026-08-02 12:21:34.730587",
         "due_date": "2026-06-03",
         "flat_number": "A-101",
         "id": 1,
@@ -26760,6 +29572,10 @@ def test_unpaid_invoice_past_its_due_date_becomes_overdue(client, admin, seed, a
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-538"></a>
 
 ### TC-538 · OD-04 · Validation errors name the internal enum, not the client's field
 
@@ -26834,6 +29650,10 @@ def test_validation_error_names_the_field_the_client_sent(client, admin, endpoin
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-539"></a>
 
 ### TC-539 · OD-04 · Validation errors name the internal enum, not the client's field
 
@@ -26909,10 +29729,12 @@ def test_validation_error_names_the_field_the_client_sent(client, admin, endpoin
 ```
 </details>
 
+[↑ back to index](#2-test-case-index)
+
 
 ---
 
-## 3. Defects found through testing — where actual differed from expected
+## 4. Defects found through testing — where actual differed from expected
 
 Every entry below is a **real defect testing caught in our own code**: the actual output differed
 from what the API should have returned. Each now has a permanent regression test in
