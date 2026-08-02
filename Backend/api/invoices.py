@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from models import db, Invoice, Payment, Apartment, Resident
-from datetime import datetime
+from datetime import datetime,date
 
 from utils import ApiError, get_body, require, parse_date, parse_decimal, parse_int
 from auth.roles import current_user, is_admin, active_user_required, finance_required
@@ -13,6 +13,17 @@ def _own_apartment_id(user):
     resident = Resident.query.filter_by(user_id=user.id).first()
     return resident.apartment_id if resident else None
 
+def _mark_overdue_invoices(invoices):
+    """Mark unpaid invoices as OVERDUE if due date has passed."""
+    changed = False
+
+    for invoice in invoices:
+        if invoice.status == "UNPAID" and invoice.due_date and invoice.due_date < date.today():
+            invoice.status = "OVERDUE"
+            changed = True
+
+    if changed:
+        db.session.commit()
 
 # GET /api/invoices — all invoices (admin) or own (resident)
 @invoices_bp.route("/", methods=["GET"])
@@ -28,7 +39,7 @@ def get_invoices():
             return jsonify([]), 200
         invoices = Invoice.query.filter_by(apartment_id=apartment_id)\
                     .order_by(Invoice.created_at.desc()).all()
-
+    _mark_overdue_invoices(invoices)
     return jsonify([_invoice_dict(i) for i in invoices]), 200
 
 
@@ -176,7 +187,10 @@ def get_pending():
             return jsonify([]), 200
         query = query.filter_by(apartment_id=apartment_id)
 
-    return jsonify([_invoice_dict(i) for i in query.all()]), 200
+    invoices = query.all()
+    _mark_overdue_invoices(invoices)
+
+    return jsonify([_invoice_dict(i) for i in invoices]), 200
 
 
 # ── helpers ───────────────────────────────────────────────────

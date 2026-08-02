@@ -202,7 +202,7 @@ def test_negative_estimated_cost_is_rejected(client, seed, admin):
 def test_unknown_category_is_rejected(client, seed, admin):
     res = _create_equipment(client, admin, category="ROBOT")
     assert res.status_code == 400
-    assert res.get_json()["error"].startswith("equipment_category must be one of:")
+    assert res.get_json()["error"].startswith("category must be one of:")
 
 
 def test_blank_cost_when_marking_serviced_is_accepted(client, seed, admin):

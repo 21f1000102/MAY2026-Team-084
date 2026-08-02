@@ -152,7 +152,7 @@ def test_day_first_scheduled_date_is_rejected(client, seed, admin):
 def test_unknown_category_is_rejected(client, seed, admin):
     res = _create_task(client, admin, category="ROOFING")
     assert res.status_code == 400
-    assert res.get_json()["error"].startswith("task_category must be one of:")
+    assert res.get_json()["error"].startswith("category must be one of:")
 
 
 def test_unknown_status_on_update_is_rejected(client, seed, admin):
