@@ -9,11 +9,15 @@ for the lifetime of a single connection, so the tables created on one pooled
 connection are invisible to the next one and every request fails with
 "no such table: users".
 """
+import io as _io
+import json as _json
 import os
+import re as _re
 import sys
 import tempfile
 
 import pytest
+from flask.testing import FlaskClient
 
 # Make the Backend package importable however pytest is invoked.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -61,8 +65,77 @@ def app():
             pass   # Windows may still hold the handle; the temp dir is cleaned anyway
 
 
+# ── request/response recording ────────────────────────────────
+# Every API call made through the test client is logged with its real request
+# and real response, so docs/TEST_CASES.md can show what was actually sent and
+# what actually came back instead of a hand-written "as expected".
+API_LOG = []
+_CURRENT = {"nodeid": None}
+LOG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "_api_log.json")
+
+
+def _shorten(value, limit=400):
+    text = value if isinstance(value, str) else _json.dumps(value, default=str)
+    # JWTs and password hashes are long and add nothing to the report.
+    text = _re.sub(r'"(token)":\s*"eyJ[\w.\-]+"', r'"\1": "<jwt>"', text)
+    text = _re.sub(r'"(password)":\s*"[^"]*"', r'"\1": "<hidden>"', text)
+    return text if len(text) <= limit else text[: limit - 1] + "…"
+
+
+class RecordingClient(FlaskClient):
+    """Flask test client that records each call for the test-case report."""
+
+    def open(self, *args, **kwargs):
+        method = (kwargs.get("method") or (args[1] if len(args) > 1 else "GET")).upper()
+        path = kwargs.get("path") or (args[0] if args else "")
+
+        if "json" in kwargs:
+            body = _shorten(kwargs["json"])
+        elif kwargs.get("data") is not None:
+            body = _shorten(kwargs["data"])
+        else:
+            body = ""
+
+        headers = kwargs.get("headers") or {}
+        authed = bool(isinstance(headers, dict) and headers.get("Authorization"))
+
+        response = super().open(*args, **kwargs)
+
+        try:
+            payload = response.get_json()
+            out = "" if payload is None else _shorten(payload)
+        except Exception:
+            out = _shorten((response.data or b"")[:200].decode("utf-8", "replace"))
+
+        API_LOG.append({
+            "nodeid": _CURRENT["nodeid"],
+            "method": method,
+            "path": str(path),
+            "request": body,
+            "authenticated": authed,
+            "status": response.status_code,
+            "response": out,
+        })
+        return response
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_setup(item):
+    _CURRENT["nodeid"] = item.nodeid
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """Persist the captured calls for tests/report.py."""
+    try:
+        with _io.open(LOG_PATH, "w", encoding="utf-8") as fh:
+            _json.dump(API_LOG, fh, indent=1, default=str)
+    except OSError:
+        pass
+
+
 @pytest.fixture()
 def client(app):
+    app.test_client_class = RecordingClient
     return app.test_client()
 
 

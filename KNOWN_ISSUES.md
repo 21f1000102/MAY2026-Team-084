@@ -3,6 +3,11 @@
 Deliberate gaps left in the current build. Everything here is a conscious decision,
 not an undiscovered bug — close these before the app is used with real data.
 
+**Six of these are covered by deliberately-failing tests** in
+`Backend/tests/test_open_defects.py`, so they stay visible in every test run rather than
+relying on someone reading this file. See `docs/TEST_CASES.md` section 3 for the
+expected-vs-actual detail.
+
 ---
 
 ## 1. Anyone can self-register as ADMIN or TREASURER  🔴 security
@@ -12,6 +17,9 @@ Register page offers **Admin / Secretary** and **Treasurer** in its dropdown. An
 visitor can therefore mint a full administrator account.
 
 **Kept on purpose** so the team can create test accounts of any role while developing.
+
+**Failing test:** `test_public_registration_cannot_grant_itself_admin` (OD-02) and
+`test_admin_token_from_public_signup_cannot_reach_admin_endpoints` (OD-02b).
 
 **To close it:** restrict the public endpoint to `TENANT`/`OWNER` and create staff
 through the admin-only "Add Member" screen (which already supports every role).
@@ -78,6 +86,8 @@ The API supports these but no screen calls them:
 The status exists and `due_date` is stored, but nothing compares the two, so an
 invoice stays `UNPAID` forever.
 
+**Failing test:** `test_unpaid_invoice_past_its_due_date_becomes_overdue` (OD-03).
+
 **To close it:** a scheduled job (or a check on read) that flips past-due unpaid
 invoices to `OVERDUE`.
 
@@ -90,11 +100,15 @@ spelled `Frontend/src/components/` holds an older, dead flow, and
 **To close it:** delete the dead folder and files, then rename `componenets` →
 `components` and update the 16 imports in `router/index.js`.
 
-## 11. `openapi.yaml` is out of date  🟡 docs
+## 11. `openapi.yaml` — ✅ resolved
 
-It predates the recent work and does not document `GET /api/members/workers`, the
-`/api/emergency` endpoints, the new `has_voted`/`my_option_id` poll fields, or the
-403/409 responses added by the role and validation layers.
+Previously out of date. It is now the single, consolidated spec (the duplicate
+`openapi-final.yaml` was merged into it and removed) and is checked against the code:
+all 71 live operations documented, no stale entries, and every reachable status code
+declared (399/399). Re-verify with the parity script described in `docs/TEST_CASES.md`.
+
+Remaining nit: response *schemas* for a few action endpoints are still inline
+`type: object` rather than named components.
 
 ## 12. Emergency-contact service types are validated in two places  🟡 maintainability
 
@@ -105,3 +119,25 @@ in `Backend/utils.py` (validation) and `SERVICE_TYPES` in `Frontend/src/utils/fo
 
 This avoids a schema migration, which the project has no tooling for (see #6). If
 Alembic is adopted later, promote the column to a real `Enum` and drop the duplication.
+
+## 13. Auth errors use a different JSON envelope  🟡 contract
+
+`flask-jwt-extended` returns `{"msg": "..."}` for a missing or invalid token, while every
+other error in the API — and `openapi.yaml`'s `ErrorResponse` schema — uses `{"error": "..."}`.
+The frontend's `errText()` reads `data.error`, so session-expiry messages fall back to
+generic text.
+
+**Failing test:** `test_unauthenticated_error_uses_the_documented_json_envelope` (OD-01).
+
+**To close it:** add `@jwt.unauthorized_loader`, `@jwt.invalid_token_loader` and
+`@jwt.expired_token_loader` in `create_app()`, each returning `{"error": <msg>}`. ~6 lines.
+
+## 14. Validation errors name the internal enum, not the client's field  🟡 contract
+
+`POST /api/maintenance/` with a bad category replies `"task_category must be one of: …"`
+rather than `"category must be one of: …"`; equipment says `"equipment_category …"`. Notices
+and conflicts get this right because they pass `field="category"` to `parse_enum`.
+
+**Failing tests:** `test_validation_error_names_the_field_the_client_sent` (OD-04, OD-04b).
+
+**To close it:** pass `field="category"` at the two call sites.

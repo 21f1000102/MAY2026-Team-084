@@ -278,23 +278,10 @@ def test_errors_are_always_json_never_html(client, admin, seed):
         # {"msg": ...}. openapi.yaml documents ErrorResponse {error} for every
         # failure, so the 401 contract is currently inaccurate, and the
         # frontend's errText() falls back to a generic message on auth errors.
-        # Asserting reality here rather than the aspiration; see docs/TEST_CASES.md.
+        # Asserting reality here; the aspiration is enforced by
+        # tests/test_open_defects.py::test_unauthenticated_error_uses_the_documented_json_envelope,
+        # which fails on purpose until the envelope is unified.
         assert "error" in body or "msg" in body
-
-
-def test_jwt_401_uses_a_different_error_envelope_than_the_rest_of_the_api():
-    """FINDING-10 — documents a live inconsistency, not a fixed bug.
-
-    Documented contract (openapi.yaml ErrorResponse): {"error": "..."}
-    Actual for a missing/invalid token:                {"msg": "..."}
-
-    Low severity but real: the SPA reads `data.error`, so a session-expiry 401
-    shows the generic fallback instead of the server's message. The fix is a
-    handful of flask-jwt-extended loaders in create_app() normalising the
-    envelope. Deliberately left unfixed pending team sign-off, since this
-    milestone is documentation and tests only.
-    """
-    pytest.skip("Known open finding — see docs/TEST_CASES.md FINDING-10")
 
 
 # ── DEFECT-09 ─────────────────────────────────────────────────

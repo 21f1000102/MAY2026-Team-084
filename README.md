@@ -99,12 +99,18 @@ All endpoints live under `/api/*` and (except register/login) require an
 
 ## Testing
 
-534 automated API tests covering all 13 blueprints — happy paths, validation, role
+539 automated API tests covering all 13 blueprints — happy paths, validation, role
 authorization, and business rules, plus a regression suite for every defect testing has caught.
+
+**6 of them fail on purpose.** `tests/test_open_defects.py` asserts the behaviour the API
+*should* have; each failure is a real defect we found and have not fixed yet, so it stays
+visible in every run instead of hiding in a document. A run is healthy when **regressions = 0**.
 
 ```bash
 cd Backend
-pytest -v                 # run the suite
+.\run_tests.ps1           # Windows: full suite with a per-module summary
+run_tests.bat             #   (or this, if PowerShell blocks scripts)
+pytest -v                 # any platform
 python tests/report.py    # regenerate docs/TEST_CASES.md from a real run
 ```
 
