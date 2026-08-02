@@ -104,7 +104,9 @@ authorization, and business rules, plus a regression suite for every defect test
 
 ```bash
 cd Backend
-pytest -v                 # run the suite
+.\run_tests.ps1           # Windows: full suite with a per-module summary
+run_tests.bat             #   (or this, if PowerShell blocks scripts)
+pytest -v                 # any platform
 python tests/report.py    # regenerate docs/TEST_CASES.md from a real run
 ```
 

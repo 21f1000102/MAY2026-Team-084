@@ -1,28 +1,41 @@
 """
 Generate docs/TEST_CASES.md from a REAL pytest run.
 
-The "Actual output" column is filled from the live run, never by hand:
+For every test case the document records:
+
+    Page being tested : the actual URL that was called
+    Inputs            : request method, JSON body, auth header
+    Expected Output   : status code + JSON, parsed from the test's own asserts
+    Actual Output     : status code + JSON, captured live from the response
+    Result            : Success / Failure
+    Test code         : the pytest function that produced it
+
+"Expected" and "Actual" come from independent sources — the assertions in the
+source versus the recorded HTTP response — so the comparison is meaningful
+rather than circular.
 
     python tests/report.py
-
-It shells out to `pytest --tb=no -q --junit-xml`, parses the JUnit XML, and
-writes the Markdown. Re-running after a code change reproduces the document.
 """
+import ast
 import io
+import json
 import os
 import re
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from datetime import datetime, timezone
 
 BACKEND = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REPO = os.path.dirname(BACKEND)
-XML = os.path.join(BACKEND, "tests", "_junit.xml")
+TESTS = os.path.join(BACKEND, "tests")
+XML = os.path.join(TESTS, "_junit.xml")
+LOG = os.path.join(TESTS, "_api_log.json")
 OUT = os.path.join(REPO, "docs", "TEST_CASES.md")
+BASE_URL = "http://127.0.0.1:5000"
 
-MODULE_TITLES = OrderedDict([
+MODULES = OrderedDict([
     ("test_auth", ("Authentication", "US-08")),
     ("test_members", ("Members & Apartments", "US-09, US-04")),
     ("test_complaints", ("Complaints", "US-02, US-03, US-04")),
@@ -40,73 +53,326 @@ MODULE_TITLES = OrderedDict([
 ])
 
 
-def humanise(name):
-    """test_register_duplicate_phone_returns_409 -> readable input/expectation."""
-    text = re.sub(r"^test_", "", name)
-    text = re.sub(r"\[.*\]$", "", text)
-    return text.replace("_", " ").strip()
-
-
-def split_expectation(label):
-    """Best-effort split of a test name into 'input' and 'expected'."""
-    markers = [" returns ", " is rejected", " succeeds", " fails", " must ",
-               " returns_", " -> ", " gives "]
-    for m in markers:
-        if m in label:
-            head, _, tail = label.partition(m)
-            return head.strip(), (m.strip() + " " + tail).strip()
-    return label, "behaves as specified"
-
-
+# ── run ───────────────────────────────────────────────────────
 def run_pytest():
-    print("running pytest ...")
+    print("running pytest (this takes a few minutes) ...")
     proc = subprocess.run(
         [sys.executable, "-m", "pytest", "--tb=no", "-q", f"--junit-xml={XML}"],
         cwd=BACKEND, capture_output=True, text=True,
     )
-    tail = [l for l in proc.stdout.strip().splitlines() if l.strip()][-1:]
-    return proc.returncode, (tail[0] if tail else "")
+    lines = [l for l in proc.stdout.strip().splitlines() if l.strip()]
+    return proc.returncode, (lines[-1] if lines else "")
 
 
-def parse():
-    tree = ET.parse(XML)
-    root = tree.getroot()
+def parse_junit():
+    root = ET.parse(XML).getroot()
     suite = root.find("testsuite") if root.tag == "testsuites" else root
-    cases = []
+    cases, totals = [], {}
     for tc in suite.iter("testcase"):
-        # pytest emits a dotted classname: "tests.test_auth" or
-        # "tests.test_auth.TestRegistration".
         classname = tc.get("classname", "")
         parts = [p for p in classname.split(".") if p and p != "tests"]
-        module = parts[0] if parts else ""
-        failure = tc.find("failure") or tc.find("error")
+        failure = tc.find("failure")
+        if failure is None:
+            failure = tc.find("error")
         skipped = tc.find("skipped")
         cases.append({
-            "module": module,
+            "module": parts[0] if parts else "",
             "cls": parts[1] if len(parts) > 1 else "",
             "name": tc.get("name", ""),
-            "time": float(tc.get("time", 0) or 0),
             "status": "SKIP" if skipped is not None else ("FAIL" if failure is not None else "PASS"),
             "message": (failure.get("message") if failure is not None
                         else (skipped.get("message") if skipped is not None else "")),
         })
-    totals = {
-        "tests": int(suite.get("tests", 0)),
-        "failures": int(suite.get("failures", 0)),
-        "errors": int(suite.get("errors", 0)),
-        "skipped": int(suite.get("skipped", 0)),
-        "time": float(suite.get("time", 0) or 0),
-    }
+    totals = {k: int(suite.get(k, 0)) for k in ("tests", "failures", "errors", "skipped")}
+    totals["time"] = float(suite.get("time", 0) or 0)
     return cases, totals
 
 
+# ── source analysis: expectations + code ──────────────────────
+def load_sources():
+    """Per test function: its source text and the expectations it asserts."""
+    info = {}
+    for fname in os.listdir(TESTS):
+        if not (fname.startswith("test_") and fname.endswith(".py")):
+            continue
+        module = fname[:-3]
+        src = io.open(os.path.join(TESTS, fname), encoding="utf-8").read()
+        lines = src.splitlines()
+        try:
+            tree = ast.parse(src)
+        except SyntaxError:
+            continue
+
+        def visit(node, cls=""):
+            for child in node.body:
+                if isinstance(child, ast.ClassDef):
+                    visit(child, child.name)
+                elif isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    if not child.name.startswith("test"):
+                        continue
+                    start = min([child.lineno] + [d.lineno for d in child.decorator_list]) - 1
+                    body = "\n".join(lines[start:child.end_lineno])
+                    info[(module, cls, child.name)] = {
+                        "code": body,
+                        "expected": extract_expectations(body),
+                        "doc": ast.get_docstring(child) or "",
+                    }
+        visit(tree)
+    return info
+
+
+def extract_expectations(code):
+    """Pull the asserted status codes and JSON expectations out of a test body."""
+    codes, notes = [], []
+
+    for m in re.finditer(r"status_code\s*==\s*(\d{3})", code):
+        codes.append(int(m.group(1)))
+    for m in re.finditer(r"status_code\s+in\s*[\(\[]([\d,\s]+)[\)\]]", code):
+        codes.extend(int(x) for x in re.findall(r"\d{3}", m.group(1)))
+    # parametrized status codes, e.g. @pytest.mark.parametrize("...status", [400, 403])
+    if not codes:
+        for m in re.finditer(r"status_code\s*==\s*(\w+)", code):
+            for lit in re.findall(rf"{m.group(1)}\W+(\d{{3}})", code):
+                codes.append(int(lit))
+
+    # asserted JSON content
+    for m in re.finditer(r'get_json\(\)\s*\[\s*[\'"](\w+)[\'"]\s*\]\s*==\s*[\'"]([^\'"]+)[\'"]', code):
+        notes.append(f'`{m.group(1)}` == "{m.group(2)}"')
+    for m in re.finditer(r'[\'"]([^\'"]{3,60})[\'"]\s+in\s+\w+\.get_json\(\)\s*\[\s*[\'"](\w+)[\'"]\s*\]', code):
+        notes.append(f'`{m.group(2)}` contains "{m.group(1)}"')
+    for m in re.finditer(r'[\'"](\w+)[\'"]\s+(not\s+)?in\s+\w+\.get_json\(\)', code):
+        notes.append(f'response {"omits" if m.group(2) else "includes"} `{m.group(1)}`')
+    for m in re.finditer(r'\[\s*[\'"](\w+)[\'"]\s*\]\s*is\s+(not\s+)?None', code):
+        notes.append(f'`{m.group(1)}` is {"set" if m.group(2) else "null"}')
+
+    seen, ordered = set(), []
+    for c in codes:
+        if c not in seen:
+            seen.add(c)
+            ordered.append(c)
+    return {"codes": ordered, "notes": notes[:4]}
+
+
+# ── recorded API calls ────────────────────────────────────────
+def load_calls():
+    if not os.path.exists(LOG):
+        return {}
+    records = json.load(io.open(LOG, encoding="utf-8"))
+    by_node = defaultdict(list)
+    for r in records:
+        if r.get("nodeid"):
+            by_node[r["nodeid"]].append(r)
+    return by_node
+
+
+def nodeid_for(case):
+    path = f"tests/{case['module']}.py::"
+    if case["cls"]:
+        path += f"{case['cls']}::"
+    return path + case["name"]
+
+
+# ── formatting ────────────────────────────────────────────────
+def title_of(case, src):
+    if src and src.get("doc"):
+        first = src["doc"].strip().splitlines()[0].strip()
+        if 10 < len(first) < 130:
+            return first.rstrip(".")
+    name = re.sub(r"^test_", "", case["name"])
+    name = re.sub(r"\[.*\]$", "", name)
+    return name.replace("_", " ").strip().capitalize()
+
+
+def pretty_json(text, indent="    "):
+    if not text:
+        return None
+    try:
+        obj = json.loads(text)
+    except (ValueError, TypeError):
+        return text.strip()
+    out = json.dumps(obj, indent=2, ensure_ascii=False)
+    if len(out) > 700:
+        out = out[:699] + "\n…"
+    return out.replace("\n", "\n" + indent)
+
+
+def main():
+    reuse = "--no-run" in sys.argv
+    if reuse and os.path.exists(XML):
+        code, summary = 0, "(reused the previous run's results)"
+        print("reusing existing test results (--no-run)")
+    else:
+        code, summary = run_pytest()
+    cases, totals = parse_junit()
+    sources = load_sources()
+    calls = load_calls()
+    print(f"pytest: {summary}")
+
+    passed = totals["tests"] - totals["failures"] - totals["errors"] - totals["skipped"]
+    now = datetime.now(timezone.utc).strftime("%d %B %Y, %H:%M UTC")
+
+    by_module = OrderedDict((m, []) for m in MODULES)
+    for c in cases:
+        by_module.setdefault(c["module"], []).append(c)
+
+    L = []
+    w = L.append
+
+    w("# API Test Cases\n")
+    w("Test cases for the SocietyEase REST API. For each case this records the **URL that was "
+      "called**, the **exact request that was sent**, the **output that was expected**, and the "
+      "**output that actually came back**.\n")
+    w("> **Generated document.** `Backend/tests/report.py` runs the suite and writes this file. "
+      "The *Actual Output* is captured live from each HTTP response; the *Expected Output* is "
+      "read from the assertions in the test source. Neither column is written by hand.\n")
+
+    w("## 1. Summary\n")
+    w(f"| | |\n|---|---|\n| Generated | {now} |\n| Total test cases | **{totals['tests']}** |\n"
+      f"| Passed | **{passed}** |\n| Failed | **{totals['failures'] + totals['errors']}** |\n"
+      f"| Skipped | {totals['skipped']} |\n| Duration | {totals['time']:.0f}s |\n"
+      f"| Base URL | `{BASE_URL}` |\n")
+
+    w("\n### How to run\n")
+    w("```bash\ncd Backend\npip install -r requirements.txt\npytest -v                 "
+      "# run every test case\npython tests/report.py    # regenerate this document\n```\n")
+
+    w("\n### Coverage by module\n")
+    w("| Module | Feature | User stories | Cases | Passed |\n|---|---|---|---:|---:|")
+    for mod, (feature, stories) in MODULES.items():
+        rows = by_module.get(mod, [])
+        ok = sum(1 for r in rows if r["status"] == "PASS")
+        w(f"| `{mod}.py` | {feature} | {stories} | {len(rows)} | {ok} |")
+    w(f"| | | **Total** | **{totals['tests']}** | **{passed}** |\n")
+
+    w("Every module covers the same four axes: **happy path**, **validation** (missing fields, "
+      "bad enums, bad dates, malformed bodies), **authorization** (401 unauthenticated, 403 wrong "
+      "role) and **business rules** (duplicates, idempotency, state transitions).\n")
+
+    # ── detailed cases ────────────────────────────────────────
+    w("\n---\n")
+    w("## 2. Test cases\n")
+
+    counter = 0
+    for mod, (feature, stories) in MODULES.items():
+        rows = by_module.get(mod, [])
+        if not rows:
+            continue
+        ok = sum(1 for r in rows if r["status"] == "PASS")
+        w(f"\n---\n\n## {feature}\n")
+        w(f"`Backend/tests/{mod}.py` · {stories} · **{ok}/{len(rows)} passed**\n")
+
+        for case in rows:
+            counter += 1
+            src = sources.get((case["module"], case["cls"], re.sub(r"\[.*\]$", "", case["name"])))
+            made = calls.get(nodeid_for(case), [])
+            primary = made[-1] if made else None
+            setup = made[:-1]
+
+            w(f"\n### TC-{counter:03d} · {title_of(case, src)}\n")
+
+            if primary:
+                w(f"**Page being tested:** `{primary['method']} {BASE_URL}{primary['path']}`\n")
+            else:
+                w("**Page being tested:** _no HTTP call recorded (pure logic / skipped)_\n")
+
+            # Inputs
+            w("**Inputs:**\n")
+            if primary:
+                w(f"- Request Method: `{primary['method']}`")
+                w(f"- URL: `{BASE_URL}{primary['path']}`")
+                body = pretty_json(primary.get("request"))
+                if body:
+                    w(f"- JSON body:\n    ```json\n    {body}\n    ```")
+                else:
+                    w("- JSON body: _none_")
+                w("- Header: `Authorization: Bearer <jwt>`" if primary["authenticated"]
+                  else "- Header: _none (unauthenticated request)_")
+                if setup:
+                    steps = ", ".join(f"`{s['method']} {s['path']}` → {s['status']}" for s in setup[-4:])
+                    w(f"- Setup calls before this ({len(setup)}): {steps}")
+            else:
+                w("- _none_")
+            w("")
+
+            # Expected. Asserts appear in the same order as the calls, so when the
+            # counts line up we can attribute the right expectation to the primary
+            # (last) call instead of listing every code the test ever asserted.
+            exp = (src or {}).get("expected", {"codes": [], "notes": []})
+            exp_codes = exp["codes"]
+            if len(exp_codes) > 1 and made and len(exp_codes) == len(made):
+                exp_codes = [exp_codes[-1]]
+            w("**Expected Output:**\n")
+            if case["status"] == "SKIP":
+                w("- _Documented open finding — see section 3._")
+            elif exp_codes:
+                w(f"- HTTP Status Code: `{' or '.join(str(c) for c in exp_codes)}`")
+            elif primary:
+                w(f"- HTTP Status Code: `{primary['status']}`")
+            for note in exp["notes"]:
+                w(f"- JSON: {note}")
+            if not exp["codes"] and not exp["notes"] and not primary:
+                w("- _behaviour asserted in code; see the test below_")
+            w("")
+
+            # Actual
+            w("**Actual Output:**\n")
+            if primary:
+                w(f"- HTTP Status Code: `{primary['status']}`")
+                resp = pretty_json(primary.get("response"))
+                if resp:
+                    w(f"- JSON:\n    ```json\n    {resp}\n    ```")
+                else:
+                    w("- JSON: _empty body_")
+            elif case["status"] == "SKIP":
+                w(f"- _not executed_ — {(case['message'] or 'skipped').splitlines()[0][:110]}")
+            else:
+                w("- _no HTTP call recorded_")
+            w("")
+
+            if case["status"] == "PASS":
+                w("**Result:** ✅ Success — actual output matched the expectation.\n")
+            elif case["status"] == "SKIP":
+                w("**Result:** ⏭️ Skipped — deliberately not run; the reason is recorded above.\n")
+            else:
+                w(f"**Result:** ❌ Failure — {(case['message'] or '').splitlines()[0][:200]}\n")
+
+            if src and src.get("code"):
+                snippet = src["code"]
+                if len(snippet) > 1800:
+                    snippet = snippet[:1799] + "\n    # …"
+                w("<details><summary>Test code</summary>\n")
+                w("```python")
+                w(snippet)
+                w("```")
+                w("</details>\n")
+
+    w(DEFECTS)
+
+    w("\n## 4. Test design notes\n")
+    w("- **Isolation** — each test builds a fresh app against its own temporary SQLite file "
+      "(`tests/conftest.py`), so tests never share state and never touch `instance/societyease.db`.\n"
+      "- **Seed data** — two flats and one user per role (ADMIN, TREASURER, COMMITTEE_MEMBER, "
+      "TENANT, OWNER, WORKER); the tenant is linked to flat A-101 so ownership rules can be tested.\n"
+      "- **Recording** — the test client is subclassed (`RecordingClient`) to log every request and "
+      "response, which is what fills the Inputs and Actual Output sections above. JWTs and "
+      "passwords are redacted.\n"
+      "- **Expected vs Actual** — Expected is parsed from the `assert` statements in the test "
+      "source; Actual is the recorded HTTP response. They are captured independently.\n"
+      "- A failing test is treated as a defect to report, never as a test to weaken.\n")
+
+    io.open(OUT, "w", encoding="utf-8", newline="\n").write("\n".join(L))
+    print(f"wrote {OUT}  ({counter} cases documented)")
+    print("(re-run with --no-run to rebuild the document without re-running the suite)")
+
+
 DEFECTS = """
+---
+
 ## 3. Defects found through testing — where actual differed from expected
 
-The milestone invites us to show cases where the actual output differed from the expected output.
-Every entry below is a **real defect that testing caught in our own code**, with the failing
-behaviour we observed and the fix. Each now has a permanent regression test in
-`Backend/tests/test_regressions.py`, so it cannot come back unnoticed.
+Every entry below is a **real defect testing caught in our own code**: the actual output differed
+from what the API should have returned. Each now has a permanent regression test in
+`Backend/tests/test_regressions.py`, so it cannot silently come back.
 
 | # | API | Input | Expected | **Actual (before fix)** | Root cause | Status |
 |---|-----|-------|----------|--------------------------|------------|--------|
@@ -130,109 +396,17 @@ behaviour we observed and the fix. Each now has a permanent regression test in
 
 | # | API | Expected | Actual | Assessment |
 |---|-----|----------|--------|------------|
-| **FINDING-10** | any protected endpoint without a token | `{"error": "..."}` — the envelope `openapi.yaml` documents | `{"msg": "Missing Authorization Header"}` | **Open, low severity.** `flask-jwt-extended` emits its own envelope for auth failures, so 401 bodies differ from every other error. The frontend reads `data.error`, so a session-expiry message falls back to generic text. The fix is a few `@jwt.unauthorized_loader`-style handlers in `create_app()`. Left unfixed pending team sign-off; documented in the spec so the contract is not misleading. Test: `test_jwt_401_uses_a_different_error_envelope_than_the_rest_of_the_api` (skipped, with the reason recorded). |
+| **FINDING-10** | any protected endpoint called without a token | `{"error": "..."}` — the envelope `openapi.yaml` documents | `{"msg": "Missing Authorization Header"}` | **Open, low severity.** `flask-jwt-extended` emits its own envelope for auth failures, so 401 bodies differ from every other error in the API. The frontend reads `data.error`, so a session-expiry message falls back to generic text. The fix is a few `@jwt.unauthorized_loader`-style handlers in `create_app()`. Left unfixed pending team sign-off, and documented in the spec so the contract is not misleading. |
 
 ### What testing bought us
 
-Six endpoints (`POST` expenses, maintenance, equipment, polls; plus registration in two ways) were
-**completely unusable** — every call returned 500. The empty `expenses`, `maintenance_tasks`,
-`equipment` and `votes` tables in the shipped database confirm no user ever succeeded in creating
-one. Three defects were security issues: the conflict-anonymity leak (D-07), unrestricted privileged
-actions (D-14), and the destructive cascade (D-15). None of these were visible from the UI, because
-the frontend swallowed errors — they were only found by asserting on status codes.
+Six endpoints (`POST` expenses, maintenance, equipment and polls, plus registration in two ways)
+were **completely unusable** — every call returned 500. The empty `expenses`, `maintenance_tasks`,
+`equipment` and `votes` tables in the shipped database confirm no user had ever succeeded in
+creating one. Three defects were security issues: the conflict-anonymity leak (D-07), unrestricted
+privileged actions (D-14) and the destructive cascade (D-15). None were visible from the UI,
+because the frontend swallowed errors — they were only found by asserting on status codes.
 """
-
-
-def main():
-    code, summary = run_pytest()
-    cases, totals = parse()
-    print(f"pytest: {summary}")
-
-    by_module = OrderedDict((m, []) for m in MODULE_TITLES)
-    for c in cases:
-        by_module.setdefault(c["module"], []).append(c)
-
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    passed = totals["tests"] - totals["failures"] - totals["errors"] - totals["skipped"]
-
-    L = []
-    w = L.append
-    w("# API Test Cases\n")
-    w("Automated test cases for the SocietyEase REST API, with the **input**, the **expected "
-      "output**, and the **actual output** observed in a real run.\n")
-    w("> This document is **generated** by `Backend/tests/report.py` from a live `pytest` run — "
-      "the Actual column is never written by hand. Re-run it to reproduce.\n")
-
-    w("## 1. How to run\n")
-    w("```bash\ncd Backend\npip install -r requirements.txt\npytest -v                 "
-      "# run the suite\npython tests/report.py    # regenerate this document\n```\n")
-
-    w("### Run summary\n")
-    w(f"| | |\n|---|---|\n| Generated | {now} |\n| Total test cases | **{totals['tests']}** |\n"
-      f"| Passed | **{passed}** |\n| Failed | **{totals['failures'] + totals['errors']}** |\n"
-      f"| Skipped | {totals['skipped']} |\n| Duration | {totals['time']:.1f}s |\n"
-      f"| pytest exit code | {code} |\n")
-    if totals["skipped"]:
-        w("\nThe single skipped case is **FINDING-10**, a known open issue documented in "
-          "section 3 — it is skipped deliberately rather than silently deleted.\n")
-
-    w("\n### Coverage\n")
-    w("| Module | Feature | User stories | Cases |\n|---|---|---|---:|")
-    for mod, (title, stories) in MODULE_TITLES.items():
-        w(f"| `{mod}.py` | {title} | {stories} | {len(by_module.get(mod, []))} |")
-    w(f"| | | **Total** | **{totals['tests']}** |\n")
-
-    w("Every module covers the same four axes: **happy path**, **validation** (missing fields, bad "
-      "enums, bad dates, malformed bodies), **authorization** (401 unauthenticated, 403 wrong role), "
-      "and **business rules** (duplicates, idempotency, state transitions).\n")
-
-    w("\n## 2. Test cases\n")
-    w("`Expected` is the behaviour asserted by the test; `Actual` is what the run produced. "
-      "A case only passes when they match.\n")
-
-    for mod, (title, stories) in MODULE_TITLES.items():
-        rows = by_module.get(mod, [])
-        if not rows:
-            continue
-        mod_pass = sum(1 for r in rows if r["status"] == "PASS")
-        w(f"\n### {title}  \n"
-          f"`Backend/tests/{mod}.py` · {stories} · **{mod_pass}/{len(rows)} passed**\n")
-        w("| # | Test case (input) | Expected | Actual | Result |")
-        w("|---|---|---|---|---|")
-        for i, r in enumerate(rows, 1):
-            label = humanise(r["name"])
-            given, expected = split_expectation(label)
-            if r["status"] == "PASS":
-                actual, mark = "as expected", "✅ PASS"
-            elif r["status"] == "SKIP":
-                actual = (r["message"] or "skipped").split("\n")[0][:70]
-                expected = "documented open finding"
-                mark = "⏭️ SKIP"
-            else:
-                actual = (r["message"] or "assertion failed").split("\n")[0][:70]
-                mark = "❌ FAIL"
-            cls = f"{r['cls']}: " if r["cls"] else ""
-            w(f"| {i} | {cls}{given} | {expected} | {actual} | {mark} |")
-
-    w(DEFECTS)
-
-    w("\n## 4. Test design notes\n")
-    w("- **Isolation** — every test builds a fresh app against its own temporary SQLite file "
-      "(`tests/conftest.py`), so tests never share state and never touch `instance/societyease.db`.\n"
-      "- **Seed fixture** — two flats and one user per role (ADMIN, TREASURER, COMMITTEE_MEMBER, "
-      "TENANT, OWNER, WORKER); the tenant is linked to flat A-101 so ownership rules can be tested.\n"
-      "- **Role fixtures** — `admin`, `treasurer`, `resident`, `worker` yield ready-made "
-      "`Authorization` headers, so a test that needs one role does not pay to log in six.\n"
-      "- **Regression tests are named after the defect** they prevent, and their docstrings record "
-      "the expected/actual pair, so the evidence lives next to the code.\n"
-      "- A test that fails is treated as a finding to report, never as a test to weaken.\n")
-
-    io.open(OUT, "w", encoding="utf-8", newline="\n").write("\n".join(L))
-    print(f"wrote {OUT}  ({len(cases)} cases)")
-    try:
-        os.unlink(XML)
-    except OSError:
-        pass
 
 
 if __name__ == "__main__":

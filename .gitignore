@@ -45,3 +45,8 @@ yarn-error.log*
 
 # pytest JUnit output (transient, used by tests/report.py)
 _junit.xml
+
+# pytest run artefacts
+tests/_api_log.json
+tests/_junit.xml
+tests/_run.xml
