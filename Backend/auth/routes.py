@@ -24,9 +24,15 @@ def register():
     if phone and User.query.filter_by(phone=phone).first():
         raise ApiError("Phone number already registered", 409)
 
-    # NOTE: role is still client-supplied so the team can self-serve test
-    # accounts. See KNOWN_ISSUES.md — must be locked down before production.
+# Public registration should not allow privileged/admin roles.
     role = parse_enum(data["role"], "role", required=True)
+
+    blocked_public_roles = ("ADMIN", "SYSTEM_ADMIN", "TREASURER", "COMMITTEE_MEMBER")
+
+    if role in blocked_public_roles:
+        return jsonify({
+        "error": "Public registration is not allowed for admin or staff roles"
+    }), 400
 
     user = User(
         name=data["name"].strip(),

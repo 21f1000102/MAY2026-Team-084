@@ -58,7 +58,7 @@ def add_equipment():
 
     require(data, "name")
 
-    category = parse_enum(data.get("category"), "equipment_category", required=True)
+    category = parse_enum(data.get("category"), "equipment_category", required=True,field="category")
     last_serviced_date = parse_date(data.get("last_serviced_date"), "last_serviced_date", required=True)
     # min_value=1: 0 used to be accepted and then divided by on every read.
     service_frequency_days = parse_int(

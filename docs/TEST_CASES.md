@@ -8,17 +8,17 @@ Test cases for the SocietyEase REST API. For each case this records the **URL th
 
 | | |
 |---|---|
-| Generated | 02 August 2026, 12:22 UTC |
+| Generated | 02 August 2026, 13:29 UTC |
 | Total test cases | **539** |
-| Passed | **533** |
-| Failed — known open defects | **6** (expected — see section 4) |
+| Passed | **537** |
+| Failed — known open defects | **2** (expected — see section 4) |
 | Failed — regressions | **0** |
 | Skipped | 0 |
-| Duration | 254s |
+| Duration | 58s |
 | Base URL | `http://127.0.0.1:5000` |
 
 
-> **6 tests fail on purpose.** They live in `tests/test_open_defects.py` and assert the behaviour the API *should* have. Each is a real defect we found and have not fixed yet — leaving the test red keeps it visible. Section 4 lists them with expected vs actual. **Regressions (unexpected failures): 0.**
+> **2 tests fail on purpose.** They live in `tests/test_open_defects.py` and assert the behaviour the API *should* have. Each is a real defect we found and have not fixed yet — leaving the test red keeps it visible. Section 4 lists them with expected vs actual. **Regressions (unexpected failures): 0.**
 
 
 ### How to run
@@ -49,8 +49,8 @@ python tests/report.py    # regenerate this document
 | `test_parking.py` | Visitor Parking | US-12 | 27 | 27 |
 | `test_emergency.py` | Emergency Contacts | US-07 | 50 | 50 |
 | `test_regressions.py` | Regression suite — defects already fixed | all | 21 | 21 |
-| `test_open_defects.py` | Open defects — EXPECTED TO FAIL ⚠️ fails by design | all | 6 | 0 |
-| | | **Total** | **539** | **533** |
+| `test_open_defects.py` | Open defects — EXPECTED TO FAIL ⚠️ fails by design | all | 6 | 4 |
+| | | **Total** | **539** | **537** |
 
 Every module covers the same four axes: **happy path**, **validation** (missing fields, bad enums, bad dates, malformed bodies), **authorization** (401 unauthenticated, 403 wrong role) and **business rules** (duplicates, idempotency, state transitions).
 
@@ -106,7 +106,7 @@ One row per test case. **Click a test ID** to jump to its full detail — the ex
 | [TC-036](#tc-036) | Me is open to every role | `GET /api/auth/me` | 200 | 200 | ✅ Pass |
 | [TC-037](#tc-037) | Me is open to every role | `GET /api/auth/me` | 200 | 200 | ✅ Pass |
 | [TC-038](#tc-038) | Me without token returns 401 | `GET /api/auth/me` | 401 | 401 | ✅ Pass |
-| [TC-039](#tc-039) | Me with garbage token returns 422 | `GET /api/auth/me` | 401 / 422 | 422 | ✅ Pass |
+| [TC-039](#tc-039) | Me with garbage token returns 422 | `GET /api/auth/me` | 401 / 422 | 401 | ✅ Pass |
 | [TC-040](#tc-040) | Change password returns 200 | `PUT /api/auth/change-password` | 200 | 200 | ✅ Pass |
 | [TC-041](#tc-041) | Change password old password stops working | `POST /api/auth/login` | 401 | 401 | ✅ Pass |
 | [TC-042](#tc-042) | Change password new password works | `POST /api/auth/login` | 200 | 200 | ✅ Pass |
@@ -709,16 +709,16 @@ One row per test case. **Click a test ID** to jump to its full detail — the ex
 
 ### Open defects — EXPECTED TO FAIL  ⚠️ *fails by design*
 
-`Backend/tests/test_open_defects.py` · all · **0/6 passed**
+`Backend/tests/test_open_defects.py` · all · **4/6 passed**
 
 | ID | Test case | Endpoint | Expected | Actual | Result |
 |---|---|---|---|---|---|
-| [TC-534](#tc-534) | OD-01 · Auth errors use a different JSON envelope from the rest of the API | `GET /api/auth/me` | 401 | **401** | ❌ **Fail** |
+| [TC-534](#tc-534) | OD-01 · Auth errors use a different JSON envelope from the rest of the API | `GET /api/auth/me` | 401 | 401 | ✅ Pass |
 | [TC-535](#tc-535) | OD-02 · Anyone on the internet can create an ADMIN account.  [SECURITY] | `POST /api/auth/register` | 400 / 403 | **201** | ❌ **Fail** |
 | [TC-536](#tc-536) | OD-02b · Proves the escalation above is exploitable, not cosmetic | `GET /api/members/` | 403 | **200** | ❌ **Fail** |
-| [TC-537](#tc-537) | OD-03 · Invoices never become OVERDUE | `GET /api/invoices/` | 200 | **200** | ❌ **Fail** |
-| [TC-538](#tc-538) | OD-04 · Validation errors name the internal enum, not the client's field | `POST /api/maintenance/` | 400 | **400** | ❌ **Fail** |
-| [TC-539](#tc-539) | OD-04 · Validation errors name the internal enum, not the client's field | `POST /api/equipment/` | 400 | **400** | ❌ **Fail** |
+| [TC-537](#tc-537) | OD-03 · Invoices never become OVERDUE | `GET /api/invoices/` | 200 | 200 | ✅ Pass |
+| [TC-538](#tc-538) | OD-04 · Validation errors name the internal enum, not the client's field | `POST /api/maintenance/` | 400 | 400 | ✅ Pass |
+| [TC-539](#tc-539) | OD-04 · Validation errors name the internal enum, not the client's field | `POST /api/equipment/` | 400 | 400 | ✅ Pass |
 
 
 ---
@@ -768,7 +768,7 @@ One row per test case. **Click a test ID** to jump to its full detail — the ex
       "message": "User registered successfully",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 12:17:58.981237",
+        "created_at": "2026-08-02 13:28:33.164023",
         "email": "nina@test.com",
         "id": 1,
         "is_active": true,
@@ -839,7 +839,7 @@ def test_register_returns_201_with_token_and_user(client):
       "message": "User registered successfully",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 12:17:59.944829",
+        "created_at": "2026-08-02 13:28:33.364150",
         "email": "mixed@test.com",
         "id": 1,
         "is_active": true,
@@ -895,7 +895,7 @@ def test_register_lowercases_and_strips_email(client):
 - JSON:
     ```json
     {
-      "created_at": "2026-08-02 12:18:00.611082",
+      "created_at": "2026-08-02 13:28:33.560338",
       "email": "token@test.com",
       "id": 1,
       "is_active": true,
@@ -1663,7 +1663,7 @@ def test_register_duplicate_phone_returns_409(client):
       "message": "User registered successfully",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 12:18:08.166241",
+        "created_at": "2026-08-02 13:28:34.987810",
         "email": "blank2@test.com",
         "id": 2,
         "is_active": true,
@@ -1735,7 +1735,7 @@ def test_register_two_blank_phones_both_succeed(client):
       "message": "User registered successfully",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 12:18:08.856558",
+        "created_at": "2026-08-02 13:28:35.182445",
         "email": "blankphone@test.com",
         "id": 1,
         "is_active": true,
@@ -1796,7 +1796,7 @@ def test_register_blank_phone_is_stored_as_null(client):
       "message": "Login successful",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 12:18:09.175745",
+        "created_at": "2026-08-02 13:28:35.255533",
         "email": "admin@test.com",
         "id": 1,
         "is_active": true,
@@ -1865,7 +1865,7 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
       "message": "Login successful",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 12:18:09.870022",
+        "created_at": "2026-08-02 13:28:35.332948",
         "email": "treasurer@test.com",
         "id": 2,
         "is_active": true,
@@ -1934,7 +1934,7 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
       "message": "Login successful",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 12:18:10.257363",
+        "created_at": "2026-08-02 13:28:35.408516",
         "email": "committee@test.com",
         "id": 3,
         "is_active": true,
@@ -2003,7 +2003,7 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
       "message": "Login successful",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 12:18:10.609288",
+        "created_at": "2026-08-02 13:28:35.486457",
         "email": "resident@test.com",
         "id": 4,
         "is_active": true,
@@ -2072,7 +2072,7 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
       "message": "Login successful",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 12:18:11.043862",
+        "created_at": "2026-08-02 13:28:35.565039",
         "email": "owner@test.com",
         "id": 5,
         "is_active": true,
@@ -2141,7 +2141,7 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
       "message": "Login successful",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 12:18:11.476505",
+        "created_at": "2026-08-02 13:28:35.642988",
         "email": "worker@test.com",
         "id": 6,
         "is_active": true,
@@ -2607,7 +2607,7 @@ def test_login_deactivated_account_returns_403(client, seed, admin):
 - JSON:
     ```json
     {
-      "created_at": "2026-08-02 12:18:15.488701",
+      "created_at": "2026-08-02 13:28:36.332907",
       "email": "resident@test.com",
       "id": 4,
       "is_active": true,
@@ -2659,7 +2659,7 @@ def test_me_returns_the_authenticated_user(client, seed, resident):
 - JSON:
     ```json
     {
-      "created_at": "2026-08-02 12:18:15.824614",
+      "created_at": "2026-08-02 13:28:36.411747",
       "email": "admin@test.com",
       "id": 1,
       "is_active": true,
@@ -2708,7 +2708,7 @@ def test_me_is_open_to_every_role(client, request, role_fixture):
 - JSON:
     ```json
     {
-      "created_at": "2026-08-02 12:18:16.312305",
+      "created_at": "2026-08-02 13:28:36.493149",
       "email": "treasurer@test.com",
       "id": 2,
       "is_active": true,
@@ -2757,7 +2757,7 @@ def test_me_is_open_to_every_role(client, request, role_fixture):
 - JSON:
     ```json
     {
-      "created_at": "2026-08-02 12:18:16.762232",
+      "created_at": "2026-08-02 13:28:36.571752",
       "email": "resident@test.com",
       "id": 4,
       "is_active": true,
@@ -2806,7 +2806,7 @@ def test_me_is_open_to_every_role(client, request, role_fixture):
 - JSON:
     ```json
     {
-      "created_at": "2026-08-02 12:18:17.281072",
+      "created_at": "2026-08-02 13:28:36.653032",
       "email": "worker@test.com",
       "id": 6,
       "is_active": true,
@@ -2854,7 +2854,7 @@ def test_me_is_open_to_every_role(client, request, role_fixture):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -2890,11 +2890,11 @@ def test_me_without_token_returns_401(client):
 
 **Actual Output:**
 
-- HTTP Status Code: `422`
+- HTTP Status Code: `401`
 - JSON:
     ```json
     {
-      "msg": "Invalid header string: 'utf-8' codec can't decode byte 0x9e in position 0: invalid start byte"
+      "error": "Invalid header string: 'utf-8' codec can't decode byte 0x9e in position 0: invalid start byte"
     }
     ```
 
@@ -3048,7 +3048,7 @@ def test_change_password_old_password_stops_working(client, seed, resident):
       "message": "Login successful",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 12:18:21.562391",
+        "created_at": "2026-08-02 13:28:37.408197",
         "email": "resident@test.com",
         "id": 4,
         "is_active": true,
@@ -3570,7 +3570,7 @@ def test_change_password_malformed_body_returns_400(client, seed, resident, raw,
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -3943,7 +3943,7 @@ def test_list_apartments_is_open_to_every_role(client, request, role_fixture):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -4554,7 +4554,7 @@ def test_create_apartment_as_treasurer_returns_201(client, seed, treasurer):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -5003,7 +5003,7 @@ def test_update_apartment_as_resident_returns_403(client, seed, resident):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -5316,7 +5316,7 @@ def test_delete_apartment_as_resident_returns_403(client, seed, resident):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -5619,7 +5619,7 @@ def test_list_members_as_treasurer_returns_200(client, seed, treasurer):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -5746,7 +5746,7 @@ def test_create_member_returns_201(client, seed, admin):
       "message": "Login successful",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 12:20:58.231840",
+        "created_at": "2026-08-02 13:29:14.373873",
         "email": "manoj@test.com",
         "id": 7,
         "is_active": true,
@@ -6788,7 +6788,7 @@ def test_create_member_as_resident_returns_403(client, seed, resident):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -7066,7 +7066,7 @@ def test_list_workers_as_resident_returns_403(client, seed, resident):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -7434,7 +7434,7 @@ def test_get_unknown_member_returns_404(client, seed, admin):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -8191,7 +8191,7 @@ def test_update_member_as_resident_returns_403(client, seed, resident):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -8511,7 +8511,7 @@ def test_deactivate_member_as_resident_returns_403(client, seed, resident):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -8573,7 +8573,7 @@ def test_deactivate_member_without_token_returns_401(client, seed):
       "assigned_worker_id": null,
       "assigned_worker_name": null,
       "category": "ELECTRICAL",
-      "created_at": "2026-08-02 12:18:27.316172",
+      "created_at": "2026-08-02 13:28:38.602717",
       "description": "Lift stops between floors 1 and 2.",
       "flat_number": "A-101",
       "id": 1,
@@ -8651,7 +8651,7 @@ def test_resident_can_raise_complaint(client, resident, seed):
       "assigned_worker_id": null,
       "assigned_worker_name": null,
       "category": "PLUMBING",
-      "created_at": "2026-08-02 12:18:27.765525",
+      "created_at": "2026-08-02 13:28:38.685792",
       "description": "Water drips continuously under the sink.",
       "flat_number": "A-101",
       "id": 1,
@@ -8707,7 +8707,7 @@ def test_priority_defaults_to_medium(client, resident, seed):
         "assigned_worker_id": null,
         "assigned_worker_name": null,
         "category": "PLUMBING",
-        "created_at": "2026-08-02 12:18:28.409953",
+        "created_at": "2026-08-02 13:28:38.775945",
         "description": "Water drips continuously under the sink.",
         "flat_number": "A-101",
         "id": 1,
@@ -8764,7 +8764,7 @@ def test_resident_lists_only_own_complaints(client, admin, resident, seed):
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    [{"apartment_id": 2, "assigned_worker_id": null, "assigned_worker_name": null, "category": "PLUMBING", "created_at": "2026-08-02 12:18:29.092320", "description": "Water drips continuously under the sink.", "flat_number": "B-202", "id": 2, "priority": "MEDIUM", "raised_by": 1, "raised_by_name": "Priya Admin", "resolved_at": null, "status": "OPEN", "title": "Second"}, {"apartment_id": 1, "assigned_…
+    [{"apartment_id": 2, "assigned_worker_id": null, "assigned_worker_name": null, "category": "PLUMBING", "created_at": "2026-08-02 13:28:38.876111", "description": "Water drips continuously under the sink.", "flat_number": "B-202", "id": 2, "priority": "MEDIUM", "raised_by": 1, "raised_by_name": "Priya Admin", "resolved_at": null, "status": "OPEN", "title": "Second"}, {"apartment_id": 1, "assigned_…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -8808,7 +8808,7 @@ def test_admin_lists_all_complaints(client, admin, resident, seed):
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    {"apartment_id": 1, "assigned_worker_id": 6, "assigned_worker_name": "Ramesh Worker", "category": "PLUMBING", "created_at": "2026-08-02 12:18:29.691473", "description": "Water drips continuously under the sink.", "flat_number": "A-101", "id": 1, "priority": "MEDIUM", "raised_by": 4, "raised_by_name": "Ravi Resident", "resolved_at": null, "status": "ASSIGNED", "title": "Leaking kitchen tap", "upda…
+    {"apartment_id": 1, "assigned_worker_id": 6, "assigned_worker_name": "Ramesh Worker", "category": "PLUMBING", "created_at": "2026-08-02 13:28:38.977306", "description": "Water drips continuously under the sink.", "flat_number": "A-101", "id": 1, "priority": "MEDIUM", "raised_by": 4, "raised_by_name": "Ravi Resident", "resolved_at": null, "status": "ASSIGNED", "title": "Leaking kitchen tap", "upda…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -9496,7 +9496,7 @@ def test_raise_complaint_malformed_body_returns_400(
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -9548,7 +9548,7 @@ def test_complaint_endpoints_require_a_token(client, seed, method, path):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -9600,7 +9600,7 @@ def test_complaint_endpoints_require_a_token(client, seed, method, path):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -9652,7 +9652,7 @@ def test_complaint_endpoints_require_a_token(client, seed, method, path):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -9704,7 +9704,7 @@ def test_complaint_endpoints_require_a_token(client, seed, method, path):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -9756,7 +9756,7 @@ def test_complaint_endpoints_require_a_token(client, seed, method, path):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -10012,7 +10012,7 @@ def test_resident_cannot_update_another_flats_complaint(
       "assigned_worker_id": 6,
       "assigned_worker_name": "Ramesh Worker",
       "category": "PLUMBING",
-      "created_at": "2026-08-02 12:18:41.506899",
+      "created_at": "2026-08-02 13:28:40.926376",
       "description": "Water drips continuously under the sink.",
       "flat_number": "A-101",
       "id": 1,
@@ -10077,7 +10077,7 @@ def test_assign_worker_returns_200_and_populates_worker_name(
       "assigned_worker_id": null,
       "assigned_worker_name": null,
       "category": "PLUMBING",
-      "created_at": "2026-08-02 12:18:42.124425",
+      "created_at": "2026-08-02 13:28:41.021319",
       "description": "Water drips continuously under the sink.",
       "flat_number": "A-101",
       "id": 1,
@@ -10147,7 +10147,7 @@ def test_assign_without_worker_id_returns_400(client, admin, resident,
       "assigned_worker_id": null,
       "assigned_worker_name": null,
       "category": "PLUMBING",
-      "created_at": "2026-08-02 12:18:43.006912",
+      "created_at": "2026-08-02 13:28:41.116562",
       "description": "Water drips continuously under the sink.",
       "flat_number": "A-101",
       "id": 1,
@@ -10217,7 +10217,7 @@ def test_assign_without_worker_id_returns_400(client, admin, resident,
       "assigned_worker_id": null,
       "assigned_worker_name": null,
       "category": "PLUMBING",
-      "created_at": "2026-08-02 12:18:43.546585",
+      "created_at": "2026-08-02 13:28:41.212661",
       "description": "Water drips continuously under the sink.",
       "flat_number": "A-101",
       "id": 1,
@@ -10287,7 +10287,7 @@ def test_assign_without_worker_id_returns_400(client, admin, resident,
       "assigned_worker_id": null,
       "assigned_worker_name": null,
       "category": "PLUMBING",
-      "created_at": "2026-08-02 12:18:44.004119",
+      "created_at": "2026-08-02 13:28:41.311688",
       "description": "Water drips continuously under the sink.",
       "flat_number": "A-101",
       "id": 1,
@@ -10460,7 +10460,7 @@ def test_assign_to_unknown_user_returns_404(client, admin, resident, seed):
         "assigned_worker_id": 6,
         "assigned_worker_name": "Ramesh Worker",
         "category": "PLUMBING",
-        "created_at": "2026-08-02 12:18:45.625601",
+        "created_at": "2026-08-02 13:28:41.591925",
         "description": "Water drips continuously under the sink.",
         "flat_number": "A-101",
         "id": 1,
@@ -10575,7 +10575,7 @@ def test_worker_does_not_see_unassigned_complaints(client, resident,
       "assigned_worker_id": 6,
       "assigned_worker_name": "Ramesh Worker",
       "category": "PLUMBING",
-      "created_at": "2026-08-02 12:18:47.009038",
+      "created_at": "2026-08-02 13:28:41.938185",
       "description": "Water drips continuously under the sink.",
       "flat_number": "A-101",
       "id": 1,
@@ -10643,7 +10643,7 @@ def test_assigned_worker_can_read_and_update_the_complaint(
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    {"apartment_id": 1, "assigned_worker_id": null, "assigned_worker_name": null, "category": "PLUMBING", "created_at": "2026-08-02 12:18:47.542892", "description": "Water drips continuously under the sink.", "flat_number": "A-101", "id": 1, "priority": "MEDIUM", "raised_by": 4, "raised_by_name": "Ravi Resident", "resolved_at": "2026-08-02 12:18:47.661102", "status": "COMPLETED", "title": "Leaking ki…
+    {"apartment_id": 1, "assigned_worker_id": null, "assigned_worker_name": null, "category": "PLUMBING", "created_at": "2026-08-02 13:28:42.119130", "description": "Water drips continuously under the sink.", "flat_number": "A-101", "id": 1, "priority": "MEDIUM", "raised_by": 4, "raised_by_name": "Ravi Resident", "resolved_at": "2026-08-02 13:28:42.142173", "status": "COMPLETED", "title": "Leaking ki…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -10705,7 +10705,7 @@ def test_status_flow_open_to_completed_sets_resolved_at(
       "assigned_worker_id": null,
       "assigned_worker_name": null,
       "category": "PLUMBING",
-      "created_at": "2026-08-02 12:18:48.267592",
+      "created_at": "2026-08-02 13:28:42.289597",
       "description": "Water drips continuously under the sink.",
       "flat_number": "A-101",
       "id": 1,
@@ -10931,7 +10931,7 @@ def test_status_update_bad_enum_returns_400(client, admin, resident, seed):
       "assigned_worker_id": null,
       "assigned_worker_name": null,
       "category": "PLUMBING",
-      "created_at": "2026-08-02 12:18:50.585332",
+      "created_at": "2026-08-02 13:28:42.982206",
       "description": "Water drips continuously under the sink.",
       "flat_number": "A-101",
       "id": 1,
@@ -11046,7 +11046,7 @@ def test_unknown_complaint_id_returns_404(client, admin, seed):
     {
       "amount": 2500.5,
       "apartment_id": 1,
-      "created_at": "2026-08-02 12:20:10.957016",
+      "created_at": "2026-08-02 13:29:03.594503",
       "due_date": "2026-07-15",
       "flat_number": "A-101",
       "id": 1,
@@ -11115,7 +11115,7 @@ def test_admin_creates_invoice(client, admin, seed):
     {
       "amount": 2500.0,
       "apartment_id": 1,
-      "created_at": "2026-08-02 12:20:11.252608",
+      "created_at": "2026-08-02 13:29:03.692212",
       "due_date": null,
       "flat_number": "A-101",
       "id": 1,
@@ -11166,7 +11166,7 @@ def test_treasurer_can_create_invoice(client, treasurer, seed):
       {
         "amount": 2500.0,
         "apartment_id": 2,
-        "created_at": "2026-08-02 12:20:11.552827",
+        "created_at": "2026-08-02 13:29:03.788253",
         "due_date": null,
         "flat_number": "B-202",
         "id": 2,
@@ -11177,7 +11177,7 @@ def test_treasurer_can_create_invoice(client, treasurer, seed):
       {
         "amount": 2500.0,
         "apartment_id": 1,
-        "created_at": "2026-08-02 12:20:11.542332",
+        "created_at": "2026-08-02 13:29:03.781451",
         "due_date": null,
         "flat_number": "A-101",
         "id": 1,
@@ -11235,7 +11235,7 @@ def test_admin_lists_all_invoices(client, admin, seed):
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    {"invoice": {"amount": 2500.0, "apartment_id": 1, "created_at": "2026-08-02 12:20:11.979958", "due_date": null, "flat_number": "A-101", "id": 1, "month": 7, "status": "PAID", "year": 2026}, "message": "Invoice marked as paid", "receipt": {"amount": 2500.0, "flat_number": "A-101", "month": 7, "payment_date": "2026-08-02 12:20:12.024312", "payment_method": "UPI", "receipt_number": "RCP-0001", "tran…
+    {"invoice": {"amount": 2500.0, "apartment_id": 1, "created_at": "2026-08-02 13:29:03.879201", "due_date": null, "flat_number": "A-101", "id": 1, "month": 7, "status": "PAID", "year": 2026}, "message": "Invoice marked as paid", "receipt": {"amount": 2500.0, "flat_number": "A-101", "month": 7, "payment_date": "2026-08-02 13:29:03.885464", "payment_method": "UPI", "receipt_number": "RCP-0001", "tran…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -11288,7 +11288,7 @@ def test_pay_invoice_returns_receipt(client, admin, seed):
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    {"invoice": {"amount": 2500.0, "apartment_id": 1, "created_at": "2026-08-02 12:20:12.531944", "due_date": null, "flat_number": "A-101", "id": 1, "month": 7, "status": "PAID", "year": 2026}, "message": "Invoice marked as paid", "receipt": {"amount": 2500.0, "flat_number": "A-101", "month": 7, "payment_date": "2026-08-02 12:20:12.570944", "payment_method": "CASH", "receipt_number": "RCP-0001", "tra…
+    {"invoice": {"amount": 2500.0, "apartment_id": 1, "created_at": "2026-08-02 13:29:03.971481", "due_date": null, "flat_number": "A-101", "id": 1, "month": 7, "status": "PAID", "year": 2026}, "message": "Invoice marked as paid", "receipt": {"amount": 2500.0, "flat_number": "A-101", "month": 7, "payment_date": "2026-08-02 13:29:03.979138", "payment_method": "CASH", "receipt_number": "RCP-0001", "tra…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -11335,7 +11335,7 @@ def test_payment_method_defaults_to_cash(client, admin, seed):
       "amount": 2500.0,
       "flat_number": "A-101",
       "month": 7,
-      "payment_date": "2026-08-02 12:20:12.874913",
+      "payment_date": "2026-08-02 13:29:04.080964",
       "payment_method": "UPI",
       "receipt_number": "RCP-0001",
       "transaction_reference": null,
@@ -11392,7 +11392,7 @@ def test_get_receipt_for_paid_invoice(client, admin, seed):
       "amount": 2500.0,
       "flat_number": "A-101",
       "month": 7,
-      "payment_date": "2026-08-02 12:20:13.450575",
+      "payment_date": "2026-08-02 13:29:04.186101",
       "payment_method": "UPI",
       "receipt_number": "RCP-0001",
       "transaction_reference": null,
@@ -11445,7 +11445,7 @@ def test_resident_can_read_own_receipt(client, admin, resident, seed):
       {
         "amount": 2500.0,
         "apartment_id": 1,
-        "created_at": "2026-08-02 12:20:13.949466",
+        "created_at": "2026-08-02 13:29:04.288300",
         "due_date": null,
         "flat_number": "A-101",
         "id": 2,
@@ -11562,7 +11562,7 @@ def test_bulk_generate_creates_invoice_for_every_flat(client, admin, seed):
       {
         "amount": 3000.0,
         "apartment_id": 2,
-        "created_at": "2026-08-02 12:20:14.741628",
+        "created_at": "2026-08-02 13:29:04.489790",
         "due_date": null,
         "flat_number": "B-202",
         "id": 2,
@@ -11573,7 +11573,7 @@ def test_bulk_generate_creates_invoice_for_every_flat(client, admin, seed):
       {
         "amount": 2500.0,
         "apartment_id": 1,
-        "created_at": "2026-08-02 12:20:14.718085",
+        "created_at": "2026-08-02 13:29:04.482976",
         "due_date": null,
         "flat_number": "A-101",
         "id": 1,
@@ -12375,7 +12375,7 @@ def test_create_invoice_bad_due_date_returns_400(client, admin, seed):
     {
       "amount": 2500.0,
       "apartment_id": 1,
-      "created_at": "2026-08-02 12:20:19.619280",
+      "created_at": "2026-08-02 13:29:05.696063",
       "due_date": null,
       "flat_number": "A-101",
       "id": 1,
@@ -12443,7 +12443,7 @@ def test_blank_due_date_is_stored_as_null_not_rejected(client, admin,
     {
       "amount": 2500.0,
       "apartment_id": 1,
-      "created_at": "2026-08-02 12:20:20.106995",
+      "created_at": "2026-08-02 13:29:05.784182",
       "due_date": null,
       "flat_number": "A-101",
       "id": 1,
@@ -12511,7 +12511,7 @@ def test_blank_due_date_is_stored_as_null_not_rejected(client, admin,
     {
       "amount": 2500.0,
       "apartment_id": 1,
-      "created_at": "2026-08-02 12:20:20.552273",
+      "created_at": "2026-08-02 13:29:05.872713",
       "due_date": null,
       "flat_number": "A-101",
       "id": 1,
@@ -12836,7 +12836,7 @@ def test_invoice_malformed_body_returns_400(client, admin, seed, path,
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -12888,7 +12888,7 @@ def test_invoice_endpoints_require_a_token(client, seed, method, path):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -12940,7 +12940,7 @@ def test_invoice_endpoints_require_a_token(client, seed, method, path):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -12992,7 +12992,7 @@ def test_invoice_endpoints_require_a_token(client, seed, method, path):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -13044,7 +13044,7 @@ def test_invoice_endpoints_require_a_token(client, seed, method, path):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -13096,7 +13096,7 @@ def test_invoice_endpoints_require_a_token(client, seed, method, path):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -13206,7 +13206,7 @@ def test_resident_cannot_create_invoice(client, resident, seed):
       {
         "amount": 2500.0,
         "apartment_id": 1,
-        "created_at": "2026-08-02 12:20:25.045679",
+        "created_at": "2026-08-02 13:29:06.923522",
         "due_date": null,
         "flat_number": "A-101",
         "id": 1,
@@ -13470,7 +13470,7 @@ def test_resident_cannot_read_another_flats_receipt(client, admin,
       {
         "amount": 2500.0,
         "apartment_id": 1,
-        "created_at": "2026-08-02 12:20:27.503299",
+        "created_at": "2026-08-02 13:29:07.364001",
         "due_date": null,
         "flat_number": "A-101",
         "id": 1,
@@ -13531,7 +13531,7 @@ def test_duplicate_invoice_for_same_flat_month_year_returns_409(
       {
         "amount": 2500.0,
         "apartment_id": 2,
-        "created_at": "2026-08-02 12:20:28.073318",
+        "created_at": "2026-08-02 13:29:07.460983",
         "due_date": null,
         "flat_number": "B-202",
         "id": 2,
@@ -13542,7 +13542,7 @@ def test_duplicate_invoice_for_same_flat_month_year_returns_409(
       {
         "amount": 2500.0,
         "apartment_id": 1,
-        "created_at": "2026-08-02 12:20:28.041738",
+        "created_at": "2026-08-02 13:29:07.454783",
         "due_date": null,
         "flat_number": "A-101",
         "id": 1,
@@ -13597,7 +13597,7 @@ def test_same_month_different_flat_is_allowed(client, admin, seed):
       "amount": 2500.0,
       "flat_number": "A-101",
       "month": 7,
-      "payment_date": "2026-08-02 12:20:28.459573",
+      "payment_date": "2026-08-02 13:29:07.557191",
       "payment_method": "UPI",
       "receipt_number": "RCP-0001",
       "transaction_reference": "TXN-1",
@@ -13800,7 +13800,7 @@ def test_unknown_invoice_returns_404(client, admin, seed):
       {
         "amount": 2500.0,
         "apartment_id": 1,
-        "created_at": "2026-08-02 12:20:29.809658",
+        "created_at": "2026-08-02 13:29:07.925895",
         "due_date": null,
         "flat_number": "A-101",
         "id": 1,
@@ -13856,7 +13856,7 @@ def test_resident_sees_only_own_flat_invoices(client, admin, resident, seed):
       {
         "amount": 2500.0,
         "apartment_id": 1,
-        "created_at": "2026-08-02 12:20:30.210192",
+        "created_at": "2026-08-02 13:29:08.022142",
         "due_date": null,
         "flat_number": "A-101",
         "id": 1,
@@ -14020,7 +14020,7 @@ def test_user_without_a_flat_sees_an_empty_list(client, admin, worker,
     {
       "amount": 12750.25,
       "category": "UTILITIES",
-      "created_at": "2026-08-02 12:19:40.341725",
+      "created_at": "2026-08-02 13:28:57.634739",
       "description": "Common area electricity bill",
       "expense_date": "2026-08-05",
       "id": 1,
@@ -14093,7 +14093,7 @@ def test_admin_logs_expense(client, admin, seed):
     {
       "amount": 4500.0,
       "category": "MAINTENANCE",
-      "created_at": "2026-08-02 12:19:40.908622",
+      "created_at": "2026-08-02 13:28:57.722586",
       "description": "Lift annual servicing",
       "expense_date": "2026-08-05",
       "id": 1,
@@ -14152,7 +14152,7 @@ def test_treasurer_can_log_expense(client, treasurer, seed):
     {
       "amount": 4500.0,
       "category": "MAINTENANCE",
-      "created_at": "2026-08-02 12:19:41.470669",
+      "created_at": "2026-08-02 13:28:57.812626",
       "description": "Lift annual servicing",
       "expense_date": "2026-08-05",
       "id": 1,
@@ -14211,7 +14211,7 @@ def test_paid_by_defaults_to_the_logged_in_user(client, treasurer, seed):
     {
       "amount": 4500.0,
       "category": "MAINTENANCE",
-      "created_at": "2026-08-02 12:19:41.989734",
+      "created_at": "2026-08-02 13:28:57.903163",
       "description": "Lift annual servicing",
       "expense_date": "2026-08-05",
       "id": 1,
@@ -14316,7 +14316,7 @@ def test_paid_by_unknown_user_returns_404(client, admin, seed):
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    [{"amount": 4500.0, "category": "MAINTENANCE", "created_at": "2026-08-02 12:19:43.293087", "description": "Second", "expense_date": "2026-08-20", "id": 2, "paid_by": 1, "paid_by_name": "Priya Admin", "receipt_url": null}, {"amount": 4500.0, "category": "MAINTENANCE", "created_at": "2026-08-02 12:19:43.245032", "description": "First", "expense_date": "2026-08-01", "id": 1, "paid_by": 1, "paid_by_n…
+    [{"amount": 4500.0, "category": "MAINTENANCE", "created_at": "2026-08-02 13:28:58.155226", "description": "Second", "expense_date": "2026-08-20", "id": 2, "paid_by": 1, "paid_by_name": "Priya Admin", "receipt_url": null}, {"amount": 4500.0, "category": "MAINTENANCE", "created_at": "2026-08-02 13:28:58.149655", "description": "First", "expense_date": "2026-08-01", "id": 1, "paid_by": 1, "paid_by_n…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -14373,7 +14373,7 @@ def test_list_expenses(client, admin, seed):
     {
       "amount": 5200.0,
       "category": "CONSUMABLES",
-      "created_at": "2026-08-02 12:19:43.856621",
+      "created_at": "2026-08-02 13:28:58.245007",
       "description": "Lift servicing (revised)",
       "expense_date": "2026-08-05",
       "id": 1,
@@ -15752,7 +15752,7 @@ def test_add_expense_malformed_body_returns_400(client, admin, seed,
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -15803,7 +15803,7 @@ def test_expense_endpoints_require_a_token(client, seed, method, path):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -15854,7 +15854,7 @@ def test_expense_endpoints_require_a_token(client, seed, method, path):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -15905,7 +15905,7 @@ def test_expense_endpoints_require_a_token(client, seed, method, path):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -15956,7 +15956,7 @@ def test_expense_endpoints_require_a_token(client, seed, method, path):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -16108,7 +16108,7 @@ def test_resident_cannot_add_expense(client, resident, seed):
       {
         "amount": 4500.0,
         "category": "MAINTENANCE",
-        "created_at": "2026-08-02 12:20:00.359608",
+        "created_at": "2026-08-02 13:29:01.201987",
         "description": "Lift annual servicing",
         "expense_date": "2026-08-05",
         "id": 1,
@@ -16398,7 +16398,7 @@ def test_committee_member_is_not_finance(client, tokens, seed, method, path):
     {
       "category": "MAINTENANCE",
       "content": "No water 9am-1pm on Friday.",
-      "created_at": "2026-08-02 12:21:25.550176",
+      "created_at": "2026-08-02 13:29:20.094102",
       "id": 1,
       "is_active": true,
       "published_by": 1,
@@ -16458,7 +16458,7 @@ def test_admin_can_publish_a_notice(client, seed, admin):
     {
       "category": "GENERAL",
       "content": "No water 9am-1pm on Friday.",
-      "created_at": "2026-08-02 12:21:25.985919",
+      "created_at": "2026-08-02 13:29:20.179437",
       "id": 1,
       "is_active": true,
       "published_by": 1,
@@ -16513,7 +16513,7 @@ def test_category_defaults_to_general_when_omitted(client, seed, admin):
     {
       "category": "GENERAL",
       "content": "No water 9am-1pm on Friday.",
-      "created_at": "2026-08-02 12:21:26.590459",
+      "created_at": "2026-08-02 13:29:20.263181",
       "id": 1,
       "is_active": true,
       "published_by": 2,
@@ -16558,7 +16558,7 @@ def test_treasurer_is_also_allowed_to_publish(client, seed, treasurer):
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    [{"category": "GENERAL", "content": "No water 9am-1pm on Friday.", "created_at": "2026-08-02 12:21:27.230467", "id": 2, "is_active": true, "published_by": 1, "published_by_name": "Priya Admin", "title": "Second"}, {"category": "GENERAL", "content": "No water 9am-1pm on Friday.", "created_at": "2026-08-02 12:21:27.172328", "id": 1, "is_active": true, "published_by": 1, "published_by_name": "Priya …
+    [{"category": "GENERAL", "content": "No water 9am-1pm on Friday.", "created_at": "2026-08-02 13:29:20.354954", "id": 2, "is_active": true, "published_by": 1, "published_by_name": "Priya Admin", "title": "Second"}, {"category": "GENERAL", "content": "No water 9am-1pm on Friday.", "created_at": "2026-08-02 13:29:20.349076", "id": 1, "is_active": true, "published_by": 1, "published_by_name": "Priya …
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -16612,7 +16612,7 @@ def test_notice_list_returns_newest_notices(client, seed, admin):
     {
       "category": "EMERGENCY",
       "content": "No water 9am-1pm on Friday.",
-      "created_at": "2026-08-02 12:21:27.661504",
+      "created_at": "2026-08-02 13:29:20.439904",
       "id": 1,
       "is_active": true,
       "published_by": 1,
@@ -17108,7 +17108,7 @@ def test_list_body_is_rejected(client, seed, admin):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -17153,7 +17153,7 @@ def test_notices_require_authentication(client, seed):
       {
         "category": "GENERAL",
         "content": "No water 9am-1pm on Friday.",
-        "created_at": "2026-08-02 12:21:31.834387",
+        "created_at": "2026-08-02 13:29:21.411538",
         "id": 1,
         "is_active": true,
         "published_by": 1,
@@ -17314,7 +17314,7 @@ def test_resident_cannot_update_or_delete_a_notice(client, seed, admin, resident
 - HTTP Status Code: `201`
 - JSON:
     ```json
-    {"created_at": "2026-08-02 12:21:49.502125", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE", "title": "New gym equipment?", "total_votes":…
+    {"created_at": "2026-08-02 13:29:25.468416", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE", "title": "New gym equipment?", "total_votes":…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -17371,7 +17371,7 @@ def test_admin_can_create_a_poll_with_options(client, seed, admin):
 - HTTP Status Code: `201`
 - JSON:
     ```json
-    {"created_at": "2026-08-02 12:21:49.904858", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE", "title": "New gym equipment?", "total_votes":…
+    {"created_at": "2026-08-02 13:29:25.582024", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE", "title": "New gym equipment?", "total_votes":…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -17424,7 +17424,7 @@ def test_start_date_defaults_to_today_when_omitted(client, seed, admin):
 - HTTP Status Code: `201`
 - JSON:
     ```json
-    {"created_at": "2026-08-02 12:21:50.249833", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-07-31", "status": "ACTIVE", "title": "New gym equipment?", "total_votes":…
+    {"created_at": "2026-08-02 13:29:25.690870", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-07-31", "status": "ACTIVE", "title": "New gym equipment?", "total_votes":…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -17464,7 +17464,7 @@ def test_explicit_start_date_is_kept(client, seed, admin):
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    {"created_at": "2026-08-02 12:21:50.539285", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE", "title": "New gym equipment?", "total_votes":…
+    {"created_at": "2026-08-02 13:29:25.800720", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE", "title": "New gym equipment?", "total_votes":…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -17511,7 +17511,7 @@ def test_single_poll_can_be_fetched(client, seed, admin):
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    {"message": "Vote cast successfully", "poll": {"created_at": "2026-08-02 12:21:51.052930", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": true, "id": 1, "my_option_id": 1, "options": [{"id": 1, "percentage": 100.0, "text": "Yes", "votes": 1}, {"id": 2, "percentage": 0.0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE…
+    {"message": "Vote cast successfully", "poll": {"created_at": "2026-08-02 13:29:25.923827", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": true, "id": 1, "my_option_id": 1, "options": [{"id": 1, "percentage": 100.0, "text": "Yes", "votes": 1}, {"id": 2, "percentage": 0.0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -17559,7 +17559,7 @@ def test_resident_can_vote_and_results_are_tallied(client, seed, admin, resident
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    {"message": "Poll closed", "poll": {"created_at": "2026-08-02 12:21:51.274916", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "CLOSED", "title": "…
+    {"message": "Poll closed", "poll": {"created_at": "2026-08-02 13:29:26.047723", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "CLOSED", "title": "…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -17645,7 +17645,7 @@ def test_admin_can_delete_a_poll(client, seed, admin):
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    [{"created_at": "2026-08-02 12:21:52.051488", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 100.0, "text": "Yes", "votes": 1}, {"id": 2, "percentage": 0.0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE", "title": "New gym equipment?", "total_…
+    [{"created_at": "2026-08-02 13:29:26.338329", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 100.0, "text": "Yes", "votes": 1}, {"id": 2, "percentage": 0.0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE", "title": "New gym equipment?", "total_…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -18655,7 +18655,7 @@ def test_list_body_is_rejected(client, seed, admin):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -18696,7 +18696,7 @@ def test_polls_require_authentication(client, seed):
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    [{"created_at": "2026-08-02 12:21:59.781276", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE", "title": "New gym equipment?", "total_votes"…
+    [{"created_at": "2026-08-02 13:29:28.372786", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE", "title": "New gym equipment?", "total_votes"…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -19053,7 +19053,7 @@ def test_admin_can_update_a_task(client, seed, admin):
       "assigned_to": null,
       "assigned_to_name": null,
       "category": "GENERATOR",
-      "completed_at": "2026-08-02 12:20:33.045630",
+      "completed_at": "2026-08-02 13:29:08.766174",
       "created_by": 1,
       "description": "Quarterly diesel generator service",
       "id": 1,
@@ -19246,7 +19246,7 @@ def test_completing_an_already_completed_task_returns_409(client, seed, admin):
       "assigned_to": null,
       "assigned_to_name": null,
       "category": "GENERATOR",
-      "completed_at": "2026-08-02 12:20:34.398087",
+      "completed_at": "2026-08-02 13:29:09.122995",
       "created_by": 1,
       "description": "Quarterly diesel generator service",
       "id": 1,
@@ -19577,7 +19577,7 @@ def test_day_first_scheduled_date_is_rejected(client, seed, admin):
 - JSON:
     ```json
     {
-      "error": "task_category must be one of: GENERATOR, WATER_TANK, CLEANING, ELECTRICAL, PLUMBING, OTHER"
+      "error": "category must be one of: GENERATOR, WATER_TANK, CLEANING, ELECTRICAL, PLUMBING, OTHER"
     }
     ```
 
@@ -19589,7 +19589,7 @@ def test_day_first_scheduled_date_is_rejected(client, seed, admin):
 def test_unknown_category_is_rejected(client, seed, admin):
     res = _create_task(client, admin, category="ROOFING")
     assert res.status_code == 400
-    assert res.get_json()["error"].startswith("task_category must be one of:")
+    assert res.get_json()["error"].startswith("category must be one of:")
 ```
 </details>
 
@@ -19874,7 +19874,7 @@ def test_list_body_is_rejected(client, seed, admin):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -20085,7 +20085,7 @@ def test_resident_cannot_update_complete_or_delete_a_task(client, seed, admin, r
     ```json
     {
       "category": "GENERATOR",
-      "created_at": "2026-08-02 12:19:27.077959",
+      "created_at": "2026-08-02 13:28:54.536424",
       "days_until_due": 80,
       "estimated_service_cost": 4500.0,
       "id": 1,
@@ -20143,7 +20143,7 @@ def test_admin_can_add_equipment(client, seed, admin):
     [
       {
         "category": "GENERATOR",
-        "created_at": "2026-08-02 12:19:27.587199",
+        "created_at": "2026-08-02 13:28:54.699805",
         "days_until_due": 80,
         "estimated_service_cost": 4500.0,
         "id": 1,
@@ -20205,7 +20205,7 @@ def test_equipment_list_is_readable(client, seed, admin):
     ```json
     {
       "category": "GENERATOR",
-      "created_at": "2026-08-02 12:19:28.026046",
+      "created_at": "2026-08-02 13:28:54.832582",
       "days_until_due": -30,
       "estimated_service_cost": 4500.0,
       "id": 1,
@@ -20269,7 +20269,7 @@ def test_overdue_equipment_reports_negative_days_and_high_risk(client, seed, adm
     ```json
     {
       "category": "GENERATOR",
-      "created_at": "2026-08-02 12:19:28.460819",
+      "created_at": "2026-08-02 13:28:54.962938",
       "days_until_due": 15,
       "estimated_service_cost": 4500.0,
       "id": 1,
@@ -20331,7 +20331,7 @@ def test_equipment_nearing_its_due_date_is_medium_risk(client, seed, admin):
     {
       "equipment": {
         "category": "GENERATOR",
-        "created_at": "2026-08-02 12:19:28.741348",
+        "created_at": "2026-08-02 13:28:55.099662",
         "days_until_due": 90,
         "estimated_service_cost": 4500.0,
         "id": 1,
@@ -20397,7 +20397,7 @@ def test_marking_serviced_updates_the_last_serviced_date(client, seed, admin):
     {
       "equipment": {
         "category": "GENERATOR",
-        "created_at": "2026-08-02 12:19:29.182089",
+        "created_at": "2026-08-02 13:28:55.249533",
         "days_until_due": 85,
         "estimated_service_cost": 4500.0,
         "id": 1,
@@ -21183,7 +21183,7 @@ def test_negative_estimated_cost_is_rejected(client, seed, admin):
 - JSON:
     ```json
     {
-      "error": "equipment_category must be one of: GENERATOR, WATER_TANK, LIFT, PEST_CONTROL, FIRE_SAFETY, OTHER"
+      "error": "category must be one of: GENERATOR, WATER_TANK, LIFT, PEST_CONTROL, FIRE_SAFETY, OTHER"
     }
     ```
 
@@ -21195,7 +21195,7 @@ def test_negative_estimated_cost_is_rejected(client, seed, admin):
 def test_unknown_category_is_rejected(client, seed, admin):
     res = _create_equipment(client, admin, category="ROBOT")
     assert res.status_code == 400
-    assert res.get_json()["error"].startswith("equipment_category must be one of:")
+    assert res.get_json()["error"].startswith("category must be one of:")
 ```
 </details>
 
@@ -21432,7 +21432,7 @@ def test_list_body_is_rejected(client, seed, admin):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -21746,7 +21746,7 @@ def test_calculate_accepts_explicit_month_and_year(client, seed, admin):
     [
       {
         "alert_reason": "No notices posted this month | not scored (no data): complaint, maintenance, payment, poll",
-        "calculated_at": "2026-08-02 12:20:03.749724",
+        "calculated_at": "2026-08-02 13:29:01.958634",
         "complaint_score": 0.0,
         "grade": "RED",
         "id": 1,
@@ -21845,7 +21845,7 @@ def test_history_is_empty_before_anything_is_calculated(client, seed, admin):
     [
       {
         "alert_reason": "No notices posted this month | not scored (no data): complaint, maintenance, payment, poll",
-        "calculated_at": "2026-08-02 12:20:04.740913",
+        "calculated_at": "2026-08-02 13:29:02.164910",
         "complaint_score": 0.0,
         "grade": "RED",
         "id": 1,
@@ -22356,7 +22356,7 @@ def test_year_before_2000_is_rejected(client, seed, admin):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -22538,7 +22538,7 @@ def test_treasurer_can_calculate_the_score(client, seed, treasurer):
     [
       {
         "alert_reason": "No notices posted this month | not scored (no data): complaint, maintenance, payment, poll",
-        "calculated_at": "2026-08-02 12:20:10.517301",
+        "calculated_at": "2026-08-02 13:29:03.506719",
         "complaint_score": 0.0,
         "grade": "RED",
         "id": 1,
@@ -22654,7 +22654,7 @@ def test_resident_can_raise_a_conflict_against_another_flat(client, seed, reside
     [
       {
         "category": "NOISE",
-        "created_at": "2026-08-02 12:18:52.236160",
+        "created_at": "2026-08-02 13:28:43.412218",
         "description": "Loud music after 11pm on weekdays.",
         "id": 1,
         "reported_apartment_id": 2,
@@ -22718,7 +22718,7 @@ def test_admin_sees_every_report_with_the_reporter_named(client, seed, resident,
     [
       {
         "category": "NOISE",
-        "created_at": "2026-08-02 12:18:52.572741",
+        "created_at": "2026-08-02 13:28:43.618237",
         "description": "Loud music after 11pm on weekdays.",
         "id": 1,
         "reported_apartment_id": 1,
@@ -22726,7 +22726,7 @@ def test_admin_sees_every_report_with_the_reporter_named(client, seed, resident,
         "reported_flat_response": "The music was for a birthday, sorry.",
         "resolution_note": null,
         "resolved_at": null,
-        "response_submitted_at": "2026-08-02 12:18:52.605087",
+        "response_submitted_at": "2026-08-02 13:28:43.629103",
         "status": "UNDER_REVIEW"
       }
     ]
@@ -22785,7 +22785,7 @@ def test_reported_flat_can_submit_its_side(client, seed, worker, resident):
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    {"message": "Conflict resolved", "report": {"category": "NOISE", "created_at": "2026-08-02 12:18:53.122860", "description": "Loud music after 11pm on weekdays.", "id": 1, "reported_apartment_id": 2, "reported_by": 4, "reported_by_name": "Ravi Resident", "reported_flat": "B-202", "reported_flat_response": null, "resolution_note": "Both parties agreed on quiet hours.", "resolved_at": "2026-08-02 12…
+    {"message": "Conflict resolved", "report": {"category": "NOISE", "created_at": "2026-08-02 13:28:43.780978", "description": "Loud music after 11pm on weekdays.", "id": 1, "reported_apartment_id": 2, "reported_by": 4, "reported_by_name": "Ravi Resident", "reported_flat": "B-202", "reported_flat_response": null, "resolution_note": "Both parties agreed on quiet hours.", "resolved_at": "2026-08-02 13…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -22838,7 +22838,7 @@ def test_admin_can_resolve_a_report(client, seed, resident, admin):
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    {"message": "Conflict resolved", "report": {"category": "NOISE", "created_at": "2026-08-02 12:18:53.379333", "description": "Loud music after 11pm on weekdays.", "id": 1, "reported_apartment_id": 2, "reported_by": 4, "reported_by_name": "Ravi Resident", "reported_flat": "B-202", "reported_flat_response": null, "resolution_note": "Resolved by secretary", "resolved_at": "2026-08-02 12:18:53.390318"…
+    {"message": "Conflict resolved", "report": {"category": "NOISE", "created_at": "2026-08-02 13:28:43.936949", "description": "Loud music after 11pm on weekdays.", "id": 1, "reported_apartment_id": 2, "reported_by": 4, "reported_by_name": "Ravi Resident", "reported_flat": "B-202", "reported_flat_response": null, "resolution_note": "Resolved by secretary", "resolved_at": "2026-08-02 13:28:43.945237"…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -22880,7 +22880,7 @@ def test_resolution_note_defaults_when_not_supplied(client, seed, resident, admi
 - HTTP Status Code: `200`
 - JSON:
     ```json
-    [{"category": "NOISE", "created_at": "2026-08-02 12:18:53.544279", "description": "Loud music after 11pm on weekdays.", "id": 1, "reported_apartment_id": 2, "reported_by": 4, "reported_by_name": "Ravi Resident", "reported_flat": "B-202", "reported_flat_response": null, "resolution_note": null, "resolved_at": null, "response_submitted_at": null, "status": "OPEN"}, {"category": "NOISE", "created_at…
+    [{"category": "NOISE", "created_at": "2026-08-02 13:28:44.088876", "description": "Loud music after 11pm on weekdays.", "id": 1, "reported_apartment_id": 2, "reported_by": 4, "reported_by_name": "Ravi Resident", "reported_flat": "B-202", "reported_flat_response": null, "resolution_note": null, "resolved_at": null, "response_submitted_at": null, "status": "OPEN"}, {"category": "NOISE", "created_at…
     ```
 
 **Result:** ✅ Success — actual output matched the expectation.
@@ -22983,7 +22983,7 @@ def test_responding_to_a_missing_report_returns_404(client, seed, admin):
     [
       {
         "category": "NOISE",
-        "created_at": "2026-08-02 12:18:53.930055",
+        "created_at": "2026-08-02 13:28:44.408937",
         "description": "Loud music after 11pm on weekdays.",
         "id": 1,
         "reported_apartment_id": 1,
@@ -23046,7 +23046,7 @@ def test_resident_view_never_exposes_the_reporter(client, seed, worker, resident
     [
       {
         "category": "NOISE",
-        "created_at": "2026-08-02 12:18:54.095267",
+        "created_at": "2026-08-02 13:28:44.549875",
         "description": "Loud music after 11pm on weekdays.",
         "id": 1,
         "reported_apartment_id": 2,
@@ -23902,7 +23902,7 @@ def test_list_body_is_rejected(client, seed, resident):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -24302,7 +24302,7 @@ def test_resident_can_reserve_a_slot_for_a_visitor(client, seed, resident, admin
         "flat_number": "A-101",
         "id": 1,
         "occupied_by_apartment_id": 1,
-        "occupied_since": "2026-08-02 12:21:38.489649",
+        "occupied_since": "2026-08-02 13:29:23.015771",
         "slot_number": "P1",
         "status": "OCCUPIED",
         "visitor_name": "Anil Kumar",
@@ -24368,7 +24368,7 @@ def test_occupying_a_reserved_slot_keeps_the_reserving_flat(client, seed, reside
         "flat_number": "A-101",
         "id": 1,
         "occupied_by_apartment_id": 1,
-        "occupied_since": "2026-08-02 12:21:39.059815",
+        "occupied_since": "2026-08-02 13:29:23.118466",
         "slot_number": "P1",
         "status": "OCCUPIED",
         "visitor_name": "Walk-in",
@@ -25325,7 +25325,7 @@ def test_null_body_on_reserve_is_rejected(client, seed, resident, admin):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -26449,7 +26449,7 @@ def test_create_contact_as_treasurer_returns_201(client, seed, treasurer):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -26845,7 +26845,7 @@ def test_list_contacts_is_open_to_every_role(client, request, role_fixture):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -27618,7 +27618,7 @@ def test_update_contact_as_worker_returns_403(client, seed, worker, contact_id):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -27912,7 +27912,7 @@ def test_delete_contact_as_worker_returns_403(client, seed, worker, contact_id):
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
@@ -28035,7 +28035,7 @@ def test_delete_contact_without_token_returns_401(client, seed, contact_id):
       "message": "User registered successfully",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 12:22:01.828758",
+        "created_at": "2026-08-02 13:29:29.025372",
         "email": "blank2@x.com",
         "id": 8,
         "is_active": true,
@@ -28101,7 +28101,7 @@ def test_delete_contact_without_token_returns_401(client, seed, contact_id):
     {
       "amount": 500.0,
       "category": "UTILITIES",
-      "created_at": "2026-08-02 12:22:02.184134",
+      "created_at": "2026-08-02 13:29:29.116166",
       "description": "Water bill",
       "expense_date": "2026-08-01",
       "id": 1,
@@ -28268,7 +28268,7 @@ def test_date_accepting_endpoints_create_successfully(client, admin, label, url,
     ```json
     {
       "category": "LIFT",
-      "created_at": "2026-08-02 12:22:02.728041",
+      "created_at": "2026-08-02 13:29:29.303879",
       "days_until_due": 28,
       "estimated_service_cost": null,
       "id": 1,
@@ -28353,7 +28353,7 @@ def test_date_accepting_endpoints_create_successfully(client, admin, label, url,
 - JSON:
     ```json
     {
-      "created_at": "2026-08-02 12:22:02.892939",
+      "created_at": "2026-08-02 13:29:29.401297",
       "created_by": 1,
       "description": null,
       "end_date": "2026-12-31",
@@ -28547,7 +28547,7 @@ def test_invalid_date_is_a_clean_400(client, admin):
     [
       {
         "category": "NOISE",
-        "created_at": "2026-08-02 12:22:04.380340",
+        "created_at": "2026-08-02 13:29:29.724654",
         "description": "Loud music after midnight",
         "id": 1,
         "reported_apartment_id": 2,
@@ -28707,7 +28707,7 @@ def test_invalid_date_is_a_clean_400(client, admin):
         "assigned_worker_id": 6,
         "assigned_worker_name": "Ramesh Worker",
         "category": "ELECTRICAL",
-        "created_at": "2026-08-02 12:22:06.137611",
+        "created_at": "2026-08-02 13:29:30.138982",
         "description": null,
         "flat_number": "A-101",
         "id": 1,
@@ -29278,7 +29278,7 @@ def test_apartment_delete_no_longer_cascades_away_residents(client, admin, seed)
 
 ## Open defects — EXPECTED TO FAIL
 
-`Backend/tests/test_open_defects.py` · all · **0/6 passed** · [↑ back to index](#2-test-case-index)
+`Backend/tests/test_open_defects.py` · all · **4/6 passed** · [↑ back to index](#2-test-case-index)
 
 
 <a id="tc-534"></a>
@@ -29304,11 +29304,11 @@ def test_apartment_delete_no_longer_cascades_away_residents(client, admin, seed)
 - JSON:
     ```json
     {
-      "msg": "Missing Authorization Header"
+      "error": "Missing Authorization Header"
     }
     ```
 
-**Result:** ❌ Failure — AssertionError: openapi.yaml documents every error as {'error': ...}, but this returned {'msg': 'Missing Authorization Header'}
+**Result:** ✅ Success — actual output matched the expectation.
 
 <details><summary>Test code</summary>
 
@@ -29380,7 +29380,7 @@ def test_unauthenticated_error_uses_the_documented_json_envelope(client):
       "message": "User registered successfully",
       "token": "<jwt>",
       "user": {
-        "created_at": "2026-08-02 12:21:33.647133",
+        "created_at": "2026-08-02 13:29:21.882646",
         "email": "escalate@test.com",
         "id": 1,
         "is_active": true,
@@ -29515,18 +29515,18 @@ def test_admin_token_from_public_signup_cannot_reach_admin_endpoints(client):
       {
         "amount": 1500.0,
         "apartment_id": 1,
-        "created_at": "2026-08-02 12:21:34.730587",
+        "created_at": "2026-08-02 13:29:22.231825",
         "due_date": "2026-06-03",
         "flat_number": "A-101",
         "id": 1,
         "month": 1,
-        "status": "UNPAID",
+        "status": "OVERDUE",
         "year": 2026
       }
     ]
     ```
 
-**Result:** ❌ Failure — AssertionError: an invoice due 2026-06-03 (60 days ago) is still reported as UNPAID
+**Result:** ✅ Success — actual output matched the expectation.
 
 <details><summary>Test code</summary>
 
@@ -29606,11 +29606,11 @@ def test_unpaid_invoice_past_its_due_date_becomes_overdue(client, admin, seed, a
 - JSON:
     ```json
     {
-      "error": "task_category must be one of: GENERATOR, WATER_TANK, CLEANING, ELECTRICAL, PLUMBING, OTHER"
+      "error": "category must be one of: GENERATOR, WATER_TANK, CLEANING, ELECTRICAL, PLUMBING, OTHER"
     }
     ```
 
-**Result:** ❌ Failure — AssertionError: error names the internal enum rather than the client's field: 'task_category must be one of: GENERATOR, WATER_TANK, CLEANING, ELECTRICAL, PLUMBING, OTHER'
+**Result:** ✅ Success — actual output matched the expectation.
 
 <details><summary>Test code</summary>
 
@@ -29685,11 +29685,11 @@ def test_validation_error_names_the_field_the_client_sent(client, admin, endpoin
 - JSON:
     ```json
     {
-      "error": "equipment_category must be one of: GENERATOR, WATER_TANK, LIFT, PEST_CONTROL, FIRE_SAFETY, OTHER"
+      "error": "category must be one of: GENERATOR, WATER_TANK, LIFT, PEST_CONTROL, FIRE_SAFETY, OTHER"
     }
     ```
 
-**Result:** ❌ Failure — AssertionError: error names the internal enum rather than the client's field: 'equipment_category must be one of: GENERATOR, WATER_TANK, LIFT, PEST_CONTROL, FIRE_SAFETY, OTHER'
+**Result:** ✅ Success — actual output matched the expectation.
 
 <details><summary>Test code</summary>
 

@@ -28,7 +28,7 @@ def add_task():
 
     # Both used to go into the row raw: a bad category poisoned later reads and
     # a date string raised a TypeError at flush time.
-    category = parse_enum(data.get("category"), "task_category", required=True)
+    category = parse_enum(data.get("category"), "task_category", required=True,field="category")
     scheduled_date = parse_date(data.get("scheduled_date"), "scheduled_date",
                                 required=True)
     assigned_to = parse_int(data.get("assigned_to"), "assigned_to", min_value=1)

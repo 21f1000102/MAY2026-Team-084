@@ -1,6 +1,6 @@
 import logging
 import traceback
-
+import jwt
 from flask import Flask, jsonify
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
@@ -34,8 +34,20 @@ def create_app():
     logging.basicConfig(level=logging.INFO)
 
     db.init_app(app)
-    JWTManager(app)
+    jwt=JWTManager(app)
     CORS(app)
+
+    @jwt.unauthorized_loader
+    def unauthorized_callback(reason):
+            return {"error": reason}, 401
+
+    @jwt.invalid_token_loader
+    def invalid_token_callback(reason):
+            return {"error": reason}, 401
+
+    @jwt.expired_token_loader
+    def expired_token_callback(jwt_header, jwt_payload):
+            return {"error": "Token has expired"}, 401
 
     # ── register all blueprints ────────────────────────────────
     app.register_blueprint(auth_bp,        url_prefix="/api/auth")
