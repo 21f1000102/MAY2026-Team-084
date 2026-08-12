@@ -1,13 +1,29 @@
 <template>
   <div>
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-      <select v-model="filterStatus" class="form-control-custom" style="width:100%;max-width:160px;">
-        <option value="">All Status</option>
-        <option>PAID</option><option>UNPAID</option><option>OVERDUE</option>
-      </select>
+    <div class="d-flex justify-content-end align-items-center mb-4 flex-wrap gap-2">
+      <button class="btn btn-outline-secondary" @click="exportCsv" :disabled="exporting">
+        <i class="fas fa-file-csv me-2"></i>Export CSV
+      </button>
       <div class="d-flex gap-2" v-if="isAdmin">
         <button class="btn-accent" @click="showBulk=true"><i class="fas fa-bolt me-2"></i>Bulk Generate</button>
         <button class="btn-primary-custom" @click="addMsg=''; showAdd=true"><i class="fas fa-plus me-2"></i>Single Invoice</button>
+      </div>
+    </div>
+
+    <FilterBar :fields="filterFields" :result-count="loading ? null : invoices.length" @change="onFilterChange" />
+
+    <div v-if="summary" class="row g-3 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="stat-card"><div><div class="stat-value">₹{{ money(summary.total_invoiced) }}</div><div class="stat-label">Total Invoiced</div></div></div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card"><div><div class="stat-value">₹{{ money(summary.total_collected) }}</div><div class="stat-label">Collected</div></div></div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card"><div><div class="stat-value">₹{{ money(summary.total_pending) }}</div><div class="stat-label">Pending</div></div></div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card"><div><div class="stat-value">{{ summary.collection_rate }}%</div><div class="stat-label">Collection Rate</div></div></div>
       </div>
     </div>
 
@@ -15,8 +31,8 @@
 
     <div v-if="loading" class="spinner"></div>
     <div v-else>
-      <div v-if="filtered.length===0" class="empty-state card p-4"><i class="fas fa-file-invoice"></i><p>No invoices found</p></div>
-      <div v-for="inv in filtered" :key="inv.id" class="card mb-3 p-4">
+      <div v-if="invoices.length===0" class="empty-state card p-4"><i class="fas fa-file-invoice"></i><p>No invoices found</p></div>
+      <div v-for="inv in invoices" :key="inv.id" class="card mb-3 p-4">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
           <div>
             <div class="d-flex gap-2 mb-1">
@@ -136,9 +152,10 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { invoicesAPI, membersAPI, errText } from '../api/index'
+import { invoicesAPI, membersAPI, errText, errTextFromBlob, downloadBlob } from '../api/index'
 import { authStore } from '../store/auth'
-import { badgeClass, orNull } from '../utils/format'
+import { badgeClass, orNull, money } from '../utils/format'
+import FilterBar from './FilterBar.vue'
 
 const pageMsg = ref('')
 const addMsg = ref('')
@@ -146,11 +163,13 @@ const invoices = ref([])
 const apartments = ref([])
 const loading = ref(true)
 const saving = ref(false)
+const exporting = ref(false)
 const showBulk = ref(false)
 const showAdd = ref(false)
 const receipt = ref(null)
 const bulkMsg = ref(null)
-const filterStatus = ref('')
+const activeFilters = ref({})
+const summary = ref(null)
 // Finance actions are ADMIN/SYSTEM_ADMIN/TREASURER only; a COMMITTEE_MEMBER
 // used to see these buttons and get a 403 on click.
 const isAdmin = computed(() => authStore.isFinanceAdmin)
@@ -158,20 +177,51 @@ const now = new Date()
 const bulkForm = ref({ month: now.getMonth()+1, year: now.getFullYear(), amount: 1500, due_date:'' })
 const addForm = ref({ apartment_id:'', month: now.getMonth()+1, year: now.getFullYear(), amount: 1500, due_date:'' })
 
-const filtered = computed(() =>
-  invoices.value.filter(i => !filterStatus.value || i.status === filterStatus.value)
-)
+const filterFields = [
+  { key: 'q', label: 'Search', placeholder: 'Flat number...' },
+  { key: 'status', label: 'Status', type: 'select', options: ['PAID','UNPAID','OVERDUE'] },
+  { key: 'month', label: 'Month', type: 'number', placeholder: '1-12' },
+  { key: 'year', label: 'Year', type: 'number', placeholder: 'e.g. 2026' },
+  { key: 'min_amount', label: 'Min ₹', type: 'number' },
+  { key: 'max_amount', label: 'Max ₹', type: 'number' },
+]
 
 let bulkTimer = null
 onUnmounted(() => clearTimeout(bulkTimer))
 
 onMounted(async () => {
-  const [inv, apt] = await Promise.allSettled([invoicesAPI.getAll(), membersAPI.getApartments()])
-  if (inv.status === 'fulfilled') invoices.value = inv.value.data
-  else pageMsg.value = errText(inv.reason)
+  const [apt] = await Promise.allSettled([membersAPI.getApartments()])
   if (apt.status === 'fulfilled') apartments.value = apt.value.data
+  await loadInvoices()
   loading.value = false
 })
+
+async function onFilterChange(params) {
+  activeFilters.value = params
+  await loadInvoices()
+}
+
+async function loadInvoices() {
+  try {
+    const [inv, sum] = await Promise.allSettled([
+      invoicesAPI.getAll(activeFilters.value),
+      invoicesAPI.summary(activeFilters.value),
+    ])
+    if (inv.status === 'fulfilled') invoices.value = inv.value.data
+    else pageMsg.value = errText(inv.reason)
+    if (sum.status === 'fulfilled') summary.value = sum.value.data
+  } catch (e) { pageMsg.value = errText(e) }
+}
+
+async function exportCsv() {
+  exporting.value = true
+  pageMsg.value = ''
+  try {
+    const res = await invoicesAPI.export(activeFilters.value)
+    downloadBlob(res.data, 'invoices.csv')
+  } catch (e) { pageMsg.value = await errTextFromBlob(e) }
+  exporting.value = false
+}
 
 async function doBulk() {
   saving.value = true; bulkMsg.value = null
@@ -183,8 +233,7 @@ async function doBulk() {
       due_date: orNull(bulkForm.value.due_date),
     })
     bulkMsg.value = { type:'success', text: res.data.message }
-    const fresh = await invoicesAPI.getAll()
-    invoices.value = fresh.data
+    await loadInvoices()
     clearTimeout(bulkTimer)
     bulkTimer = setTimeout(() => { showBulk.value = false; bulkMsg.value = null }, 2000)
   } catch(e) {
@@ -199,12 +248,12 @@ async function doAdd() {
   saving.value = true
   addMsg.value = ''
   try {
-    const res = await invoicesAPI.create({
+    await invoicesAPI.create({
       ...addForm.value,
       amount: Number(addForm.value.amount),
       due_date: orNull(addForm.value.due_date),   // '' previously broke every create
     })
-    invoices.value.unshift(res.data)
+    await loadInvoices()
     showAdd.value = false
     addForm.value = { apartment_id:'', month: now.getMonth()+1, year: now.getFullYear(), amount: 1500, due_date:'' }
   } catch(e) { addMsg.value = errText(e) }
@@ -217,9 +266,8 @@ async function markPaid(id, mode) {
   pageMsg.value = ''
   try {
     const res = await invoicesAPI.markPaid(id, { payment_method: mode })
-    const idx = invoices.value.findIndex(i => i.id === id)
-    if (idx > -1) invoices.value[idx] = res.data.invoice
     receipt.value = res.data.receipt
+    await loadInvoices()
   } catch(e) { pageMsg.value = errText(e) }
 }
 

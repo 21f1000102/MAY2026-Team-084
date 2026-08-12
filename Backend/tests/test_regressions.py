@@ -9,6 +9,9 @@ the "Defects found through testing" section of docs/TEST_CASES.md.
 If any of these fail, a previously fixed bug has come back.
 """
 import pytest
+from datetime import date, timedelta
+
+from models import db, Invoice
 
 
 # ── DEFECT-01 ─────────────────────────────────────────────────
@@ -323,3 +326,34 @@ def test_apartment_delete_no_longer_cascades_away_residents(client, admin, seed)
     res = client.delete(f"/api/members/apartments/{seed['apartment_id']}", headers=admin)
     assert res.status_code == 409
     assert "resident" in res.get_json()["error"].lower()
+
+
+# ── DEFECT-10 ─────────────────────────────────────────────────
+def test_unpaid_invoice_past_its_due_date_becomes_overdue(client, admin, seed, app):
+    """DEFECT-10  GET /api/invoices/ — invoices never became OVERDUE.
+
+    The OVERDUE value existed in invoice_status_enum and due_date was stored,
+    but nothing in the codebase ever compared the two.
+        expected: an UNPAID invoice 60 days past its due date reports OVERDUE
+        actual  : it reported UNPAID forever — no scheduled job, no check on read
+    Fixed: a scoped bulk UPDATE (_sweep_overdue_invoices) runs on every read,
+    before any status/date filter is applied (see Feature 1's search/filter
+    work — filtering by status would otherwise return stale rows).
+    """
+    with app.app_context():
+        overdue = Invoice(
+            apartment_id=seed["apartment_id"], generated_by=seed["admin_id"],
+            month=1, year=date.today().year, amount=1500, status="UNPAID",
+            due_date=date.today() - timedelta(days=60),
+        )
+        db.session.add(overdue)
+        db.session.commit()
+        invoice_id = overdue.id
+
+    listing = client.get("/api/invoices/", headers=admin)
+    assert listing.status_code == 200
+    invoice = next(i for i in listing.get_json() if i["id"] == invoice_id)
+    assert invoice["status"] == "OVERDUE", (
+        f"an invoice due {invoice['due_date']} (60 days ago) is still reported "
+        f"as {invoice['status']}"
+    )

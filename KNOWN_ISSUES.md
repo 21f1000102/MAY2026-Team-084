@@ -3,10 +3,10 @@
 Deliberate gaps left in the current build. Everything here is a conscious decision,
 not an undiscovered bug — close these before the app is used with real data.
 
-**Six of these are covered by deliberately-failing tests** in
+**Five of these are covered by deliberately-failing tests** in
 `Backend/tests/test_open_defects.py`, so they stay visible in every test run rather than
 relying on someone reading this file. See `docs/TEST_CASES.md` section 3 for the
-expected-vs-actual detail.
+expected-vs-actual detail. (A sixth, #9 below, has since been fixed.)
 
 ---
 
@@ -81,15 +81,18 @@ The API supports these but no screen calls them:
 - **Change password** — `authAPI.changePassword` has no screen.
 - **Re-activate a member** — deactivation is one-way in the UI.
 
-## 9. `OVERDUE` invoices are never produced  🟡 functionality
+## 9. `OVERDUE` invoices are never produced  — ✅ resolved
 
-The status exists and `due_date` is stored, but nothing compares the two, so an
-invoice stays `UNPAID` forever.
+Previously the status existed and `due_date` was stored, but nothing compared the two,
+so an invoice stayed `UNPAID` forever. Fixed while building the invoice search/filter
+work (Feature 1): `_sweep_overdue_invoices()` in `Backend/api/invoices.py` runs a
+scoped bulk `UPDATE` on every read of `/api/invoices/`, `/api/invoices/pending` and
+`/api/invoices/summary`, promoting past-due `UNPAID` rows to `OVERDUE` *before* any
+status/date filter is applied — running it after would have made `status=OVERDUE`
+and `status=UNPAID` filters return stale rows.
 
-**Failing test:** `test_unpaid_invoice_past_its_due_date_becomes_overdue` (OD-03).
-
-**To close it:** a scheduled job (or a check on read) that flips past-due unpaid
-invoices to `OVERDUE`.
+Former failing test `test_unpaid_invoice_past_its_due_date_becomes_overdue` (was OD-03)
+now passes and lives in `Backend/tests/test_regressions.py` as DEFECT-10.
 
 ## 10. Two component folders  🟡 maintainability
 
@@ -104,8 +107,9 @@ spelled `Frontend/src/components/` holds an older, dead flow, and
 
 Previously out of date. It is now the single, consolidated spec (the duplicate
 `openapi-final.yaml` was merged into it and removed) and is checked against the code:
-all 71 live operations documented, no stale entries, and every reachable status code
-declared (399/399). Re-verify with the parity script described in `docs/TEST_CASES.md`.
+all 84 live operations documented (21 user stories, US-01 through US-21), no stale
+entries, and error-response coverage complete for every operation. Re-verify with the
+parity script described in `docs/TEST_CASES.md`.
 
 Remaining nit: response *schemas* for a few action endpoints are still inline
 `type: object` rather than named components.

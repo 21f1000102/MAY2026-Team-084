@@ -382,3 +382,11 @@ body {
   .page-content { padding: 12px; }
   .stat-card { padding: 16px; gap: 12px; }
 }
+
+/* Reports page "Print / Save PDF" — hide chrome, let the report fill the page. */
+@media print {
+  .sidebar, .topbar, .sidebar-backdrop, .no-print { display: none !important; }
+  .main-content { margin-left: 0 !important; }
+  .page-content { padding: 0 !important; }
+  body { background: #fff !important; }
+}

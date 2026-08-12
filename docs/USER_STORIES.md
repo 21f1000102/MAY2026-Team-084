@@ -33,9 +33,15 @@ machine-checkable. The same table is embedded in the spec's `info.description` a
 | **US-15** | As an **Association manager**, I want to track equipment servicing and get a 30-day maintenance forecast, so that I can budget for and schedule servicing before something fails. | 6 |
 | **US-16** | As a **Resident**, I want to report a conflict with a neighbour anonymously and let the secretary mediate, so that the issue is resolved without a direct confrontation. | 5 |
 | **US-17** | As a **Committee member**, I want to see a monthly society health score across payments, complaints, notices, polls and maintenance, so that we can spot problems early and track whether things are improving. | 3 |
+| **US-18** | As an **Association manager**, I want to search and filter members, complaints, invoices, expenses and maintenance tasks by common criteria, so that I can find a specific record quickly without scanning the whole list. | 6 |
+| **US-19** | As a **Treasurer**, I want summary reports and exportable data for complaints and payments, so that I can review society performance without manually counting records. | 7 |
+| **US-20** | As a **Resident**, I want to see upcoming rent due dates, society meetings and other deadlines in one place, so that I do not miss them. | 5 |
+| **US-21** | As a **Maintenance worker**, I want a dashboard scoped to my own assigned complaints and tasks, with the ability to complete them and see my work history, so that I can do my job without seeing data that is not mine. | 3 |
 
-**71 operations across 17 user stories** — every operation is mapped, and every ID used resolves to
-an entry above (verified automatically).
+**84 operations across 21 user stories** — every operation is mapped, and every ID used resolves to
+an entry above (verified automatically). `GET /api/maintenance/summary` and
+`PUT /api/maintenance/{tid}/complete` are each mapped to two stories, so the per-story counts above
+sum to more than 84.
 
 ---
 
@@ -60,6 +66,10 @@ an entry above (verified automatically).
 | US-15 | GET · POST · PUT · GET · GET · DELETE | `/api/equipment/`, `/api/equipment/{eid}/service`, `/api/equipment/forecast`, `/api/equipment/{eid}/history` |
 | US-16 | GET · POST · PUT · PUT · GET | `/api/conflicts/`, `/api/conflicts/{rid}/respond\|resolve`, `/api/conflicts/pending` |
 | US-17 | GET · POST · GET | `/api/health/calculate` (GET and POST) · `/api/health/history` |
+| US-18 | GET ×6 | `/api/members/`, `/api/complaints/`, `/api/invoices/`, `/api/invoices/pending`, `/api/expenses/`, `/api/maintenance/` — query filters added to each existing list endpoint |
+| US-19 | GET ×7 | `/api/members/export`, `/api/complaints/summary`, `/api/complaints/export`, `/api/invoices/summary`, `/api/invoices/export`, `/api/expenses/export`, `/api/maintenance/summary` |
+| US-20 | GET · POST · PUT · DELETE · GET | `/api/events/` and `/api/events/{eid}` · `/api/events/upcoming` (merged, role-aware feed) |
+| US-21 | GET · PUT · GET | `/api/maintenance/summary` · `/api/maintenance/{tid}/complete` (now worker-or-admin) · `/api/members/workers/{user_id}/work-history` |
 
 ## Verifying the mapping
 

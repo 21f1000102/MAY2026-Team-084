@@ -3,17 +3,64 @@ from models import db, Expense, User
 
 from auth.roles import current_user, finance_required, is_admin
 from utils import (ApiError, get_body, parse_date, parse_decimal, parse_enum,
-                   parse_int, require)
+                   parse_int, parse_bool, search_term, ilike, apply_date_range,
+                   parse_amount_range, csv_response, require)
 
 expenses_bp = Blueprint("expenses", __name__)
+
+
+def _filtered_expenses_query(args):
+    """Expense query with optional filters. GET /api/expenses is finance-only,
+    so there is no role scoping to apply first — every filter here is
+    purely additive.
+
+    Note: there is no `vendor` column on Expense (only `description` and
+    `receipt_url`), so a vendor search is folded into the free-text `q`
+    search over `description` rather than inventing a filter with nothing
+    to match against.
+    """
+    query = Expense.query
+
+    category = parse_enum(args.get("category"), "expense_category", field="category")
+    if category:
+        query = query.filter(Expense.category == category)
+
+    q = search_term(args.get("q") or args.get("vendor"))
+    if q:
+        query = query.filter(ilike(Expense.description, q))
+
+    query = apply_date_range(query, Expense.expense_date, args)
+
+    min_amt, max_amt = parse_amount_range(args)
+    if min_amt is not None:
+        query = query.filter(Expense.amount >= min_amt)
+    if max_amt is not None:
+        query = query.filter(Expense.amount <= max_amt)
+
+    return query
 
 
 # GET /api/expenses — list all expenses (the ledger is admin data)
 @expenses_bp.route("/", methods=["GET"])
 @finance_required
 def get_expenses():
-    expenses = Expense.query.order_by(Expense.expense_date.desc()).all()
+    expenses = _filtered_expenses_query(request.args) \
+        .order_by(Expense.expense_date.desc()).all()
     return jsonify([_expense_dict(e) for e in expenses]), 200
+
+
+# GET /api/expenses/export — CSV of the filtered ledger
+@expenses_bp.route("/export", methods=["GET"])
+@finance_required
+def export_expenses():
+    expenses = _filtered_expenses_query(request.args) \
+        .order_by(Expense.expense_date.desc()).all()
+    columns = [
+        ("ID", "id"), ("Category", "category"), ("Description", "description"),
+        ("Amount", "amount"), ("Expense Date", "expense_date"),
+        ("Paid By", "paid_by_name"), ("Created At", "created_at"),
+    ]
+    return csv_response([_expense_dict(e) for e in expenses], columns, "expenses.csv")
 
 
 # POST /api/expenses — log new expense

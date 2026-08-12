@@ -19,6 +19,8 @@ import HealthScorePage from '../componenets/HealthScorePage.vue'
 import ConflictsPage from '../componenets/ConflictsPage.vue'
 import ParkingPage from '../componenets/ParkingPage.vue'
 import EmergencyPage from '../componenets/EmergencyPage.vue'
+import EventsPage from '../componenets/EventsPage.vue'
+import ReportsPage from '../componenets/ReportsPage.vue'
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -39,12 +41,16 @@ const routes = [
       { path: 'expenses', component: ExpensesPage, meta: { adminOnly: true } },
       { path: 'notices', component: NoticesPage },
       { path: 'polls', component: PollsPage },
-      { path: 'maintenance', component: MaintenancePage, meta: { adminOnly: true } },
+      // Admin sees/manages every task; a worker sees only their own assigned
+      // tasks (the backend scopes the list) and may mark them complete.
+      { path: 'maintenance', component: MaintenancePage },
       { path: 'equipment', component: EquipmentPage, meta: { adminOnly: true } },
       { path: 'health', component: HealthScorePage, meta: { adminOnly: true } },
       { path: 'conflicts', component: ConflictsPage },
       { path: 'parking', component: ParkingPage },
       { path: 'emergency', component: EmergencyPage },
+      { path: 'events', component: EventsPage },
+      { path: 'reports', component: ReportsPage, meta: { adminOnly: true } },
     ]
   }
 ]

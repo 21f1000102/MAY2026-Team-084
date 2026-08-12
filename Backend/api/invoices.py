@@ -1,8 +1,10 @@
 from flask import Blueprint, request, jsonify
 from models import db, Invoice, Payment, Apartment, Resident
-from datetime import datetime,date
+from datetime import datetime, date
 
-from utils import ApiError, get_body, require, parse_date, parse_decimal, parse_int
+from utils import (ApiError, get_body, require, parse_date, parse_decimal,
+                   parse_int, parse_enum, search_term, ilike,
+                   apply_date_range, parse_amount_range, csv_response)
 from auth.roles import current_user, is_admin, active_user_required, finance_required
 
 invoices_bp = Blueprint("invoices", __name__)
@@ -13,33 +15,89 @@ def _own_apartment_id(user):
     resident = Resident.query.filter_by(user_id=user.id).first()
     return resident.apartment_id if resident else None
 
-def _mark_overdue_invoices(invoices):
-    """Mark unpaid invoices as OVERDUE if due date has passed."""
-    changed = False
 
-    for invoice in invoices:
-        if invoice.status == "UNPAID" and invoice.due_date and invoice.due_date < date.today():
-            invoice.status = "OVERDUE"
-            changed = True
+def _sweep_overdue_invoices():
+    """Promote UNPAID invoices whose due date has passed to OVERDUE, as one
+    scoped bulk UPDATE that runs BEFORE any status/date filter is applied.
 
+    Doing this per-fetched-row (the old approach) broke the moment a caller
+    filtered by status: filtering status=OVERDUE excluded rows that were about
+    to be promoted, and status=UNPAID returned rows that were already stale.
+    Running the sweep first, over the whole table, keeps every filter honest.
+    """
+    changed = Invoice.query.filter(
+        Invoice.status == "UNPAID",
+        Invoice.due_date.isnot(None),
+        Invoice.due_date < date.today(),
+    ).update({"status": "OVERDUE"}, synchronize_session=False)
     if changed:
         db.session.commit()
+
+
+def _filtered_invoice_query(user, args, allow_status=True):
+    """Invoice query scoped to what `user` may see, with optional filters
+    layered on top. Returns None if a resident has no apartment (caller should
+    then return an empty list, matching the pre-filter behaviour).
+
+    Role scoping is applied first and is never touched by the filter args
+    below, so a filter can only narrow what a caller could already see.
+    """
+    if is_admin(user):
+        query = Invoice.query
+    else:
+        apartment_id = _own_apartment_id(user)
+        if not apartment_id:
+            return None
+        query = Invoice.query.filter_by(apartment_id=apartment_id)
+
+    if allow_status:
+        status = parse_enum(args.get("status"), "invoice_status", field="status")
+        if status:
+            query = query.filter_by(status=status)
+
+    month = parse_int(args.get("month"), "month", min_value=1, max_value=12)
+    if month:
+        query = query.filter_by(month=month)
+
+    year = parse_int(args.get("year"), "year", min_value=2000, max_value=2200)
+    if year:
+        query = query.filter_by(year=year)
+
+    # Not gated to admins: for a resident this simply intersects with the
+    # apartment scoping already applied above, so it can only narrow their
+    # own results (typically to nothing, if they pass someone else's flat) —
+    # never widen what they may see.
+    apartment_id_f = parse_int(args.get("apartment_id"), "apartment_id", min_value=1)
+    if apartment_id_f:
+        query = query.filter_by(apartment_id=apartment_id_f)
+
+    flat = search_term(args.get("flat") or args.get("q"))
+    if flat:
+        query = query.join(Apartment).filter(ilike(Apartment.flat_number, flat))
+
+    query = apply_date_range(query, Invoice.due_date, args)
+
+    min_amt, max_amt = parse_amount_range(args)
+    if min_amt is not None:
+        query = query.filter(Invoice.amount >= min_amt)
+    if max_amt is not None:
+        query = query.filter(Invoice.amount <= max_amt)
+
+    return query
+
 
 # GET /api/invoices — all invoices (admin) or own (resident)
 @invoices_bp.route("/", methods=["GET"])
 @active_user_required
 def get_invoices():
     user = current_user()
+    _sweep_overdue_invoices()
 
-    if is_admin(user):
-        invoices = Invoice.query.order_by(Invoice.created_at.desc()).all()
-    else:
-        apartment_id = _own_apartment_id(user)
-        if not apartment_id:
-            return jsonify([]), 200
-        invoices = Invoice.query.filter_by(apartment_id=apartment_id)\
-                    .order_by(Invoice.created_at.desc()).all()
-    _mark_overdue_invoices(invoices)
+    query = _filtered_invoice_query(user, request.args)
+    if query is None:
+        return jsonify([]), 200
+
+    invoices = query.order_by(Invoice.created_at.desc()).all()
     return jsonify([_invoice_dict(i) for i in invoices]), 200
 
 
@@ -178,19 +236,74 @@ def get_receipt(inv_id):
 @active_user_required
 def get_pending():
     user = current_user()
-    query = Invoice.query.filter(Invoice.status != "PAID")
+    _sweep_overdue_invoices()
 
-    # Previously leaked every flat's outstanding dues to any logged-in user.
-    if not is_admin(user):
-        apartment_id = _own_apartment_id(user)
-        if not apartment_id:
-            return jsonify([]), 200
-        query = query.filter_by(apartment_id=apartment_id)
+    query = _filtered_invoice_query(user, request.args, allow_status=False)
+    if query is None:
+        return jsonify([]), 200
 
+    query = query.filter(Invoice.status != "PAID")
     invoices = query.all()
-    _mark_overdue_invoices(invoices)
-
     return jsonify([_invoice_dict(i) for i in invoices]), 200
+
+
+# GET /api/invoices/summary — totals, counts and collection rate
+@invoices_bp.route("/summary", methods=["GET"])
+@active_user_required
+def invoice_summary():
+    user = current_user()
+    _sweep_overdue_invoices()
+
+    query = _filtered_invoice_query(user, request.args)
+    invoices = query.all() if query is not None else []
+
+    paid = [i for i in invoices if i.status == "PAID"]
+    unpaid = [i for i in invoices if i.status == "UNPAID"]
+    overdue = [i for i in invoices if i.status == "OVERDUE"]
+
+    total_invoiced = sum(float(i.amount) for i in invoices)
+    total_collected = sum(float(i.amount) for i in paid)
+    total_pending = sum(float(i.amount) for i in unpaid) + sum(float(i.amount) for i in overdue)
+    overdue_amount = sum(float(i.amount) for i in overdue)
+    collection_rate = round((total_collected / total_invoiced) * 100, 2) if total_invoiced else 0.0
+
+    by_month = {}
+    for i in invoices:
+        key = f"{i.year}-{i.month:02d}"
+        entry = by_month.setdefault(key, {"invoiced": 0.0, "collected": 0.0})
+        entry["invoiced"] += float(i.amount)
+        if i.status == "PAID":
+            entry["collected"] += float(i.amount)
+
+    return jsonify({
+        "total_invoiced": total_invoiced,
+        "total_collected": total_collected,
+        "total_pending": total_pending,
+        "count_paid": len(paid),
+        "count_unpaid": len(unpaid),
+        "count_overdue": len(overdue),
+        "overdue_amount": overdue_amount,
+        "collection_rate": collection_rate,
+        "by_month": by_month,
+    }), 200
+
+
+# GET /api/invoices/export — CSV of the filtered list
+@invoices_bp.route("/export", methods=["GET"])
+@active_user_required
+def export_invoices():
+    user = current_user()
+    _sweep_overdue_invoices()
+
+    query = _filtered_invoice_query(user, request.args)
+    invoices = query.order_by(Invoice.created_at.desc()).all() if query is not None else []
+
+    columns = [
+        ("ID", "id"), ("Flat", "flat_number"), ("Month", "month"), ("Year", "year"),
+        ("Amount", "amount"), ("Due Date", "due_date"), ("Status", "status"),
+        ("Created At", "created_at"),
+    ]
+    return csv_response([_invoice_dict(i) for i in invoices], columns, "invoices.csv")
 
 
 # ── helpers ───────────────────────────────────────────────────

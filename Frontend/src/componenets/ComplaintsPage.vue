@@ -1,21 +1,35 @@
 <template>
   <div>
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <div class="d-flex gap-2">
-        <select v-model="filterStatus" class="form-control-custom" style="width:100%;max-width:160px;">
-          <option value="">All Status</option>
-          <option>OPEN</option><option>ASSIGNED</option><option>IN_PROGRESS</option><option>COMPLETED</option><option>CLOSED</option>
-        </select>
-      </div>
+    <div class="d-flex justify-content-end align-items-center mb-4 gap-2">
+      <button class="btn btn-outline-secondary" @click="exportCsv" :disabled="exporting">
+        <i class="fas fa-file-csv me-2"></i>Export CSV
+      </button>
       <button class="btn-primary-custom" @click="openAdd"><i class="fas fa-plus me-2"></i>Raise Complaint</button>
+    </div>
+
+    <FilterBar :fields="filterFields" :result-count="loading ? null : complaints.length" @change="onFilterChange" />
+
+    <div v-if="summary" class="row g-3 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="stat-card"><div><div class="stat-value">{{ summary.total }}</div><div class="stat-label">Total</div></div></div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card"><div><div class="stat-value">{{ summary.pending }}</div><div class="stat-label">Pending</div></div></div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card"><div><div class="stat-value">{{ summary.resolved }}</div><div class="stat-label">Resolved</div></div></div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card"><div><div class="stat-value">{{ summary.unassigned_count }}</div><div class="stat-label">Unassigned</div></div></div>
+      </div>
     </div>
 
     <div v-if="pageMsg" class="alert-custom alert-error">{{ pageMsg }}</div>
 
     <div v-if="loading" class="spinner"></div>
     <div v-else>
-      <div v-if="filtered.length===0" class="empty-state card p-4"><i class="fas fa-check-circle" style="color:#0E7C7B;"></i><p>No complaints found</p></div>
-      <div v-for="c in filtered" :key="c.id" class="card mb-3 p-4">
+      <div v-if="complaints.length===0" class="empty-state card p-4"><i class="fas fa-check-circle" style="color:#0E7C7B;"></i><p>No complaints found</p></div>
+      <div v-for="c in complaints" :key="c.id" class="card mb-3 p-4">
         <div class="d-flex justify-content-between align-items-start">
           <div>
             <div class="d-flex gap-2 mb-2 flex-wrap">
@@ -31,6 +45,7 @@
           </div>
           <div class="d-flex gap-2 flex-column" v-if="isAdmin">
             <button v-if="c.status==='OPEN'" class="btn btn-sm btn-outline-primary" @click="openAssign(c)">Assign</button>
+            <button v-if="['ASSIGNED','IN_PROGRESS'].includes(c.status)" class="btn btn-sm btn-outline-primary" @click="openAssign(c)">Reassign</button>
             <button v-if="c.status==='ASSIGNED'" class="btn btn-sm btn-outline-warning" @click="updateStatus(c,'IN_PROGRESS')">In Progress</button>
             <button v-if="c.status==='IN_PROGRESS'" class="btn btn-sm btn-outline-success" @click="updateStatus(c,'COMPLETED')">Complete</button>
             <button v-if="['COMPLETED'].includes(c.status)" class="btn btn-sm btn-outline-secondary" @click="updateStatus(c,'CLOSED')">Close</button>
@@ -117,9 +132,10 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { complaintsAPI, membersAPI, errText } from '../api/index'
+import { complaintsAPI, membersAPI, errText, errTextFromBlob, downloadBlob } from '../api/index'
 import { authStore } from '../store/auth'
 import { badgeClass } from '../utils/format'
+import FilterBar from './FilterBar.vue'
 
 const complaints = ref([])
 const apartments = ref([])
@@ -127,10 +143,12 @@ const workers = ref([])
 const loading = ref(true)
 const saving = ref(false)
 const assigning = ref(false)
+const exporting = ref(false)
 const showAdd = ref(false)
 const showAssign = ref(false)
 const selectedComplaint = ref(null)
-const filterStatus = ref('')
+const activeFilters = ref({})
+const summary = ref(null)
 const msg = ref(null)
 const pageMsg = ref('')
 const assignMsg = ref('')
@@ -139,22 +157,53 @@ const form = ref(emptyForm())
 const assignForm = ref({ worker_id:'', remarks:'' })
 const isAdmin = computed(() => authStore.isAdmin)
 
-const filtered = computed(() =>
-  complaints.value.filter(c => !filterStatus.value || c.status === filterStatus.value)
-)
+const filterFields = [
+  { key: 'q', label: 'Search', placeholder: 'Title or description...' },
+  { key: 'status', label: 'Status', type: 'select', options: ['OPEN','ASSIGNED','IN_PROGRESS','COMPLETED','CLOSED'] },
+  { key: 'category', label: 'Category', type: 'select', options: ['PLUMBING','ELECTRICAL','CLEANING','SECURITY','OTHER'] },
+  { key: 'priority', label: 'Priority', type: 'select', options: ['LOW','MEDIUM','HIGH'] },
+  { key: 'unassigned', label: 'Unassigned only', type: 'select', options: [{ value: 'true', label: 'Yes' }] },
+]
 
 onMounted(async () => {
-  const [c, a] = await Promise.allSettled([complaintsAPI.getAll(), membersAPI.getApartments()])
-  if (c.status === 'fulfilled') complaints.value = c.value.data
-  else pageMsg.value = errText(c.reason)
+  const [a] = await Promise.allSettled([membersAPI.getApartments()])
   if (a.status === 'fulfilled') apartments.value = a.value.data
 
   // Workers are admin-only; ignore the 403 for residents.
   if (authStore.isAdmin) {
     try { workers.value = (await membersAPI.getWorkers()).data } catch (e) { /* optional */ }
   }
+
+  await loadComplaints()
   loading.value = false
 })
+
+async function onFilterChange(params) {
+  activeFilters.value = params
+  await loadComplaints()
+}
+
+async function loadComplaints() {
+  try {
+    const [list, sum] = await Promise.allSettled([
+      complaintsAPI.getAll(activeFilters.value),
+      complaintsAPI.summary(activeFilters.value),
+    ])
+    if (list.status === 'fulfilled') complaints.value = list.value.data
+    else pageMsg.value = errText(list.reason)
+    if (sum.status === 'fulfilled') summary.value = sum.value.data
+  } catch (e) { pageMsg.value = errText(e) }
+}
+
+async function exportCsv() {
+  exporting.value = true
+  pageMsg.value = ''
+  try {
+    const res = await complaintsAPI.export(activeFilters.value)
+    downloadBlob(res.data, 'complaints.csv')
+  } catch (e) { pageMsg.value = await errTextFromBlob(e) }
+  exporting.value = false
+}
 
 function openAdd() { msg.value = null; form.value = emptyForm(); showAdd.value = true }
 
@@ -164,8 +213,8 @@ async function raiseComplaint() {
   saving.value = true
   msg.value = null
   try {
-    const res = await complaintsAPI.raise(form.value)
-    complaints.value.unshift(res.data)
+    await complaintsAPI.raise(form.value)
+    await loadComplaints()
     showAdd.value = false
     form.value = emptyForm()
   } catch(e) {
@@ -189,11 +238,11 @@ async function doAssign() {
   assigning.value = true
   assignMsg.value = ''
   try {
-    const res = await complaintsAPI.assign(selectedComplaint.value.id, {
+    await complaintsAPI.assign(selectedComplaint.value.id, {
       worker_id: assignForm.value.worker_id,
       remarks: assignForm.value.remarks,
     })
-    updateLocal(res.data)
+    await loadComplaints()
     showAssign.value = false
   } catch(e) { assignMsg.value = errText(e) }
   assigning.value = false
@@ -202,14 +251,9 @@ async function doAssign() {
 async function updateStatus(c, status) {
   pageMsg.value = ''
   try {
-    const res = await complaintsAPI.updateStatus(c.id, { status })
-    updateLocal(res.data)
+    await complaintsAPI.updateStatus(c.id, { status })
+    await loadComplaints()
   } catch(e) { pageMsg.value = errText(e) }
-}
-
-function updateLocal(updated) {
-  const idx = complaints.value.findIndex(c => c.id === updated.id)
-  if (idx > -1) complaints.value[idx] = updated
 }
 
 async function deleteComplaint(id) {
@@ -217,7 +261,7 @@ async function deleteComplaint(id) {
   pageMsg.value = ''
   try {
     await complaintsAPI.delete(id)
-    complaints.value = complaints.value.filter(c => c.id !== id)
+    await loadComplaints()
   } catch(e) { pageMsg.value = errText(e) }
 }
 </script>

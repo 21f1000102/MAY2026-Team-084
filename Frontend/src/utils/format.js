@@ -89,3 +89,36 @@ export function today() {
   const pad = n => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
+
+/** A YYYY-MM-DD string as "12 Aug 2026". Null-safe. */
+export function formatDate(value) {
+  if (!value) return '—'
+  const d = new Date(`${String(value).slice(0, 10)}T00:00:00`)
+  if (Number.isNaN(d.getTime())) return String(value)
+  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+/** Days between today and a YYYY-MM-DD date (negative = already past). */
+export function daysUntil(value) {
+  if (!value) return null
+  const target = new Date(`${String(value).slice(0, 10)}T00:00:00`)
+  if (Number.isNaN(target.getTime())) return null
+  const now = new Date()
+  now.setHours(0, 0, 0, 0)
+  return Math.round((target - now) / 86400000)
+}
+
+/** Friendly "in 3 days" / "today" / "5 days ago" for a days_until count. */
+export function dueLabel(daysUntilValue) {
+  if (daysUntilValue === null || daysUntilValue === undefined) return ''
+  if (daysUntilValue === 0) return 'Today'
+  if (daysUntilValue === 1) return 'Tomorrow'
+  if (daysUntilValue > 0) return `In ${daysUntilValue} days`
+  return `${Math.abs(daysUntilValue)} days ago`
+}
+
+/** badge-urgent / badge-high / badge-low for a severity string from the
+ * /api/events/upcoming feed. */
+export function severityBadge(severity) {
+  return { urgent: 'badge-urgent', high: 'badge-high', low: 'badge-low' }[severity] || 'badge-low'
+}

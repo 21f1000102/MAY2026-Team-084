@@ -1,10 +1,12 @@
 from flask import Blueprint, request, jsonify
-from models import db, User, Apartment, Resident
+from sqlalchemy import or_
+from models import db, User, Apartment, Resident, ParkingSlot
 from werkzeug.security import generate_password_hash
 
-from auth.roles import active_user_required, admin_required
+from auth.roles import active_user_required, admin_required, current_user, is_admin
 from utils import (ApiError, clean_phone, get_body, parse_date, parse_enum,
-                   parse_int, require)
+                   parse_int, parse_bool, search_term, ilike, require,
+                   csv_response)
 
 members_bp = Blueprint("members", __name__)
 
@@ -89,12 +91,77 @@ def delete_apartment(apt_id):
 #  MEMBERS (Users + Residents)
 # ════════════════════════════════════════════════════════
 
+def _filtered_members_query(args):
+    """Resident query with optional search/filter params layered on top.
+
+    GET /api/members is admin-only, so there is no role scoping to apply
+    before these filters — every filter here is purely additive.
+    """
+    query = Resident.query.join(User).join(Apartment)
+
+    role = parse_enum(args.get("role"), "role", field="role")
+    if role:
+        query = query.filter(User.role == role)
+
+    is_owner = parse_bool(args.get("is_owner"), "is_owner")
+    if is_owner is not None:
+        query = query.filter(Resident.is_owner == is_owner)
+
+    is_active = parse_bool(args.get("is_active"), "is_active")
+    if is_active is not None:
+        query = query.filter(User.is_active == is_active)
+
+    apartment_id = parse_int(args.get("apartment_id"), "apartment_id", min_value=1)
+    if apartment_id:
+        query = query.filter(Resident.apartment_id == apartment_id)
+
+    block = search_term(args.get("block"))
+    if block:
+        query = query.filter(ilike(Apartment.block, block))
+
+    floor = parse_int(args.get("floor"), "floor")
+    if floor is not None:
+        query = query.filter(Apartment.floor == floor)
+
+    has_parking = parse_bool(args.get("has_parking"), "has_parking")
+    if has_parking is not None:
+        parked = db.session.query(ParkingSlot.occupied_by_apartment_id).filter(
+            ParkingSlot.occupied_by_apartment_id.isnot(None)
+        )
+        if has_parking:
+            query = query.filter(Apartment.id.in_(parked))
+        else:
+            query = query.filter(Apartment.id.notin_(parked))
+
+    q = search_term(args.get("q"))
+    if q:
+        query = query.filter(or_(
+            ilike(User.name, q), ilike(User.email, q),
+            ilike(User.phone, q), ilike(Apartment.flat_number, q),
+        ))
+
+    return query
+
+
 # GET /api/members — list all members with flat info
 @members_bp.route("/", methods=["GET"])
 @admin_required
 def get_members():
-    residents = Resident.query.all()
+    residents = _filtered_members_query(request.args).all()
     return jsonify([_resident_dict(r) for r in residents]), 200
+
+
+# GET /api/members/export — CSV of the filtered member list
+@members_bp.route("/export", methods=["GET"])
+@admin_required
+def export_members():
+    residents = _filtered_members_query(request.args).all()
+    columns = [
+        ("ID", "id"), ("Name", "name"), ("Email", "email"), ("Phone", "phone"),
+        ("Role", "role"), ("Flat", "flat_number"), ("Block", "block"),
+        ("Floor", "floor"), ("Owner", "is_owner"), ("Active", "is_active"),
+    ]
+    return csv_response([_resident_dict(r) for r in residents], columns, "members.csv")
 
 
 # GET /api/members/workers — WORKER accounts available for complaint assignment
@@ -209,6 +276,54 @@ def deactivate_member(resident_id):
 def get_member(resident_id):
     resident = Resident.query.get_or_404(resident_id)
     return jsonify(_resident_dict(resident)), 200
+
+
+# GET /api/members/workers/<id>/work-history — a worker's completed jobs
+@members_bp.route("/workers/<int:user_id>/work-history", methods=["GET"])
+@active_user_required
+def worker_work_history(user_id):
+    from models import Complaint, MaintenanceTask
+
+    requester = current_user()
+    worker = User.query.get_or_404(user_id)
+    if worker.role != "WORKER":
+        raise ApiError("That user is not a maintenance worker", 400)
+
+    # Readable by the worker themselves or by an admin — not by other workers
+    # or residents.
+    if not (is_admin(requester) or requester.id == worker.id):
+        raise ApiError("You are not allowed to view this work history", 403)
+
+    complaints = Complaint.query.filter_by(
+        assigned_worker_id=worker.id, status="COMPLETED"
+    ).order_by(Complaint.resolved_at.desc()).all()
+
+    tasks = MaintenanceTask.query.filter_by(
+        assigned_to=worker.id, status="COMPLETED"
+    ).order_by(MaintenanceTask.completed_at.desc()).all()
+
+    return jsonify({
+        "user_id": worker.id,
+        "name": worker.name,
+        "completed_complaints": [{
+            "id": c.id,
+            "title": c.title,
+            "category": c.category,
+            "flat_number": c.apartment.flat_number if c.apartment else None,
+            "resolved_at": str(c.resolved_at) if c.resolved_at else None,
+        } for c in complaints],
+        "completed_maintenance": [{
+            "id": t.id,
+            "title": t.title,
+            "category": t.category,
+            "completed_at": str(t.completed_at) if t.completed_at else None,
+        } for t in tasks],
+        "totals": {
+            "complaints": len(complaints),
+            "maintenance": len(tasks),
+            "total": len(complaints) + len(tasks),
+        },
+    }), 200
 
 
 # ── helpers ───────────────────────────────────────────────────

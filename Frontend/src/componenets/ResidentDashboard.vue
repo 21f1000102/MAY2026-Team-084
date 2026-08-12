@@ -59,6 +59,11 @@
           </div>
         </div>
 
+        <!-- Upcoming deadlines & reminders -->
+        <div class="col-md-6">
+          <UpcomingCard />
+        </div>
+
         <!-- Emergency Contacts quick-dial (hidden when none exist) -->
         <div class="col-12" v-if="emergency.length > 0">
           <div class="card">
@@ -93,6 +98,7 @@
 import { ref, onMounted } from 'vue'
 import { invoicesAPI, complaintsAPI, noticesAPI, emergencyAPI, errText } from '../api/index'
 import { badgeClass, label, num, serviceMeta, telHref } from '../utils/format'
+import UpcomingCard from './UpcomingCard.vue'
 
 const loading = ref(true)
 const msg = ref('')

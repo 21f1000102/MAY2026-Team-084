@@ -31,9 +31,13 @@ info:
     | **US-15** | As a **Association manager**, I want to track equipment servicing and get a 30-day maintenance forecast, so that I can budget for and schedule servicing before something fails. |
     | **US-16** | As a **Resident**, I want to report a conflict with a neighbour anonymously and let the secretary mediate, so that the issue is resolved without a direct confrontation. |
     | **US-17** | As a **Committee member**, I want to see a monthly society health score across payments, complaints, notices, polls and maintenance, so that we can spot problems early and track whether things are improving. |
+    | **US-18** | As a **Association manager**, I want to search and filter members, complaints, invoices, expenses and maintenance tasks by common criteria, so that I can find a specific record quickly without scanning the whole list. |
+    | **US-19** | As a **Treasurer**, I want summary reports and exportable data for complaints and payments, so that I can review society performance without manually counting records. |
+    | **US-20** | As a **Resident**, I want to see upcoming rent due dates, society meetings and other deadlines in one place, so that I do not miss them. |
+    | **US-21** | As a **Maintenance worker**, I want a dashboard scoped to my own assigned complaints and tasks, with the ability to complete them and see my work history, so that I can do my job without seeing data that is not mine. |
 
     The same table is maintained in `docs/USER_STORIES.md`.
-  version: 4.0.0
+  version: 4.1.0
 servers:
 - url: http://localhost:5000
   description: Local development server
@@ -64,6 +68,8 @@ tags:
   description: Live visitor parking slot availability
 - name: Emergency
   description: Directory of emergency service contacts (plumbers, electricians, security, etc.)
+- name: Events
+  description: Society meetings/events and the merged upcoming-deadlines feed
 paths:
   /api/auth/register:
     post:
@@ -487,21 +493,62 @@ paths:
       - Members
       summary: List members
       description: |-
-        Lists every resident with their flat, role and contact details. **Admin-only** (ADMIN, SYSTEM_ADMIN, TREASURER, COMMITTEE_MEMBER) — this is society-wide personal data. **User Story — US-09**
+        Lists every resident with their flat, role and contact details, optionally narrowed by any combination of the query filters below. **Admin-only** (ADMIN, SYSTEM_ADMIN, TREASURER, COMMITTEE_MEMBER) — this is society-wide personal data. **User Story — US-09, US-18**
 
         Access: ADMIN, SYSTEM_ADMIN, TREASURER or COMMITTEE_MEMBER.
-      x-user-story: US-09
+      x-user-story:
+      - US-09
+      - US-18
       security:
       - bearerAuth: []
+      parameters:
+      - name: q
+        in: query
+        schema:
+          type: string
+        description: Free-text search across name, email, phone and flat number.
+      - name: role
+        in: query
+        schema:
+          type: string
+        description: Exact role match, e.g. TENANT, OWNER, WORKER.
+      - name: is_owner
+        in: query
+        schema:
+          type: boolean
+        description: 'true = owners only, false = tenants only.'
+      - name: is_active
+        in: query
+        schema:
+          type: boolean
+      - name: apartment_id
+        in: query
+        schema:
+          type: integer
+      - name: block
+        in: query
+        schema:
+          type: string
+      - name: floor
+        in: query
+        schema:
+          type: integer
+      - name: has_parking
+        in: query
+        schema:
+          type: boolean
+        description: Whether the member's flat currently has an occupied or reserved parking slot.
       responses:
         '200':
-          description: List of members.
+          description: List of members, optionally filtered.
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/Resident'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           description: Missing, invalid, or expired JWT bearer token.
           content:
@@ -602,6 +649,78 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       operationId: members_add_member
+      x-required-role: ADMIN, SYSTEM_ADMIN, TREASURER or COMMITTEE_MEMBER
+  /api/members/export:
+    get:
+      tags:
+      - Members
+      summary: Export members as CSV
+      description: |-
+        Same role scoping and query filters as GET /api/members/, returned as a downloadable CSV instead of JSON. **User Story — US-19**
+
+        Access: ADMIN, SYSTEM_ADMIN, TREASURER or COMMITTEE_MEMBER.
+      x-user-story: US-19
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: q
+        in: query
+        schema:
+          type: string
+      - name: role
+        in: query
+        schema:
+          type: string
+      - name: is_owner
+        in: query
+        schema:
+          type: boolean
+      - name: is_active
+        in: query
+        schema:
+          type: boolean
+      - name: apartment_id
+        in: query
+        schema:
+          type: integer
+      - name: block
+        in: query
+        schema:
+          type: string
+      - name: floor
+        in: query
+        schema:
+          type: integer
+      - name: has_parking
+        in: query
+        schema:
+          type: boolean
+      responses:
+        '200':
+          description: CSV file of the filtered member list.
+          content:
+            text/csv:
+              schema:
+                type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: Missing, invalid, or expired JWT bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          description: Unexpected server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      operationId: members_export_members
       x-required-role: ADMIN, SYSTEM_ADMIN, TREASURER or COMMITTEE_MEMBER
   /api/members/{resident_id}:
     get:
@@ -776,12 +895,76 @@ paths:
       - Complaints
       summary: List complaints
       description: |-
-        Lists complaints, scoped by role: admins see all; a **WORKER sees complaints assigned to them as well as any they raised**; every other resident sees only their own. **User Story — US-03**
+        Lists complaints, scoped by role: admins see all; a **WORKER sees complaints assigned to them as well as any they raised**; every other resident sees only their own. The query filters below are applied on top of that scoping — they can only narrow what a caller could already see, never widen it. **User Story — US-03, US-18**
 
         Access: any authenticated, active user.
-      x-user-story: US-03
+      x-user-story:
+      - US-03
+      - US-18
       security:
       - bearerAuth: []
+      parameters:
+      - name: q
+        in: query
+        schema:
+          type: string
+        description: Free-text search across title and description.
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - OPEN
+          - ASSIGNED
+          - IN_PROGRESS
+          - COMPLETED
+          - CLOSED
+      - name: category
+        in: query
+        schema:
+          type: string
+      - name: priority
+        in: query
+        schema:
+          type: string
+      - name: apartment_id
+        in: query
+        schema:
+          type: integer
+      - name: assigned_worker_id
+        in: query
+        schema:
+          type: integer
+      - name: worker
+        in: query
+        schema:
+          type: string
+        description: Match on the assigned worker's name.
+      - name: raised_by
+        in: query
+        schema:
+          type: string
+        description: Match on the raising resident's name.
+      - name: unassigned
+        in: query
+        schema:
+          type: boolean
+        description: 'true = only complaints with no assigned worker.'
+      - name: overdue
+        in: query
+        schema:
+          type: boolean
+        description: 'true = still open (not COMPLETED/CLOSED) and raised more than 7 days ago. Complaints have no due date, so this is a derived proximity predicate.'
+      - name: from
+        in: query
+        schema:
+          type: string
+        description: Inclusive lower bound on created_at (YYYY-MM-DD).
+      - name: to
+        in: query
+        schema:
+          type: string
+        description: Inclusive upper bound on created_at (YYYY-MM-DD).
       responses:
         '200':
           description: Complaints list, most recent first.
@@ -791,6 +974,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Complaint'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           description: Missing, invalid, or expired JWT bearer token.
           content:
@@ -1099,20 +1284,189 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       operationId: complaints_update_status
       x-required-role: any authenticated, active user
+  /api/complaints/summary:
+    get:
+      tags:
+      - Complaints
+      summary: Complaint counts and breakdowns
+      description: |-
+        Counts, status/category/priority breakdowns and average resolution time over the same role-scoped, optionally filtered set of complaints as GET /api/complaints/. Accepts the identical query filters. **User Story — US-19**
+
+        Access: any authenticated, active user (scoped exactly like the list).
+      x-user-story: US-19
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: q
+        in: query
+        schema:
+          type: string
+      - name: status
+        in: query
+        schema:
+          type: string
+      - name: category
+        in: query
+        schema:
+          type: string
+      - name: priority
+        in: query
+        schema:
+          type: string
+      - name: apartment_id
+        in: query
+        schema:
+          type: integer
+      - name: from
+        in: query
+        schema:
+          type: string
+      - name: to
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Complaint summary for the caller's scope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplaintSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      operationId: complaints_summary
+      x-required-role: any authenticated, active user
+  /api/complaints/export:
+    get:
+      tags:
+      - Complaints
+      summary: Export complaints as CSV
+      description: |-
+        Same role scoping and query filters as GET /api/complaints/, returned as a downloadable CSV. **User Story — US-19**
+
+        Access: any authenticated, active user (scoped exactly like the list).
+      x-user-story: US-19
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: q
+        in: query
+        schema:
+          type: string
+      - name: status
+        in: query
+        schema:
+          type: string
+      - name: category
+        in: query
+        schema:
+          type: string
+      - name: priority
+        in: query
+        schema:
+          type: string
+      - name: apartment_id
+        in: query
+        schema:
+          type: integer
+      - name: from
+        in: query
+        schema:
+          type: string
+      - name: to
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: CSV file of the filtered complaints list.
+          content:
+            text/csv:
+              schema:
+                type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      operationId: complaints_export
+      x-required-role: any authenticated, active user
   /api/invoices/:
     get:
       tags:
       - Invoices
       summary: List invoices
       description: |-
-        Lists invoices. Any admin role (ADMIN, SYSTEM_ADMIN, TREASURER, COMMITTEE_MEMBER) sees every invoice; a resident sees only their own flat's.
+        Lists invoices, most recent first. Any admin role (ADMIN, SYSTEM_ADMIN, TREASURER, COMMITTEE_MEMBER) sees every invoice; a resident sees only their own flat's. Before this or any other invoice endpoint reads the table, a scoped bulk update promotes any UNPAID invoice whose due date has passed to OVERDUE, so status filters are never stale. The query filters below are applied on top of role scoping — they can only narrow what a caller could already see. **User Story — US-05, US-06, US-18**
 
         Access: any authenticated, active user.
       x-user-story:
       - US-05
       - US-06
+      - US-18
       security:
       - bearerAuth: []
+      parameters:
+      - name: q
+        in: query
+        schema:
+          type: string
+        description: Alias for `flat` — matches the flat number.
+      - name: flat
+        in: query
+        schema:
+          type: string
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - PAID
+          - UNPAID
+          - OVERDUE
+      - name: month
+        in: query
+        schema:
+          type: integer
+      - name: year
+        in: query
+        schema:
+          type: integer
+      - name: apartment_id
+        in: query
+        schema:
+          type: integer
+      - name: min_amount
+        in: query
+        schema:
+          type: number
+      - name: max_amount
+        in: query
+        schema:
+          type: number
+      - name: from
+        in: query
+        schema:
+          type: string
+        description: Inclusive lower bound on due_date (YYYY-MM-DD).
+      - name: to
+        in: query
+        schema:
+          type: string
+        description: Inclusive upper bound on due_date (YYYY-MM-DD).
       responses:
         '200':
           description: Invoices list, most recent first.
@@ -1122,6 +1476,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Invoice'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           description: Missing, invalid, or expired JWT bearer token.
           content:
@@ -1254,12 +1610,51 @@ paths:
       - Invoices
       summary: List all pending invoices
       description: |-
-        Lists unpaid invoices. Admins and the treasurer see every flat; a resident sees only their own flat's outstanding dues. **User Story — US-01**
+        Lists unpaid invoices (UNPAID or OVERDUE). Admins and the treasurer see every flat; a resident sees only their own flat's outstanding dues. Accepts the same filters as GET /api/invoices/, minus `status` (this endpoint already excludes PAID). **User Story — US-01, US-18**
 
         Access: any authenticated, active user.
-      x-user-story: US-01
+      x-user-story:
+      - US-01
+      - US-18
       security:
       - bearerAuth: []
+      parameters:
+      - name: q
+        in: query
+        schema:
+          type: string
+      - name: flat
+        in: query
+        schema:
+          type: string
+      - name: month
+        in: query
+        schema:
+          type: integer
+      - name: year
+        in: query
+        schema:
+          type: integer
+      - name: apartment_id
+        in: query
+        schema:
+          type: integer
+      - name: min_amount
+        in: query
+        schema:
+          type: number
+      - name: max_amount
+        in: query
+        schema:
+          type: number
+      - name: from
+        in: query
+        schema:
+          type: string
+      - name: to
+        in: query
+        schema:
+          type: string
       responses:
         '200':
           description: Pending invoices, across all apartments.
@@ -1269,6 +1664,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Invoice'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           description: Missing, invalid, or expired JWT bearer token.
           content:
@@ -1407,27 +1804,208 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       operationId: invoices_get_receipt
       x-required-role: any authenticated, active user
+  /api/invoices/summary:
+    get:
+      tags:
+      - Invoices
+      summary: Invoice totals, counts and collection rate
+      description: |-
+        Totals, PAID/UNPAID/OVERDUE counts and a monthly breakdown over the same role-scoped, optionally filtered set of invoices as GET /api/invoices/. Accepts the identical query filters. The overdue sweep runs first, so `count_overdue` is always current. **User Story — US-19**
+
+        Access: any authenticated, active user (scoped exactly like the list).
+      x-user-story: US-19
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: q
+        in: query
+        schema:
+          type: string
+      - name: flat
+        in: query
+        schema:
+          type: string
+      - name: status
+        in: query
+        schema:
+          type: string
+      - name: month
+        in: query
+        schema:
+          type: integer
+      - name: year
+        in: query
+        schema:
+          type: integer
+      - name: apartment_id
+        in: query
+        schema:
+          type: integer
+      - name: min_amount
+        in: query
+        schema:
+          type: number
+      - name: max_amount
+        in: query
+        schema:
+          type: number
+      - name: from
+        in: query
+        schema:
+          type: string
+      - name: to
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Invoice summary for the caller's scope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      operationId: invoices_summary
+      x-required-role: any authenticated, active user
+  /api/invoices/export:
+    get:
+      tags:
+      - Invoices
+      summary: Export invoices as CSV
+      description: |-
+        Same role scoping and query filters as GET /api/invoices/, returned as a downloadable CSV. **User Story — US-19**
+
+        Access: any authenticated, active user (scoped exactly like the list).
+      x-user-story: US-19
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: q
+        in: query
+        schema:
+          type: string
+      - name: flat
+        in: query
+        schema:
+          type: string
+      - name: status
+        in: query
+        schema:
+          type: string
+      - name: month
+        in: query
+        schema:
+          type: integer
+      - name: year
+        in: query
+        schema:
+          type: integer
+      - name: apartment_id
+        in: query
+        schema:
+          type: integer
+      - name: min_amount
+        in: query
+        schema:
+          type: number
+      - name: max_amount
+        in: query
+        schema:
+          type: number
+      - name: from
+        in: query
+        schema:
+          type: string
+      - name: to
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: CSV file of the filtered invoices list.
+          content:
+            text/csv:
+              schema:
+                type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      operationId: invoices_export
+      x-required-role: any authenticated, active user
   /api/expenses/:
     get:
       tags:
       - Expenses
       summary: List expenses
       description: |-
-        Returns every logged society expense, most recent first. **User Story — US-14**
+        Returns every logged society expense, most recent first, optionally narrowed by the query filters below. There is no dedicated `vendor` column on Expense — a `vendor` value searches the free-text `description` field instead. **User Story — US-14, US-18**
 
         Access: ADMIN, SYSTEM_ADMIN or TREASURER.
-      x-user-story: US-14
+      x-user-story:
+      - US-14
+      - US-18
       security:
       - bearerAuth: []
+      parameters:
+      - name: q
+        in: query
+        schema:
+          type: string
+        description: Free-text search over description.
+      - name: vendor
+        in: query
+        schema:
+          type: string
+        description: Alias for `q` — there is no dedicated vendor column, so this also searches description.
+      - name: category
+        in: query
+        schema:
+          type: string
+      - name: min_amount
+        in: query
+        schema:
+          type: number
+      - name: max_amount
+        in: query
+        schema:
+          type: number
+      - name: from
+        in: query
+        schema:
+          type: string
+        description: Inclusive lower bound on expense_date (YYYY-MM-DD).
+      - name: to
+        in: query
+        schema:
+          type: string
+        description: Inclusive upper bound on expense_date (YYYY-MM-DD).
       responses:
         '200':
-          description: Expense list.
+          description: Expense list, optionally filtered.
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/Expense'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           description: Missing, invalid, or expired JWT bearer token.
           content:
@@ -1669,6 +2247,66 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       operationId: expenses_summary
+      x-required-role: ADMIN, SYSTEM_ADMIN or TREASURER
+  /api/expenses/export:
+    get:
+      tags:
+      - Expenses
+      summary: Export expenses as CSV
+      description: |-
+        Same query filters as GET /api/expenses/, returned as a downloadable CSV. **User Story — US-19**
+
+        Access: ADMIN, SYSTEM_ADMIN or TREASURER.
+      x-user-story: US-19
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: q
+        in: query
+        schema:
+          type: string
+      - name: vendor
+        in: query
+        schema:
+          type: string
+      - name: category
+        in: query
+        schema:
+          type: string
+      - name: min_amount
+        in: query
+        schema:
+          type: number
+      - name: max_amount
+        in: query
+        schema:
+          type: number
+      - name: from
+        in: query
+        schema:
+          type: string
+      - name: to
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: CSV file of the filtered expense ledger.
+          content:
+            text/csv:
+              schema:
+                type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      operationId: expenses_export
       x-required-role: ADMIN, SYSTEM_ADMIN or TREASURER
   /api/notices/:
     get:
@@ -2210,21 +2848,58 @@ paths:
       - Maintenance
       summary: List maintenance tasks
       description: |-
-        Returns every scheduled maintenance task (e.g. generator service, cleaning), ordered by scheduled date. **User Story — US-11**
+        Returns scheduled maintenance tasks (e.g. generator service, cleaning), ordered by scheduled date, scoped by role: admins see every task; a **WORKER sees only tasks assigned to them**; residents keep the pre-existing read-only view of every task. The query filters below are applied on top of that scoping, so they can only narrow what a caller could already see. **User Story — US-11, US-18**
 
         Access: any authenticated, active user.
-      x-user-story: US-11
+      x-user-story:
+      - US-11
+      - US-18
       security:
       - bearerAuth: []
+      parameters:
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+          - PENDING
+          - IN_PROGRESS
+          - COMPLETED
+      - name: category
+        in: query
+        schema:
+          type: string
+      - name: assigned_to
+        in: query
+        schema:
+          type: integer
+        description: users.id of the assigned worker.
+      - name: worker
+        in: query
+        schema:
+          type: string
+        description: Match on the assigned worker's name.
+      - name: from
+        in: query
+        schema:
+          type: string
+        description: Inclusive lower bound on scheduled_date (YYYY-MM-DD).
+      - name: to
+        in: query
+        schema:
+          type: string
+        description: Inclusive upper bound on scheduled_date (YYYY-MM-DD).
       responses:
         '200':
-          description: Maintenance task list.
+          description: Maintenance task list, role-scoped and optionally filtered.
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/MaintenanceTask'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           description: Missing, invalid, or expired JWT bearer token.
           content:
@@ -2307,6 +2982,60 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       operationId: maintenance_add_task
       x-required-role: ADMIN, SYSTEM_ADMIN, TREASURER or COMMITTEE_MEMBER
+  /api/maintenance/summary:
+    get:
+      tags:
+      - Maintenance
+      summary: Maintenance task counts and breakdowns
+      description: |-
+        Counts and status/category breakdowns over the same role-scoped, optionally filtered set of tasks as GET /api/maintenance/ — this is what feeds a worker's own stat cards. **User Story — US-19, US-21**
+
+        Access: any authenticated, active user (scoped exactly like the list).
+      x-user-story:
+      - US-19
+      - US-21
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: status
+        in: query
+        schema:
+          type: string
+      - name: category
+        in: query
+        schema:
+          type: string
+      - name: assigned_to
+        in: query
+        schema:
+          type: integer
+      - name: from
+        in: query
+        schema:
+          type: string
+      - name: to
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Maintenance task summary for the caller's scope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      operationId: maintenance_summary
+      x-required-role: any authenticated, active user
   /api/maintenance/{tid}:
     put:
       tags:
@@ -2431,10 +3160,12 @@ paths:
       - Maintenance
       summary: Mark task complete
       description: |-
-        Marks a maintenance task as COMPLETED and records the completion timestamp. **User Story — US-11**
+        Marks a maintenance task as COMPLETED and records the completion timestamp. Any admin role may complete any task; a **WORKER may only complete a task assigned to them**. **User Story — US-11, US-21**
 
-        Access: ADMIN, SYSTEM_ADMIN, TREASURER or COMMITTEE_MEMBER.
-      x-user-story: US-11
+        Access: ADMIN, SYSTEM_ADMIN, TREASURER, COMMITTEE_MEMBER, or the WORKER the task is assigned to.
+      x-user-story:
+      - US-11
+      - US-21
       security:
       - bearerAuth: []
       parameters:
@@ -2474,7 +3205,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
       operationId: maintenance_complete_task
-      x-required-role: ADMIN, SYSTEM_ADMIN, TREASURER or COMMITTEE_MEMBER
+      x-required-role: ADMIN, SYSTEM_ADMIN, TREASURER, COMMITTEE_MEMBER, or the assigned WORKER
   /api/equipment/:
     get:
       tags:
@@ -3862,6 +4593,286 @@ paths:
           $ref: '#/components/responses/ServerError'
       operationId: members_get_workers
       x-required-role: ADMIN, SYSTEM_ADMIN, TREASURER or COMMITTEE_MEMBER
+  /api/members/workers/{user_id}/work-history:
+    get:
+      tags:
+      - Members
+      summary: A worker's completed-work history
+      description: |-
+        Returns a worker's completed complaints and completed maintenance tasks with totals, derived entirely from existing columns. **User Story — US-21**
+
+        Access: the worker themselves, or ADMIN, SYSTEM_ADMIN, TREASURER or COMMITTEE_MEMBER.
+      x-user-story: US-21
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: users.id of the target worker.
+      responses:
+        '200':
+          description: Completed work history for the worker.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkHistory'
+        '400':
+          description: The target user is not a maintenance worker.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Caller is neither the worker themselves nor an admin.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: No user with this id.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      operationId: members_worker_work_history
+      x-required-role: the worker themselves, or ADMIN, SYSTEM_ADMIN, TREASURER or COMMITTEE_MEMBER
+  /api/events/:
+    get:
+      tags:
+      - Events
+      summary: List events
+      description: |-
+        Lists active society events/meetings, soonest first, optionally filtered. **User Story — US-20**
+
+        Access: any authenticated, active user.
+      x-user-story: US-20
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: q
+        in: query
+        schema:
+          type: string
+        description: Free-text search over title.
+      - name: event_type
+        in: query
+        schema:
+          type: string
+          enum:
+          - MEETING
+          - EVENT
+          - HOLIDAY
+          - DEADLINE
+          - OTHER
+      - name: from
+        in: query
+        schema:
+          type: string
+        description: Inclusive lower bound on event_date (YYYY-MM-DD).
+      - name: to
+        in: query
+        schema:
+          type: string
+        description: Inclusive upper bound on event_date (YYYY-MM-DD).
+      responses:
+        '200':
+          description: Active events, soonest first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      operationId: events_get_events
+      x-required-role: any authenticated, active user
+    post:
+      tags:
+      - Events
+      summary: Create event
+      description: |-
+        Creates a society event/meeting. **User Story — US-20**
+
+        Access: ADMIN, SYSTEM_ADMIN, TREASURER or COMMITTEE_MEMBER.
+      x-user-story: US-20
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventCreateRequest'
+        description: JSON object. Unknown fields are ignored; blank optional values are stored as null.
+      responses:
+        '201':
+          description: Event created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '400':
+          description: title or event_date is missing, or event_type is not a valid enum value.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      operationId: events_add_event
+      x-required-role: ADMIN, SYSTEM_ADMIN, TREASURER or COMMITTEE_MEMBER
+  /api/events/{eid}:
+    put:
+      tags:
+      - Events
+      summary: Update event
+      description: |-
+        Updates a society event/meeting. Only supplied fields are changed. **User Story — US-20**
+
+        Access: ADMIN, SYSTEM_ADMIN, TREASURER or COMMITTEE_MEMBER.
+      x-user-story: US-20
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: eid
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Identifier of the target record.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventCreateRequest'
+      responses:
+        '200':
+          description: Event updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: No event with this id.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      operationId: events_update_event
+      x-required-role: ADMIN, SYSTEM_ADMIN, TREASURER or COMMITTEE_MEMBER
+    delete:
+      tags:
+      - Events
+      summary: Delete event
+      description: |-
+        Soft-deletes an event (sets is_active=false), the same pattern used by Announcements. **User Story — US-20**
+
+        Access: ADMIN, SYSTEM_ADMIN, TREASURER or COMMITTEE_MEMBER.
+      x-user-story: US-20
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: eid
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Identifier of the target record.
+      responses:
+        '200':
+          description: Event deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: No event with this id.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      operationId: events_delete_event
+      x-required-role: ADMIN, SYSTEM_ADMIN, TREASURER or COMMITTEE_MEMBER
+  /api/events/upcoming:
+    get:
+      tags:
+      - Events
+      summary: Merged upcoming-deadlines feed
+      description: |-
+        A single chronologically sorted, role-aware feed merging manual events, the caller's own unpaid invoices (or every flat's for an admin), active polls, maintenance tasks (admin and the assigned worker), and equipment service dates (admin only). Calendar (.ics) export is not implemented — this is an in-app feed only. **User Story — US-20**
+
+        Access: any authenticated, active user.
+      x-user-story: US-20
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: days
+        in: query
+        schema:
+          type: integer
+          default: 30
+        description: How many days ahead to include. 1-365.
+      responses:
+        '200':
+          description: Upcoming items, soonest (or most overdue) first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpcomingItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      operationId: events_upcoming
+      x-required-role: any authenticated, active user
 components:
   securitySchemes:
     bearerAuth:
@@ -4409,6 +5420,201 @@ components:
       - name
       - service_type
       - phone
+    ComplaintSummary:
+      type: object
+      description: Counts and breakdowns over the same role-scoped, optionally filtered set of complaints as GET /api/complaints/.
+      properties:
+        total:
+          type: integer
+        by_status:
+          type: object
+          description: Count per status (OPEN, ASSIGNED, IN_PROGRESS, COMPLETED, CLOSED).
+        pending:
+          type: integer
+          description: Sum of OPEN + ASSIGNED + IN_PROGRESS.
+        resolved:
+          type: integer
+          description: Sum of COMPLETED + CLOSED.
+        by_category:
+          type: object
+        by_priority:
+          type: object
+        avg_resolution_days:
+          type: number
+          nullable: true
+          description: Average days between created_at and resolved_at, across resolved complaints in scope. Null if none are resolved.
+        unassigned_count:
+          type: integer
+    InvoiceSummary:
+      type: object
+      description: Totals and a monthly breakdown over the same role-scoped, optionally filtered set of invoices as GET /api/invoices/. The overdue sweep runs first, so counts are always current.
+      properties:
+        total_invoiced:
+          type: number
+        total_collected:
+          type: number
+        total_pending:
+          type: number
+        count_paid:
+          type: integer
+        count_unpaid:
+          type: integer
+        count_overdue:
+          type: integer
+        overdue_amount:
+          type: number
+        collection_rate:
+          type: number
+          description: total_collected / total_invoiced * 100, rounded to 2 decimals. 0 if nothing is invoiced.
+        by_month:
+          type: object
+          description: 'Keyed by "YYYY-MM", each value an object with `invoiced` and `collected` totals.'
+    MaintenanceSummary:
+      type: object
+      description: Counts over the same role-scoped, optionally filtered set of tasks as GET /api/maintenance/.
+      properties:
+        total:
+          type: integer
+        by_status:
+          type: object
+          description: Count per status (PENDING, IN_PROGRESS, COMPLETED).
+        by_category:
+          type: object
+        overdue_count:
+          type: integer
+          description: Tasks not COMPLETED whose scheduled_date has passed.
+    WorkHistory:
+      type: object
+      properties:
+        user_id:
+          type: integer
+        name:
+          type: string
+        completed_complaints:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              title:
+                type: string
+              category:
+                type: string
+              flat_number:
+                type: string
+                nullable: true
+              resolved_at:
+                type: string
+                nullable: true
+        completed_maintenance:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              title:
+                type: string
+              category:
+                type: string
+              completed_at:
+                type: string
+                nullable: true
+        totals:
+          type: object
+          properties:
+            complaints:
+              type: integer
+            maintenance:
+              type: integer
+            total:
+              type: integer
+    Event:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        event_type:
+          type: string
+          enum:
+          - MEETING
+          - EVENT
+          - HOLIDAY
+          - DEADLINE
+          - OTHER
+        event_date:
+          type: string
+        event_time:
+          type: string
+          nullable: true
+        location:
+          type: string
+          nullable: true
+        created_by:
+          type: integer
+        created_at:
+          type: string
+    EventCreateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        event_type:
+          type: string
+          enum:
+          - MEETING
+          - EVENT
+          - HOLIDAY
+          - DEADLINE
+          - OTHER
+        event_date:
+          type: string
+        event_time:
+          type: string
+        location:
+          type: string
+      required:
+      - title
+      - event_date
+    UpcomingItem:
+      type: object
+      description: One entry in the merged /api/events/upcoming feed, merged from manual events, unpaid invoices, active polls, maintenance tasks and equipment service dates.
+      properties:
+        type:
+          type: string
+          description: 'The event type/category, e.g. MEETING, DEADLINE, MAINTENANCE.'
+        title:
+          type: string
+        date:
+          type: string
+        days_until:
+          type: integer
+          description: Negative when the date is already in the past.
+        severity:
+          type: string
+          enum:
+          - urgent
+          - high
+          - low
+        source:
+          type: string
+          enum:
+          - event
+          - invoice
+          - poll
+          - maintenance
+          - equipment
+        link:
+          type: string
+          description: Frontend route this item corresponds to.
   responses:
     BadRequest:
       description: Validation failed — a required field is missing, or a value has the wrong type/format
@@ -4534,3 +5740,19 @@ x-user-stories:
     role: Committee member
     want: see a monthly society health score across payments, complaints, notices, polls and maintenance
     so_that: we can spot problems early and track whether things are improving
+  US-18:
+    role: Association manager
+    want: search and filter members, complaints, invoices, expenses and maintenance tasks by common criteria
+    so_that: I can find a specific record quickly without scanning the whole list
+  US-19:
+    role: Treasurer
+    want: summary reports and exportable data for complaints and payments
+    so_that: I can review society performance without manually counting records
+  US-20:
+    role: Resident
+    want: see upcoming rent due dates, society meetings and other deadlines in one place
+    so_that: I do not miss them
+  US-21:
+    role: Maintenance worker
+    want: a dashboard scoped to my own assigned complaints and tasks, with the ability to complete them and see my work history
+    so_that: I can do my job without seeing data that is not mine

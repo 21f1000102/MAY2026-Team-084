@@ -14,7 +14,7 @@ complaint tracking, managing dues efficiently, and maintaining proper records.
 
 | Path | Contents |
 |------|----------|
-| [`Backend/`](Backend/) | Flask API — `app.py`, `models.py`, `config.py`, `api/` (13 blueprints), `tests/`, `seed.py`, `auth/`, `openapi.yaml` |
+| [`Backend/`](Backend/) | Flask API — `app.py`, `models.py`, `config.py`, `api/` (14 blueprints), `tests/`, `seed.py`, `auth/`, `openapi.yaml` |
 | [`Frontend/`](Frontend/) | Vue 3 SPA — `src/` (pages, router, store, API client), `vite.config.js` |
 | [`docs/`](docs/) | Design docs, [user stories](docs/USER_STORIES.md), [test cases](docs/TEST_CASES.md), [development plan](docs/DEVELOPMENT_PLAN.md) |
 | [`diagrams/`](diagrams/) | Python generators (Graphviz + matplotlib) and rendered PNG/SVG diagrams |
@@ -64,9 +64,16 @@ existing one. Roles: `ADMIN`, `TREASURER`, `COMMITTEE_MEMBER` (admin views), `TE
 ## Core features
 
 * Membership management (apartments, owners, tenants)
-* Complaint and maintenance management
+* Complaint and maintenance management, with a **Worker role** scoped to their own assigned
+  complaints and tasks — completing work and viewing their own work history
 * Invoice and payment tracking, expenses and monthly summary
 * Notices and community polls
+* **Search & filter** on members, complaints, invoices and maintenance — server-side, so a
+  filtered view respects the same role scoping as the unfiltered list
+* **Summary reports** for complaints and payments, with charts, CSV export and print/PDF on a
+  dedicated Reports page
+* **Upcoming deadlines & reminders** — a merged, role-aware feed of rent due dates, meetings,
+  poll deadlines and maintenance, surfaced on every dashboard
 * **Smart Maintenance Predictor** — equipment service forecasting
 * **Society Health Score** — monthly composite score
 * **Neighbour Conflict Resolver** — anonymous reporting
@@ -94,15 +101,16 @@ All endpoints live under `/api/*` and (except register/login) require an
 | `conflicts` | `/api/conflicts` | anonymous neighbour-conflict resolver |
 | `parking` | `/api/parking` | live visitor parking slots |
 | `emergency` | `/api/emergency` | emergency contact directory (admin manages, all roles read) |
+| `events` | `/api/events` | society events/meetings + the merged `upcoming` deadlines feed |
 
 ---
 
 ## Testing
 
-539 automated API tests covering all 13 blueprints — happy paths, validation, role
+613 automated API tests covering all 14 blueprints — happy paths, validation, role
 authorization, and business rules, plus a regression suite for every defect testing has caught.
 
-**6 of them fail on purpose.** `tests/test_open_defects.py` asserts the behaviour the API
+**5 of them fail on purpose.** `tests/test_open_defects.py` asserts the behaviour the API
 *should* have; each failure is a real defect we found and have not fixed yet, so it stays
 visible in every run instead of hiding in a document. A run is healthy when **regressions = 0**.
 
