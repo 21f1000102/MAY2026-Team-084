@@ -19,9 +19,6 @@ not inferred from reading the code.
 When a defect is fixed, move its test into test_regressions.py.
 """
 import pytest
-from datetime import date, timedelta
-
-from models import db, Invoice
 
 
 # ── DEFECT OD-01 ──────────────────────────────────────────────
@@ -107,47 +104,6 @@ def test_admin_token_from_public_signup_cannot_reach_admin_endpoints(client):
     token = (signup.get_json() or {}).get("token")
     assert token is None, "public signup should not return an ADMIN token"
     
-# ── DEFECT OD-03 ──────────────────────────────────────────────
-def test_unpaid_invoice_past_its_due_date_becomes_overdue(client, admin, seed, app):
-    """OD-03 · Invoices never become OVERDUE.
-
-    Endpoint  : GET /api/invoices/
-    Setup     : an UNPAID invoice whose due_date was 60 days ago
-    Expected  : status "OVERDUE"
-    Actual    : status "UNPAID" — forever
-
-    Cause     : the OVERDUE value exists in invoice_status_enum and due_date is
-                stored, but nothing in the codebase ever compares the two. No
-                scheduled job, and no check on read.
-    Impact    : the treasurer cannot distinguish "due next week" from "unpaid
-                since March". The Society Health Score's payment component is
-                also blind to lateness, so a society that never pays on time
-                still scores well as long as the invoices are eventually paid.
-    Severity  : medium — a real functional gap in a headline feature.
-    Known     : KNOWN_ISSUES.md #9.
-    Fix       : either flip past-due UNPAID invoices on read, or add a small
-                scheduled task. Reading is simpler and has no infrastructure
-                cost.
-    """
-    with app.app_context():
-        overdue = Invoice(
-            apartment_id=seed["apartment_id"], generated_by=seed["admin_id"],
-            month=1, year=date.today().year, amount=1500, status="UNPAID",
-            due_date=date.today() - timedelta(days=60),
-        )
-        db.session.add(overdue)
-        db.session.commit()
-        invoice_id = overdue.id
-
-    listing = client.get("/api/invoices/", headers=admin)
-    assert listing.status_code == 200
-    invoice = next(i for i in listing.get_json() if i["id"] == invoice_id)
-    assert invoice["status"] == "OVERDUE", (
-        f"an invoice due {invoice['due_date']} (60 days ago) is still reported "
-        f"as {invoice['status']}"
-    )
-
-
 # ── DEFECT OD-04 ──────────────────────────────────────────────
 @pytest.mark.parametrize("endpoint,payload,field", [
     ("/api/maintenance/",

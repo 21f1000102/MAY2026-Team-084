@@ -1,9 +1,11 @@
 from flask import Blueprint, request, jsonify
 from sqlalchemy import or_
+from sqlalchemy.orm import aliased
 from models import db, Complaint, ComplaintUpdate, User, Apartment, Resident
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from utils import ApiError, get_body, require, parse_enum, parse_int
+from utils import (ApiError, get_body, require, parse_enum, parse_int,
+                   parse_bool, search_term, ilike, apply_date_range, csv_response)
 from auth.roles import current_user, is_admin, active_user_required, admin_required
 
 complaints_bp = Blueprint("complaints", __name__)
@@ -17,19 +19,25 @@ ALLOWED_TRANSITIONS = {
     "CLOSED":      {"OPEN"},
 }
 
+# A complaint has no due date; "overdue" is a derived predicate — still open
+# (not COMPLETED/CLOSED) and raised more than this many days ago.
+OVERDUE_AFTER_DAYS = 7
 
-# GET /api/complaints — all (admin) / assigned (worker) / own (resident)
-@complaints_bp.route("/", methods=["GET"])
-@active_user_required
-def get_complaints():
-    user = current_user()
+UNRESOLVED_STATUSES = ("OPEN", "ASSIGNED", "IN_PROGRESS")
+RESOLVED_STATUSES = ("COMPLETED", "CLOSED")
+
+
+def _filtered_complaints_query(user, args):
+    """Complaint query scoped to what `user` may see, with optional filters
+    layered on top. Role scoping is applied first and is never touched by the
+    filter args below, so a filter can only narrow what a caller could
+    already see.
+    """
     query = Complaint.query
 
     if is_admin(user):
         pass
     elif user.role == "WORKER":
-        # Workers previously saw only complaints they RAISED, so assigned jobs
-        # never reached them and the whole role was unusable.
         query = query.filter(
             or_(Complaint.assigned_worker_id == user.id,
                 Complaint.raised_by == user.id)
@@ -37,8 +45,119 @@ def get_complaints():
     else:
         query = query.filter_by(raised_by=user.id)
 
-    complaints = query.order_by(Complaint.created_at.desc()).all()
+    status = parse_enum(args.get("status"), "complaint_status", field="status")
+    if status:
+        query = query.filter(Complaint.status == status)
+
+    category = parse_enum(args.get("category"), "complaint_category", field="category")
+    if category:
+        query = query.filter(Complaint.category == category)
+
+    priority = parse_enum(args.get("priority"), "priority", field="priority")
+    if priority:
+        query = query.filter(Complaint.priority == priority)
+
+    apartment_id = parse_int(args.get("apartment_id"), "apartment_id", min_value=1)
+    if apartment_id:
+        query = query.filter(Complaint.apartment_id == apartment_id)
+
+    assigned_worker_id = parse_int(args.get("assigned_worker_id"), "assigned_worker_id", min_value=1)
+    if assigned_worker_id:
+        query = query.filter(Complaint.assigned_worker_id == assigned_worker_id)
+
+    worker = search_term(args.get("worker"))
+    if worker:
+        Worker = aliased(User)
+        query = query.join(Worker, Complaint.assigned_worker_id == Worker.id) \
+                     .filter(ilike(Worker.name, worker))
+
+    raised_by = search_term(args.get("raised_by"))
+    if raised_by:
+        Raiser = aliased(User)
+        query = query.join(Raiser, Complaint.raised_by == Raiser.id) \
+                     .filter(ilike(Raiser.name, raised_by))
+
+    unassigned = parse_bool(args.get("unassigned"), "unassigned")
+    if unassigned is not None:
+        query = query.filter(Complaint.assigned_worker_id.is_(None) if unassigned
+                             else Complaint.assigned_worker_id.isnot(None))
+
+    overdue = parse_bool(args.get("overdue"), "overdue")
+    if overdue is not None:
+        cutoff = datetime.utcnow() - timedelta(days=OVERDUE_AFTER_DAYS)
+        is_overdue = (Complaint.status.in_(UNRESOLVED_STATUSES)) & (Complaint.created_at < cutoff)
+        query = query.filter(is_overdue if overdue else ~is_overdue)
+
+    q = search_term(args.get("q"))
+    if q:
+        query = query.filter(or_(ilike(Complaint.title, q), ilike(Complaint.description, q)))
+
+    query = apply_date_range(query, Complaint.created_at, args)
+
+    return query
+
+
+# GET /api/complaints — all (admin) / assigned (worker) / own (resident)
+@complaints_bp.route("/", methods=["GET"])
+@active_user_required
+def get_complaints():
+    user = current_user()
+    complaints = _filtered_complaints_query(user, request.args) \
+        .order_by(Complaint.created_at.desc()).all()
     return jsonify([_complaint_dict(c) for c in complaints]), 200
+
+
+# GET /api/complaints/summary — counts and breakdowns
+@complaints_bp.route("/summary", methods=["GET"])
+@active_user_required
+def complaints_summary():
+    user = current_user()
+    complaints = _filtered_complaints_query(user, request.args).all()
+
+    by_status = {s: 0 for s in ("OPEN", "ASSIGNED", "IN_PROGRESS", "COMPLETED", "CLOSED")}
+    by_category, by_priority = {}, {}
+    resolution_days = []
+    unassigned_count = 0
+
+    for c in complaints:
+        by_status[c.status] = by_status.get(c.status, 0) + 1
+        by_category[c.category] = by_category.get(c.category, 0) + 1
+        by_priority[c.priority] = by_priority.get(c.priority, 0) + 1
+        if not c.assigned_worker_id:
+            unassigned_count += 1
+        if c.resolved_at and c.created_at:
+            resolution_days.append((c.resolved_at - c.created_at).total_seconds() / 86400)
+
+    pending = sum(by_status[s] for s in UNRESOLVED_STATUSES)
+    resolved = sum(by_status[s] for s in RESOLVED_STATUSES)
+    avg_resolution_days = round(sum(resolution_days) / len(resolution_days), 2) if resolution_days else None
+
+    return jsonify({
+        "total": len(complaints),
+        "by_status": by_status,
+        "pending": pending,
+        "resolved": resolved,
+        "by_category": by_category,
+        "by_priority": by_priority,
+        "avg_resolution_days": avg_resolution_days,
+        "unassigned_count": unassigned_count,
+    }), 200
+
+
+# GET /api/complaints/export — CSV of the filtered list
+@complaints_bp.route("/export", methods=["GET"])
+@active_user_required
+def export_complaints():
+    user = current_user()
+    complaints = _filtered_complaints_query(user, request.args) \
+        .order_by(Complaint.created_at.desc()).all()
+    columns = [
+        ("ID", "id"), ("Title", "title"), ("Category", "category"),
+        ("Priority", "priority"), ("Status", "status"), ("Flat", "flat_number"),
+        ("Raised By", "raised_by_name"), ("Assigned Worker", "assigned_worker_name"),
+        ("Created At", "created_at"), ("Resolved At", "resolved_at"),
+    ]
+    return csv_response([_complaint_dict(c) for c in complaints], columns, "complaints.csv")
 
 
 # POST /api/complaints — raise new complaint

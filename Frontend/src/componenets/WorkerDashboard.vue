@@ -3,16 +3,28 @@
     <div v-if="msg" class="alert-custom alert-error">{{ msg }}</div>
 
     <div class="row g-3 mb-4">
-      <div class="col-6">
+      <div class="col-6 col-md-3">
         <div class="stat-card">
           <div class="stat-icon" style="background:#d97706;"><i class="fas fa-exclamation-circle"></i></div>
-          <div><div class="stat-value">{{ pending.length }}</div><div class="stat-label">Pending Tasks</div></div>
+          <div><div class="stat-value">{{ pending.length }}</div><div class="stat-label">Pending Complaints</div></div>
         </div>
       </div>
-      <div class="col-6">
+      <div class="col-6 col-md-3">
         <div class="stat-card">
           <div class="stat-icon" style="background:#0E7C7B;"><i class="fas fa-check-circle"></i></div>
-          <div><div class="stat-value">{{ completedCount }}</div><div class="stat-label">Completed</div></div>
+          <div><div class="stat-value">{{ completedCount }}</div><div class="stat-label">Completed Complaints</div></div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#1B2A4A;"><i class="fas fa-tools"></i></div>
+          <div><div class="stat-value">{{ maintenanceSummary.total - (maintenanceSummary.by_status?.COMPLETED || 0) }}</div><div class="stat-label">Pending Tasks</div></div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#dc2626;"><i class="fas fa-triangle-exclamation"></i></div>
+          <div><div class="stat-value">{{ maintenanceSummary.overdue_count }}</div><div class="stat-label">Overdue Tasks</div></div>
         </div>
       </div>
     </div>
@@ -69,6 +81,55 @@
           </div>
         </div>
       </div>
+
+      <!-- My Maintenance Tasks -->
+      <div class="card mt-4">
+        <div class="card-header-custom">🛠️ My Maintenance Tasks</div>
+        <div v-if="maintenanceTasks.length === 0" class="empty-state p-4">
+          <i class="fas fa-check-circle" style="color:#0E7C7B;"></i>
+          <p>No maintenance tasks assigned to you right now!</p>
+        </div>
+        <div v-for="t in maintenanceTasks" :key="t.id" class="p-4" style="border-bottom:1px solid #f1f5f9;">
+          <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+              <div class="d-flex gap-2 mb-2">
+                <span class="badge-custom badge-low">{{ t.category }}</span>
+                <span class="badge-custom" :class="t.status==='COMPLETED'?'badge-paid':'badge-open'">{{ t.status }}</span>
+              </div>
+              <h6 class="fw-bold mb-1">{{ t.title }}</h6>
+              <small class="text-muted">📅 Scheduled: {{ t.scheduled_date }}</small>
+            </div>
+            <button v-if="t.status!=='COMPLETED'" @click="completeTask(t.id)" class="btn btn-sm btn-success">
+              <i class="fas fa-check me-1"></i>Mark Complete
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mt-1">
+        <div class="col-md-6">
+          <UpcomingCard />
+        </div>
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header-custom">📜 Work History</div>
+            <div v-if="!history || history.totals.total === 0" class="empty-state p-4">
+              <i class="fas fa-clock" style="color:#94a3b8;"></i><p>No completed work yet</p>
+            </div>
+            <div v-else class="p-3">
+              <p class="text-muted mb-2" style="font-size:0.85rem;">
+                {{ history.totals.complaints }} complaint(s) · {{ history.totals.maintenance }} maintenance task(s) completed
+              </p>
+              <div v-for="c in history.completed_complaints.slice(0,3)" :key="'c'+c.id" class="d-flex justify-content-between py-1" style="font-size:0.85rem;border-bottom:1px solid #f1f5f9;">
+                <span>{{ c.title }}</span><span class="text-muted">{{ c.resolved_at?.slice(0,10) }}</span>
+              </div>
+              <div v-for="t in history.completed_maintenance.slice(0,3)" :key="'t'+t.id" class="d-flex justify-content-between py-1" style="font-size:0.85rem;border-bottom:1px solid #f1f5f9;">
+                <span>{{ t.title }}</span><span class="text-muted">{{ t.completed_at?.slice(0,10) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Complete Complaint Modal -->
@@ -100,11 +161,15 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { complaintsAPI, errText } from '../api/index'
+import { complaintsAPI, maintenanceAPI, membersAPI, errText } from '../api/index'
 import { authStore } from '../store/auth'
 import { badgeClass, label } from '../utils/format'
+import UpcomingCard from './UpcomingCard.vue'
 
 const allComplaints = ref([])
+const maintenanceTasks = ref([])
+const maintenanceSummary = ref({ total: 0, by_status: {}, overdue_count: 0 })
+const history = ref(null)
 const loading = ref(true)
 const saving = ref(false)
 const msg = ref('')
@@ -141,8 +206,34 @@ onMounted(async () => {
     const res = await complaintsAPI.getAll()
     allComplaints.value = Array.isArray(res.data) ? res.data : []
   } catch(e) { msg.value = errText(e) }
+
+  await loadMaintenance()
+
+  // Work history and its own summary are read-only extras for this dashboard;
+  // a failure here shouldn't block the complaints panel above from working.
+  try {
+    const me = authStore.user?.id
+    if (me) history.value = (await membersAPI.workHistory(me)).data
+  } catch (e) { /* optional widget */ }
+
   loading.value = false
 })
+
+async function loadMaintenance() {
+  try {
+    // GET /api/maintenance/ already scopes to tasks assigned to this worker.
+    maintenanceTasks.value = (await maintenanceAPI.getAll()).data
+    maintenanceSummary.value = (await maintenanceAPI.summary()).data
+  } catch (e) { /* optional widget */ }
+}
+
+async function completeTask(id) {
+  msg.value = ''
+  try {
+    await maintenanceAPI.complete(id)
+    await loadMaintenance()
+  } catch (e) { msg.value = errText(e) }
+}
 
 async function markInProgress(id) {
   msg.value = ''
@@ -178,6 +269,9 @@ async function doComplete() {
     showComplete.value = false
     remarks.value = ''
     selectedComplaint.value = null
+
+    const me = authStore.user?.id
+    if (me) { try { history.value = (await membersAPI.workHistory(me)).data } catch (e) { /* optional */ } }
   } catch(e) { msg.value = errText(e) }
   saving.value = false
 }

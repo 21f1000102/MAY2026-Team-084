@@ -53,6 +53,35 @@ export function errText(e, fallback = 'Something went wrong. Please try again.')
   return fallback
 }
 
+/**
+ * Same as errText(), but for requests made with `responseType: 'blob'`
+ * (CSV export downloads). On failure axios still returns the error body as a
+ * Blob, so `data.error` is undefined until the blob is read back as text.
+ */
+export async function errTextFromBlob(e, fallback) {
+  const blob = e?.response?.data
+  if (!(blob instanceof Blob)) return errText(e, fallback)
+  try {
+    const text = await blob.text()
+    const parsed = JSON.parse(text)
+    return parsed?.error || errText(e, fallback)
+  } catch {
+    return errText(e, fallback)
+  }
+}
+
+/** Trigger a browser download from a blob response (CSV exports). */
+export function downloadBlob(blob, filename) {
+  const url = window.URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  window.URL.revokeObjectURL(url)
+}
+
 // ── AUTH ──────────────────────────────────────────────────────
 export const authAPI = {
   login: (data) => api.post('/auth/login', data),
@@ -63,42 +92,49 @@ export const authAPI = {
 
 // ── MEMBERS ───────────────────────────────────────────────────
 export const membersAPI = {
-  getAll: () => api.get('/members/'),
+  getAll: (params) => api.get('/members/', { params }),
   add: (data) => api.post('/members/', data),
   update: (id, data) => api.put(`/members/${id}`, data),
   deactivate: (id) => api.delete(`/members/${id}`),
   getApartments: () => api.get('/members/apartments'),
   addApartment: (data) => api.post('/members/apartments', data),
   getWorkers: () => api.get('/members/workers'),
+  export: (params) => api.get('/members/export', { params, responseType: 'blob' }),
+  workHistory: (userId) => api.get(`/members/workers/${userId}/work-history`),
 }
 
 // ── COMPLAINTS ────────────────────────────────────────────────
 export const complaintsAPI = {
-  getAll: () => api.get('/complaints/'),
+  getAll: (params) => api.get('/complaints/', { params }),
   raise: (data) => api.post('/complaints/', data),
   get: (id) => api.get(`/complaints/${id}`),
   assign: (id, data) => api.put(`/complaints/${id}/assign`, data),
   updateStatus: (id, data) => api.put(`/complaints/${id}/status`, data),
-  delete: (id) => api.delete(`/complaints/${id}`)
+  delete: (id) => api.delete(`/complaints/${id}`),
+  summary: (params) => api.get('/complaints/summary', { params }),
+  export: (params) => api.get('/complaints/export', { params, responseType: 'blob' }),
 }
 
 // ── INVOICES ──────────────────────────────────────────────────
 export const invoicesAPI = {
-  getAll: () => api.get('/invoices/'),
+  getAll: (params) => api.get('/invoices/', { params }),
   create: (data) => api.post('/invoices/', data),
   bulkGenerate: (data) => api.post('/invoices/bulk', data),
   markPaid: (id, data) => api.put(`/invoices/${id}/pay`, data),
   getReceipt: (id) => api.get(`/invoices/${id}/receipt`),
-  getPending: () => api.get('/invoices/pending')
+  getPending: (params) => api.get('/invoices/pending', { params }),
+  summary: (params) => api.get('/invoices/summary', { params }),
+  export: (params) => api.get('/invoices/export', { params, responseType: 'blob' }),
 }
 
 // ── EXPENSES ──────────────────────────────────────────────────
 export const expensesAPI = {
-  getAll: () => api.get('/expenses/'),
+  getAll: (params) => api.get('/expenses/', { params }),
   add: (data) => api.post('/expenses/', data),
   update: (id, data) => api.put(`/expenses/${id}`, data),
   delete: (id) => api.delete(`/expenses/${id}`),
-  summary: (month, year) => api.get(`/expenses/summary?month=${month}&year=${year}`)
+  summary: (month, year) => api.get(`/expenses/summary?month=${month}&year=${year}`),
+  export: (params) => api.get('/expenses/export', { params, responseType: 'blob' }),
 }
 
 // ── NOTICES ───────────────────────────────────────────────────
@@ -129,11 +165,21 @@ export const pollsAPI = {
 
 // ── MAINTENANCE ───────────────────────────────────────────────
 export const maintenanceAPI = {
-  getAll: () => api.get('/maintenance/'),
+  getAll: (params) => api.get('/maintenance/', { params }),
   add: (data) => api.post('/maintenance/', data),
   complete: (id) => api.put(`/maintenance/${id}/complete`),
   update: (id, data) => api.put(`/maintenance/${id}`, data),
-  delete: (id) => api.delete(`/maintenance/${id}`)
+  delete: (id) => api.delete(`/maintenance/${id}`),
+  summary: (params) => api.get('/maintenance/summary', { params }),
+}
+
+// ── EVENTS (Upcoming deadlines & reminders) ────────────────────
+export const eventsAPI = {
+  getAll: (params) => api.get('/events/', { params }),
+  upcoming: (days) => api.get('/events/upcoming', { params: days ? { days } : {} }),
+  add: (data) => api.post('/events/', data),
+  update: (id, data) => api.put(`/events/${id}`, data),
+  delete: (id) => api.delete(`/events/${id}`),
 }
 
 // ── EQUIPMENT (Smart Maintenance Predictor) ───────────────────

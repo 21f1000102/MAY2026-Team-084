@@ -50,6 +50,9 @@
               </div>
             </div>
           </div>
+          <div class="mt-3">
+            <UpcomingCard :limit="4" />
+          </div>
         </div>
         <div class="col-md-7">
           <div class="card">
@@ -80,7 +83,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { membersAPI, complaintsAPI, invoicesAPI, pollsAPI, errText } from '../api/index'
-import { badgeClass, label, num } from '../utils/format'
+import { badgeClass, label, money } from '../utils/format'
+import UpcomingCard from './UpcomingCard.vue'
 
 const loading = ref(true)
 const msg = ref('')
@@ -93,28 +97,35 @@ onMounted(async () => {
   // allSettled, not all: one failing endpoint used to reject the whole batch and
   // leave every stat at 0 / "No complaints!", which reads as an empty society
   // rather than a broken request. Render whatever came back and name what didn't.
-  const sections = ['Members', 'Complaints', 'Invoices', 'Polls']
+  // Counts and totals now come from the /summary endpoints (server-computed,
+  // authoritative) instead of being derived here from full list fetches —
+  // complaints/invoices lists are still fetched, but only for the recent-
+  // activity table, not for counting.
+  const sections = ['Members', 'Complaints', 'Complaint Summary', 'Invoice Summary', 'Polls']
   const results = await Promise.allSettled([
-    membersAPI.getAll(), complaintsAPI.getAll(), invoicesAPI.getAll(), pollsAPI.getAll()
+    membersAPI.getAll(), complaintsAPI.getAll(), complaintsAPI.summary(),
+    invoicesAPI.summary(), pollsAPI.getAll(),
   ])
-  const [members, complaints, invoices, polls] = results.map(r =>
-    r.status === 'fulfilled' && Array.isArray(r.value?.data) ? r.value.data : null
-  )
+  const [membersRes, complaintsRes, complaintSummary, invoiceSummary, pollsRes] = results
 
-  if (members) stats.value.members = members.filter(m => m.is_active).length
-  if (complaints) {
-    stats.value.openComplaints = complaints.filter(c => ['OPEN','ASSIGNED','IN_PROGRESS'].includes(c.status)).length
-    recentComplaints.value = complaints.slice(0, 5)
+  if (membersRes.status === 'fulfilled') {
+    stats.value.members = (membersRes.value.data || []).filter(m => m.is_active).length
   }
-  if (invoices) {
-    stats.value.unpaidInvoices = invoices.filter(i => i.status === 'UNPAID').length
-    // num(): a null amount used to poison the whole sum into "₹NaN".
-    collected.value = invoices.filter(i => i.status === 'PAID')
-      .reduce((s, i) => s + num(i.amount), 0).toLocaleString('en-IN')
-    pending.value = invoices.filter(i => i.status !== 'PAID')
-      .reduce((s, i) => s + num(i.amount), 0).toLocaleString('en-IN')
+  if (complaintsRes.status === 'fulfilled') {
+    recentComplaints.value = (complaintsRes.value.data || []).slice(0, 5)
   }
-  if (polls) stats.value.activePolls = polls.filter(p => p.status === 'ACTIVE').length
+  if (complaintSummary.status === 'fulfilled') {
+    stats.value.openComplaints = complaintSummary.value.data.pending
+  }
+  if (invoiceSummary.status === 'fulfilled') {
+    const s = invoiceSummary.value.data
+    stats.value.unpaidInvoices = s.count_unpaid + s.count_overdue
+    collected.value = money(s.total_collected)
+    pending.value = money(s.total_pending)
+  }
+  if (pollsRes.status === 'fulfilled') {
+    stats.value.activePolls = (pollsRes.value.data || []).filter(p => p.status === 'ACTIVE').length
+  }
 
   const failed = results
     .map((r, i) => (r.status === 'rejected' ? sections[i] : null))

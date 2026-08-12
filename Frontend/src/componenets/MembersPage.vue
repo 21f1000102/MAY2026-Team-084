@@ -1,14 +1,14 @@
 <template>
   <div>
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <div>
-        <input v-model="search" class="form-control-custom" placeholder="🔍 Search by name or flat..." style="width:100%;max-width:260px;display:inline-block;"/>
-      </div>
-      <div class="d-flex gap-2">
-        <button class="btn-accent" @click="openApt"><i class="fas fa-building me-2"></i>Add Flat</button>
-        <button class="btn-primary-custom" @click="openAdd"><i class="fas fa-user-plus me-2"></i>Add Member</button>
-      </div>
+    <div class="d-flex justify-content-end align-items-center mb-4 gap-2">
+      <button class="btn btn-outline-secondary" @click="exportCsv" :disabled="exporting">
+        <i class="fas fa-file-csv me-2"></i>Export CSV
+      </button>
+      <button class="btn-accent" @click="openApt"><i class="fas fa-building me-2"></i>Add Flat</button>
+      <button class="btn-primary-custom" @click="openAdd"><i class="fas fa-user-plus me-2"></i>Add Member</button>
     </div>
+
+    <FilterBar :fields="filterFields" :result-count="loading ? null : members.length" @change="onFilterChange" />
 
     <div v-if="pageMsg" class="alert-custom alert-error">{{ pageMsg }}</div>
     <div v-if="apartments.length===0 && !loading" class="alert-custom alert-info">
@@ -17,14 +17,14 @@
 
     <div v-if="loading" class="spinner"></div>
     <div v-else class="card">
-      <div v-if="filtered.length===0" class="empty-state"><i class="fas fa-users"></i><p>No members found</p></div>
+      <div v-if="members.length===0" class="empty-state"><i class="fas fa-users"></i><p>No members found</p></div>
       <div v-else class="table-responsive">
       <table class="table-custom">
         <thead>
           <tr><th>Name</th><th>Flat</th><th>Role</th><th>Type</th><th>Phone</th><th>Status</th><th>Actions</th></tr>
         </thead>
         <tbody>
-          <tr v-for="m in filtered" :key="m.id">
+          <tr v-for="m in members" :key="m.id">
             <td><strong>{{ m.name }}</strong><br><small class="text-muted">{{ m.email }}</small></td>
             <td>{{ m.flat_number }}</td>
             <td>{{ m.role }}</td>
@@ -116,9 +116,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { membersAPI, errText } from '../api/index'
+import { ref, onMounted } from 'vue'
+import { membersAPI, errText, errTextFromBlob, downloadBlob } from '../api/index'
 import { orNull } from '../utils/format'
+import FilterBar from './FilterBar.vue'
 
 const members = ref([])
 const apartments = ref([])
@@ -127,7 +128,8 @@ const showAdd = ref(false)
 const showApt = ref(false)
 const saving = ref(false)
 const savingApt = ref(false)
-const search = ref('')
+const exporting = ref(false)
+const activeFilters = ref({})
 const msg = ref(null)
 const pageMsg = ref('')
 const aptMsg = ref('')
@@ -135,14 +137,35 @@ const emptyForm = () => ({ name:'', email:'', phone:'', password:'', role:'TENAN
 const form = ref(emptyForm())
 const aptForm = ref({ flat_number:'', block:'', floor:'' })
 
-const filtered = computed(() =>
-  members.value.filter(m =>
-    (m.name || '').toLowerCase().includes(search.value.toLowerCase()) ||
-    (m.flat_number || '').toLowerCase().includes(search.value.toLowerCase())
-  )
-)
+const filterFields = [
+  { key: 'q', label: 'Search', placeholder: 'Name, email, phone or flat...' },
+  { key: 'role', label: 'Role', type: 'select', options: [
+    { value: 'TENANT', label: 'Tenant' }, { value: 'OWNER', label: 'Owner' },
+    { value: 'WORKER', label: 'Worker' }, { value: 'TREASURER', label: 'Treasurer' },
+    { value: 'COMMITTEE_MEMBER', label: 'Committee Member' },
+  ]},
+  { key: 'is_owner', label: 'Type', type: 'select', options: [
+    { value: 'true', label: 'Owner' }, { value: 'false', label: 'Tenant' },
+  ]},
+  { key: 'is_active', label: 'Status', type: 'select', options: [
+    { value: 'true', label: 'Active' }, { value: 'false', label: 'Inactive' },
+  ]},
+  { key: 'block', label: 'Block', placeholder: 'e.g. A' },
+]
 
 onMounted(load)
+
+async function onFilterChange(params) {
+  activeFilters.value = params
+  await loadMembers()
+}
+
+async function loadMembers() {
+  try {
+    const res = await membersAPI.getAll(activeFilters.value)
+    members.value = res.data
+  } catch (e) { pageMsg.value = errText(e) }
+}
 
 async function load() {
   const [m, a] = await Promise.allSettled([membersAPI.getAll(), membersAPI.getApartments()])
@@ -150,6 +173,16 @@ async function load() {
   else pageMsg.value = errText(m.reason)
   if (a.status === 'fulfilled') apartments.value = a.value.data
   loading.value = false
+}
+
+async function exportCsv() {
+  exporting.value = true
+  pageMsg.value = ''
+  try {
+    const res = await membersAPI.export(activeFilters.value)
+    downloadBlob(res.data, 'members.csv')
+  } catch (e) { pageMsg.value = await errTextFromBlob(e) }
+  exporting.value = false
 }
 
 function openAdd() { msg.value = null; form.value = emptyForm(); showAdd.value = true }
@@ -163,8 +196,8 @@ async function addMember() {
   saving.value = true
   msg.value = null
   try {
-    const res = await membersAPI.add({ ...form.value, phone: orNull(form.value.phone) })
-    members.value.push(res.data)
+    await membersAPI.add({ ...form.value, phone: orNull(form.value.phone) })
+    await loadMembers()
     showAdd.value = false
     form.value = emptyForm()
   } catch(e) {

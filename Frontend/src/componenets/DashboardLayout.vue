@@ -25,10 +25,14 @@
           <router-link class="nav-item" to="/app/conflicts"><i class="fas fa-handshake"></i> Conflicts</router-link>
           <router-link class="nav-item" to="/app/parking"><i class="fas fa-parking"></i> Parking</router-link>
           <router-link class="nav-item" to="/app/emergency"><i class="fas fa-phone-alt"></i> Emergency</router-link>
+          <router-link class="nav-item" to="/app/events"><i class="fas fa-calendar-alt"></i> Events</router-link>
+          <router-link class="nav-item" to="/app/reports"><i class="fas fa-chart-bar"></i> Reports</router-link>
         </template>
         <!-- Worker nav -->
         <template v-else-if="isWorker">
           <router-link class="nav-item" to="/app/worker"><i class="fas fa-hard-hat"></i> My Tasks</router-link>
+          <router-link class="nav-item" to="/app/maintenance"><i class="fas fa-tools"></i> Maintenance</router-link>
+          <router-link class="nav-item" to="/app/events"><i class="fas fa-calendar-alt"></i> Upcoming</router-link>
           <router-link class="nav-item" to="/app/notices"><i class="fas fa-bullhorn"></i> Notices</router-link>
           <router-link class="nav-item" to="/app/parking"><i class="fas fa-parking"></i> Parking</router-link>
           <router-link class="nav-item" to="/app/emergency"><i class="fas fa-phone-alt"></i> Emergency</router-link>
@@ -44,6 +48,7 @@
           <router-link class="nav-item" to="/app/conflicts"><i class="fas fa-handshake"></i> Conflicts</router-link>
           <router-link class="nav-item" to="/app/parking"><i class="fas fa-parking"></i> Parking</router-link>
           <router-link class="nav-item" to="/app/emergency"><i class="fas fa-phone-alt"></i> Emergency</router-link>
+          <router-link class="nav-item" to="/app/events"><i class="fas fa-calendar-alt"></i> Upcoming</router-link>
         </template>
       </nav>
       <div class="sidebar-footer">
@@ -95,7 +100,9 @@ onMounted(() => window.addEventListener('keydown', onKeydown))
 onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 
 const today = new Date().toLocaleDateString('en-IN', { weekday:'long', year:'numeric', month:'long', day:'numeric' })
-const isWorker = authStore.user?.role === 'WORKER'
+// Was a plain const snapshotted at mount, so switching users without a full
+// reload (e.g. after logout/login) could leave the wrong nav showing.
+const isWorker = computed(() => authStore.isWorker)
 
 const titles = {
   '/app/dashboard': 'Dashboard',
@@ -113,6 +120,8 @@ const titles = {
   '/app/conflicts': 'Conflict Resolver',
   '/app/parking': 'Visitor Parking',
   '/app/emergency': 'Emergency Contacts',
+  '/app/events': 'Upcoming Deadlines & Events',
+  '/app/reports': 'Reports',
 }
 
 const pageTitle = computed(() => titles[route.path] || 'SocietyEase')

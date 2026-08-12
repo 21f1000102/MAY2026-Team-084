@@ -49,6 +49,11 @@ MODULES = OrderedDict([
     ("test_conflicts", ("Neighbour Conflict Resolver", "US-16")),
     ("test_parking", ("Visitor Parking", "US-12")),
     ("test_emergency", ("Emergency Contacts", "US-07")),
+    ("test_filters", ("Search & Filter (Members/Complaints/Invoices/Expenses/Maintenance)", "US-18")),
+    ("test_reports", ("Summary Reports & CSV Export", "US-19")),
+    ("test_events", ("Events & Upcoming Deadlines", "US-20")),
+    ("test_worker_history", ("Worker Work History", "US-21")),
+    ("test_contract_freeze", ("Contract freeze — filtered-endpoint regression guard", "US-18")),
     ("test_regressions", ("Regression suite — defects already fixed", "all")),
     ("test_open_defects", ("Open defects — EXPECTED TO FAIL", "all")),
 ])
@@ -459,6 +464,7 @@ from what the API should have returned. Each now has a permanent regression test
 | D-13 | `PUT /api/auth/change-password` | `new_password` omitted | `400` | **`500`** — `KeyError: 'new_password'` | read with `data["..."]` instead of `.get()` | ✅ Fixed |
 | D-14 | `POST /api/invoices/` (as TENANT) | any valid body | `403` | **`200`** — invoice created | every mutating endpoint was bare `@jwt_required()`; residents could also mark invoices paid and delete flats | ✅ Fixed |
 | D-15 | `DELETE /api/members/apartments/{id}` | flat still has residents | `409` | **`200`** — cascade silently deleted its residents, invoices, payments and complaints | destructive cascade with no guard | ✅ Fixed |
+| D-16 | `GET /api/invoices/` | an UNPAID invoice 60 days past its due date | status `OVERDUE` | **`UNPAID`** — forever | nothing in the codebase ever compared `due_date` to today; found as OD-03, fixed while building the search/filter work (a `status` filter would otherwise have returned stale rows) | ✅ Fixed |
 
 ### Still open — these tests FAIL right now, on purpose
 
@@ -469,21 +475,19 @@ the running API, not inferred from reading the code.
 
 | # | API | Input | Expected | **Actual (today)** | Severity | Fix |
 |---|-----|-------|----------|--------------------|----------|-----|
-| OD-01 | any protected endpoint, no token | — | `{"error": "..."}` — the envelope `openapi.yaml` declares for all 67 protected operations | **`{"msg": "Missing Authorization Header"}`** | Low | Add `@jwt.unauthorized_loader` / `invalid_token_loader` / `expired_token_loader` in `create_app()` (~6 lines) |
+| OD-01 | any protected endpoint, no token | — | `{"error": "..."}` — the envelope `openapi.yaml` declares for all 82 protected operations | **`{"msg": "Missing Authorization Header"}`** | Low | Add `@jwt.unauthorized_loader` / `invalid_token_loader` / `expired_token_loader` in `create_app()` (~6 lines) |
 | OD-02 | `POST /api/auth/register` (public) | `{"role": "ADMIN", …}` | `400` / `403` — public signup may only create residents | **`201`** + a working ADMIN token | **HIGH** | Restrict the public endpoint to `TENANT`/`OWNER`; create staff via the admin-only `POST /api/members/` |
 | OD-02b | `GET /api/members/` with that token | — | `403` | **`200`** — the full member directory, proving the escalation is exploitable | **HIGH** | as above |
-| OD-03 | `GET /api/invoices/` | an UNPAID invoice due 60 days ago | status `OVERDUE` | **`UNPAID`** — forever | Medium | Flip past-due unpaid invoices on read, or add a scheduled task |
 | OD-04 | `POST /api/maintenance/` | `{"category": "BOGUS"}` | `"category must be one of: …"` | **`"task_category must be one of: …"`** | Low | Pass `field="category"` to `parse_enum` |
 | OD-04b | `POST /api/equipment/` | `{"category": "BOGUS"}` | `"category must be one of: …"` | **`"equipment_category must be one of: …"`** | Low | as above |
 
 **Why these are still open.** OD-02 is deliberate for now — public ADMIN signup is how the team
 creates test accounts during development (`KNOWN_ISSUES.md` #1) — but it is the single most
 important thing to close before the app touches real data. OD-01 and OD-04 are contract
-inconsistencies with easy fixes. OD-03 is a genuine functional gap in a headline feature: the
-treasurer cannot tell "due next week" from "unpaid since March", and the Society Health Score's
-payment component is blind to lateness.
+inconsistencies with easy fixes. **OD-03 (invoices never became OVERDUE) has been fixed** — see D-16
+above — and its test now lives in `test_regressions.py`.
 
-All six are scheduled for the next sprint. When one is fixed, its test moves from
+The remaining five are scheduled for the next sprint. When one is fixed, its test moves from
 `test_open_defects.py` into `test_regressions.py`, where it must pass from then on.
 
 ### What testing bought us

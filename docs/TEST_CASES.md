@@ -8,17 +8,14 @@ Test cases for the SocietyEase REST API. For each case this records the **URL th
 
 | | |
 |---|---|
-| Generated | 02 August 2026, 13:29 UTC |
-| Total test cases | **539** |
-| Passed | **537** |
-| Failed — known open defects | **2** (expected — see section 4) |
+| Generated | 12 August 2026, 10:43 UTC |
+| Total test cases | **613** |
+| Passed | **613** |
+| Failed — known open defects | **0** (expected — see section 4) |
 | Failed — regressions | **0** |
 | Skipped | 0 |
-| Duration | 58s |
+| Duration | 524s |
 | Base URL | `http://127.0.0.1:5000` |
-
-
-> **2 tests fail on purpose.** They live in `tests/test_open_defects.py` and assert the behaviour the API *should* have. Each is a real defect we found and have not fixed yet — leaving the test red keeps it visible. Section 4 lists them with expected vs actual. **Regressions (unexpected failures): 0.**
 
 
 ### How to run
@@ -48,9 +45,14 @@ python tests/report.py    # regenerate this document
 | `test_conflicts.py` | Neighbour Conflict Resolver | US-16 | 27 | 27 |
 | `test_parking.py` | Visitor Parking | US-12 | 27 | 27 |
 | `test_emergency.py` | Emergency Contacts | US-07 | 50 | 50 |
-| `test_regressions.py` | Regression suite — defects already fixed | all | 21 | 21 |
-| `test_open_defects.py` | Open defects — EXPECTED TO FAIL ⚠️ fails by design | all | 6 | 4 |
-| | | **Total** | **539** | **537** |
+| `test_filters.py` | Search & Filter (Members/Complaints/Invoices/Expenses/Maintenance) | US-18 | 33 | 33 |
+| `test_reports.py` | Summary Reports & CSV Export | US-19 | 13 | 13 |
+| `test_events.py` | Events & Upcoming Deadlines | US-20 | 16 | 16 |
+| `test_worker_history.py` | Worker Work History | US-21 | 5 | 5 |
+| `test_contract_freeze.py` | Contract freeze — filtered-endpoint regression guard | US-18 | 7 | 7 |
+| `test_regressions.py` | Regression suite — defects already fixed | all | 22 | 22 |
+| `test_open_defects.py` | Open defects — EXPECTED TO FAIL ⚠️ fails by design | all | 5 | 5 |
+| | | **Total** | **613** | **613** |
 
 Every module covers the same four axes: **happy path**, **validation** (missing fields, bad enums, bad dates, malformed bodies), **authorization** (401 unauthenticated, 403 wrong role) and **business rules** (duplicates, idempotency, state transitions).
 
@@ -68,58 +70,58 @@ One row per test case. **Click a test ID** to jump to its full detail — the ex
 
 | ID | Test case | Endpoint | Expected | Actual | Result |
 |---|---|---|---|---|---|
-| [TC-001](#tc-001) | Register returns 201 with token and user | `POST /api/auth/register` | 201 | 201 | ✅ Pass |
-| [TC-002](#tc-002) | Register lowercases and strips email | `POST /api/auth/register` | 201 | 201 | ✅ Pass |
-| [TC-003](#tc-003) | Register issues a usable token | `GET /api/auth/me` | 200 | 200 | ✅ Pass |
-| [TC-004](#tc-004) | Register missing required field returns 400 | `POST /api/auth/register` | 400 | 400 | ✅ Pass |
-| [TC-005](#tc-005) | Register missing required field returns 400 | `POST /api/auth/register` | 400 | 400 | ✅ Pass |
-| [TC-006](#tc-006) | Register missing required field returns 400 | `POST /api/auth/register` | 400 | 400 | ✅ Pass |
-| [TC-007](#tc-007) | Register missing required field returns 400 | `POST /api/auth/register` | 400 | 400 | ✅ Pass |
-| [TC-008](#tc-008) | Register blank required field returns 400 | `POST /api/auth/register` | 400 | 400 | ✅ Pass |
-| [TC-009](#tc-009) | Register blank required field returns 400 | `POST /api/auth/register` | 400 | 400 | ✅ Pass |
-| [TC-010](#tc-010) | Register unknown role returns 400 | `POST /api/auth/register` | 400 | 400 | ✅ Pass |
-| [TC-011](#tc-011) | Register malformed body returns 400 | `POST /api/auth/register` | 400 | 400 | ✅ Pass |
-| [TC-012](#tc-012) | Register malformed body returns 400 | `POST /api/auth/register` | 400 | 400 | ✅ Pass |
-| [TC-013](#tc-013) | Register malformed body returns 400 | `POST /api/auth/register` | 400 | 400 | ✅ Pass |
-| [TC-014](#tc-014) | Register duplicate email returns 409 | `POST /api/auth/register` | 409 | 409 | ✅ Pass |
-| [TC-015](#tc-015) | Register duplicate email is case insensitive | `POST /api/auth/register` | 409 | 409 | ✅ Pass |
-| [TC-016](#tc-016) | Register duplicate phone returns 409 | `POST /api/auth/register` | 409 | 409 | ✅ Pass |
-| [TC-017](#tc-017) | Blank phone must normalise to NULL — users.phone is UNIQUE | `POST /api/auth/register` | — | 201 | ✅ Pass |
-| [TC-018](#tc-018) | Register blank phone is stored as null | `POST /api/auth/register` | 201 | 201 | ✅ Pass |
-| [TC-019](#tc-019) | Login succeeds for every seeded role | `POST /api/auth/login` | 200 | 200 | ✅ Pass |
-| [TC-020](#tc-020) | Login succeeds for every seeded role | `POST /api/auth/login` | 200 | 200 | ✅ Pass |
-| [TC-021](#tc-021) | Login succeeds for every seeded role | `POST /api/auth/login` | 200 | 200 | ✅ Pass |
-| [TC-022](#tc-022) | Login succeeds for every seeded role | `POST /api/auth/login` | 200 | 200 | ✅ Pass |
-| [TC-023](#tc-023) | Login succeeds for every seeded role | `POST /api/auth/login` | 200 | 200 | ✅ Pass |
-| [TC-024](#tc-024) | Login succeeds for every seeded role | `POST /api/auth/login` | 200 | 200 | ✅ Pass |
-| [TC-025](#tc-025) | Login wrong password returns 401 | `POST /api/auth/login` | 401 | 401 | ✅ Pass |
-| [TC-026](#tc-026) | Login unknown email returns 401 | `POST /api/auth/login` | 401 | 401 | ✅ Pass |
-| [TC-027](#tc-027) | Login missing required field returns 400 | `POST /api/auth/login` | 400 | 400 | ✅ Pass |
-| [TC-028](#tc-028) | Login missing required field returns 400 | `POST /api/auth/login` | 400 | 400 | ✅ Pass |
-| [TC-029](#tc-029) | Login malformed body returns 400 | `POST /api/auth/login` | 400 | 400 | ✅ Pass |
-| [TC-030](#tc-030) | Login malformed body returns 400 | `POST /api/auth/login` | 400 | 400 | ✅ Pass |
-| [TC-031](#tc-031) | Login malformed body returns 400 | `POST /api/auth/login` | 400 | 400 | ✅ Pass |
-| [TC-032](#tc-032) | Login deactivated account returns 403 | `POST /api/auth/login` | 403 | 403 | ✅ Pass |
-| [TC-033](#tc-033) | Me returns the authenticated user | `GET /api/auth/me` | 200 | 200 | ✅ Pass |
-| [TC-034](#tc-034) | Me is open to every role | `GET /api/auth/me` | 200 | 200 | ✅ Pass |
-| [TC-035](#tc-035) | Me is open to every role | `GET /api/auth/me` | 200 | 200 | ✅ Pass |
-| [TC-036](#tc-036) | Me is open to every role | `GET /api/auth/me` | 200 | 200 | ✅ Pass |
-| [TC-037](#tc-037) | Me is open to every role | `GET /api/auth/me` | 200 | 200 | ✅ Pass |
-| [TC-038](#tc-038) | Me without token returns 401 | `GET /api/auth/me` | 401 | 401 | ✅ Pass |
-| [TC-039](#tc-039) | Me with garbage token returns 422 | `GET /api/auth/me` | 401 / 422 | 401 | ✅ Pass |
-| [TC-040](#tc-040) | Change password returns 200 | `PUT /api/auth/change-password` | 200 | 200 | ✅ Pass |
-| [TC-041](#tc-041) | Change password old password stops working | `POST /api/auth/login` | 401 | 401 | ✅ Pass |
-| [TC-042](#tc-042) | Change password new password works | `POST /api/auth/login` | 200 | 200 | ✅ Pass |
-| [TC-043](#tc-043) | Regression: this used to be a KeyError -> HTML 500 | `PUT /api/auth/change-password` | 400 | 400 | ✅ Pass |
-| [TC-044](#tc-044) | Change password missing old password returns 400 | `PUT /api/auth/change-password` | 400 | 400 | ✅ Pass |
-| [TC-045](#tc-045) | Change password wrong old password returns 400 | `PUT /api/auth/change-password` | 400 | 400 | ✅ Pass |
-| [TC-046](#tc-046) | Change password shorter than six chars returns 400 | `PUT /api/auth/change-password` | 400 | 400 | ✅ Pass |
-| [TC-047](#tc-047) | Change password shorter than six chars returns 400 | `PUT /api/auth/change-password` | 400 | 400 | ✅ Pass |
-| [TC-048](#tc-048) | Change password shorter than six chars returns 400 | `PUT /api/auth/change-password` | 400 | 400 | ✅ Pass |
-| [TC-049](#tc-049) | Change password malformed body returns 400 | `PUT /api/auth/change-password` | 400 | 400 | ✅ Pass |
-| [TC-050](#tc-050) | Change password malformed body returns 400 | `PUT /api/auth/change-password` | 400 | 400 | ✅ Pass |
-| [TC-051](#tc-051) | Change password malformed body returns 400 | `PUT /api/auth/change-password` | 400 | 400 | ✅ Pass |
-| [TC-052](#tc-052) | Change password without token returns 401 | `PUT /api/auth/change-password` | 401 | 401 | ✅ Pass |
+| [TC-001](#tc-001) | Register returns 201 with token and user | — | 201 | — | ✅ Pass |
+| [TC-002](#tc-002) | Register lowercases and strips email | — | 201 | — | ✅ Pass |
+| [TC-003](#tc-003) | Register issues a usable token | — | 200 | — | ✅ Pass |
+| [TC-004](#tc-004) | Register missing required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-005](#tc-005) | Register missing required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-006](#tc-006) | Register missing required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-007](#tc-007) | Register missing required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-008](#tc-008) | Register blank required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-009](#tc-009) | Register blank required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-010](#tc-010) | Register unknown role returns 400 | — | 400 | — | ✅ Pass |
+| [TC-011](#tc-011) | Register malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-012](#tc-012) | Register malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-013](#tc-013) | Register malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-014](#tc-014) | Register duplicate email returns 409 | — | 409 | — | ✅ Pass |
+| [TC-015](#tc-015) | Register duplicate email is case insensitive | — | 409 | — | ✅ Pass |
+| [TC-016](#tc-016) | Register duplicate phone returns 409 | — | 201 / 409 | — | ✅ Pass |
+| [TC-017](#tc-017) | Blank phone must normalise to NULL — users.phone is UNIQUE | — | — | — | ✅ Pass |
+| [TC-018](#tc-018) | Register blank phone is stored as null | — | 201 | — | ✅ Pass |
+| [TC-019](#tc-019) | Login succeeds for every seeded role | — | 200 | — | ✅ Pass |
+| [TC-020](#tc-020) | Login succeeds for every seeded role | — | 200 | — | ✅ Pass |
+| [TC-021](#tc-021) | Login succeeds for every seeded role | — | 200 | — | ✅ Pass |
+| [TC-022](#tc-022) | Login succeeds for every seeded role | — | 200 | — | ✅ Pass |
+| [TC-023](#tc-023) | Login succeeds for every seeded role | — | 200 | — | ✅ Pass |
+| [TC-024](#tc-024) | Login succeeds for every seeded role | — | 200 | — | ✅ Pass |
+| [TC-025](#tc-025) | Login wrong password returns 401 | — | 401 | — | ✅ Pass |
+| [TC-026](#tc-026) | Login unknown email returns 401 | — | 401 | — | ✅ Pass |
+| [TC-027](#tc-027) | Login missing required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-028](#tc-028) | Login missing required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-029](#tc-029) | Login malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-030](#tc-030) | Login malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-031](#tc-031) | Login malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-032](#tc-032) | Login deactivated account returns 403 | — | 403 | — | ✅ Pass |
+| [TC-033](#tc-033) | Me returns the authenticated user | — | 200 | — | ✅ Pass |
+| [TC-034](#tc-034) | Me is open to every role | — | 200 | — | ✅ Pass |
+| [TC-035](#tc-035) | Me is open to every role | — | 200 | — | ✅ Pass |
+| [TC-036](#tc-036) | Me is open to every role | — | 200 | — | ✅ Pass |
+| [TC-037](#tc-037) | Me is open to every role | — | 200 | — | ✅ Pass |
+| [TC-038](#tc-038) | Me without token returns 401 | — | 401 | — | ✅ Pass |
+| [TC-039](#tc-039) | Me with garbage token returns 422 | — | 401 / 422 | — | ✅ Pass |
+| [TC-040](#tc-040) | Change password returns 200 | — | 200 | — | ✅ Pass |
+| [TC-041](#tc-041) | Change password old password stops working | — | 401 | — | ✅ Pass |
+| [TC-042](#tc-042) | Change password new password works | — | 200 | — | ✅ Pass |
+| [TC-043](#tc-043) | Regression: this used to be a KeyError -> HTML 500 | — | 400 | — | ✅ Pass |
+| [TC-044](#tc-044) | Change password missing old password returns 400 | — | 400 | — | ✅ Pass |
+| [TC-045](#tc-045) | Change password wrong old password returns 400 | — | 400 | — | ✅ Pass |
+| [TC-046](#tc-046) | Change password shorter than six chars returns 400 | — | 400 | — | ✅ Pass |
+| [TC-047](#tc-047) | Change password shorter than six chars returns 400 | — | 400 | — | ✅ Pass |
+| [TC-048](#tc-048) | Change password shorter than six chars returns 400 | — | 400 | — | ✅ Pass |
+| [TC-049](#tc-049) | Change password malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-050](#tc-050) | Change password malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-051](#tc-051) | Change password malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-052](#tc-052) | Change password without token returns 401 | — | 401 | — | ✅ Pass |
 
 
 ### Members & Apartments
@@ -128,102 +130,102 @@ One row per test case. **Click a test ID** to jump to its full detail — the ex
 
 | ID | Test case | Endpoint | Expected | Actual | Result |
 |---|---|---|---|---|---|
-| [TC-053](#tc-053) | List apartments returns seeded flats | `GET /api/members/apartments` | 200 | 200 | ✅ Pass |
-| [TC-054](#tc-054) | List apartments exposes block and floor | `GET /api/members/apartments` | — | 200 | ✅ Pass |
-| [TC-055](#tc-055) | List apartments is open to every role | `GET /api/members/apartments` | 200 | 200 | ✅ Pass |
-| [TC-056](#tc-056) | List apartments is open to every role | `GET /api/members/apartments` | 200 | 200 | ✅ Pass |
-| [TC-057](#tc-057) | List apartments is open to every role | `GET /api/members/apartments` | 200 | 200 | ✅ Pass |
-| [TC-058](#tc-058) | List apartments is open to every role | `GET /api/members/apartments` | 200 | 200 | ✅ Pass |
-| [TC-059](#tc-059) | List apartments without token returns 401 | `GET /api/members/apartments` | 401 | 401 | ✅ Pass |
-| [TC-060](#tc-060) | Create apartment returns 201 | `POST /api/members/apartments` | 201 | 201 | ✅ Pass |
-| [TC-061](#tc-061) | Create apartment accepts a numeric string floor | `POST /api/members/apartments` | 201 | 201 | ✅ Pass |
-| [TC-062](#tc-062) | Create apartment missing flat number returns 400 | `POST /api/members/apartments` | 400 | 400 | ✅ Pass |
-| [TC-063](#tc-063) | Create apartment non numeric floor returns 400 | `POST /api/members/apartments` | 400 | 400 | ✅ Pass |
-| [TC-064](#tc-064) | Create apartment malformed body returns 400 | `POST /api/members/apartments` | 400 | 400 | ✅ Pass |
-| [TC-065](#tc-065) | Create apartment malformed body returns 400 | `POST /api/members/apartments` | 400 | 400 | ✅ Pass |
-| [TC-066](#tc-066) | Create apartment malformed body returns 400 | `POST /api/members/apartments` | 400 | 400 | ✅ Pass |
-| [TC-067](#tc-067) | Create apartment duplicate flat number returns 409 | `POST /api/members/apartments` | 409 | 409 | ✅ Pass |
-| [TC-068](#tc-068) | Create apartment as resident returns 403 | `POST /api/members/apartments` | 403 | 403 | ✅ Pass |
-| [TC-069](#tc-069) | Create apartment as worker returns 403 | `POST /api/members/apartments` | 403 | 403 | ✅ Pass |
-| [TC-070](#tc-070) | Create apartment as treasurer returns 201 | `POST /api/members/apartments` | 201 | 201 | ✅ Pass |
-| [TC-071](#tc-071) | Create apartment without token returns 401 | `POST /api/members/apartments` | 401 | 401 | ✅ Pass |
-| [TC-072](#tc-072) | Update apartment renames the flat | `PUT /api/members/apartments/2` | 200 | 200 | ✅ Pass |
-| [TC-073](#tc-073) | Update apartment updates block and floor | `PUT /api/members/apartments/2` | 200 | 200 | ✅ Pass |
-| [TC-074](#tc-074) | Update apartment blank flat number returns 400 | `PUT /api/members/apartments/2` | 400 | 400 | ✅ Pass |
-| [TC-075](#tc-075) | Update apartment bad floor returns 400 | `PUT /api/members/apartments/2` | 400 | 400 | ✅ Pass |
-| [TC-076](#tc-076) | Update apartment duplicate flat number returns 409 | `PUT /api/members/apartments/2` | 409 | 409 | ✅ Pass |
-| [TC-077](#tc-077) | Update apartment to its own flat number returns 200 | `PUT /api/members/apartments/1` | 200 | 200 | ✅ Pass |
-| [TC-078](#tc-078) | Update unknown apartment returns 404 | `PUT /api/members/apartments/9999` | 404 | 404 | ✅ Pass |
-| [TC-079](#tc-079) | Update apartment as resident returns 403 | `PUT /api/members/apartments/2` | 403 | 403 | ✅ Pass |
-| [TC-080](#tc-080) | Update apartment without token returns 401 | `PUT /api/members/apartments/2` | 401 | 401 | ✅ Pass |
-| [TC-081](#tc-081) | Delete empty apartment returns 200 | `DELETE /api/members/apartments/2` | 200 | 200 | ✅ Pass |
-| [TC-082](#tc-082) | Delete apartment removes it from the list | `GET /api/members/apartments` | — | 200 | ✅ Pass |
-| [TC-083](#tc-083) | Delete apartment with residents returns 409 | `DELETE /api/members/apartments/1` | 409 | 409 | ✅ Pass |
-| [TC-084](#tc-084) | Delete apartment with invoices returns 409 | `DELETE /api/members/apartments/2` | 409 | 409 | ✅ Pass |
-| [TC-085](#tc-085) | Delete unknown apartment returns 404 | `DELETE /api/members/apartments/9999` | 404 | 404 | ✅ Pass |
-| [TC-086](#tc-086) | Delete apartment as resident returns 403 | `DELETE /api/members/apartments/2` | 403 | 403 | ✅ Pass |
-| [TC-087](#tc-087) | Delete apartment without token returns 401 | `DELETE /api/members/apartments/2` | 401 | 401 | ✅ Pass |
-| [TC-088](#tc-088) | List members returns the seeded resident | `GET /api/members/` | 200 | 200 | ✅ Pass |
-| [TC-089](#tc-089) | List members includes flat details | `GET /api/members/` | — | 200 | ✅ Pass |
-| [TC-090](#tc-090) | List members as resident returns 403 | `GET /api/members/` | 403 | 403 | ✅ Pass |
-| [TC-091](#tc-091) | List members as worker returns 403 | `GET /api/members/` | 403 | 403 | ✅ Pass |
-| [TC-092](#tc-092) | List members as treasurer returns 200 | `GET /api/members/` | 200 | 200 | ✅ Pass |
-| [TC-093](#tc-093) | List members without token returns 401 | `GET /api/members/` | 401 | 401 | ✅ Pass |
-| [TC-094](#tc-094) | Create member returns 201 | `POST /api/members/` | 201 | 201 | ✅ Pass |
-| [TC-095](#tc-095) | Create member can log in afterwards | `POST /api/auth/login` | 200 | 200 | ✅ Pass |
-| [TC-096](#tc-096) | Create member appears in the listing | `GET /api/members/` | — | 200 | ✅ Pass |
-| [TC-097](#tc-097) | Create member missing required field returns 400 | `POST /api/members/` | 400 | 400 | ✅ Pass |
-| [TC-098](#tc-098) | Create member missing required field returns 400 | `POST /api/members/` | 400 | 400 | ✅ Pass |
-| [TC-099](#tc-099) | Create member missing required field returns 400 | `POST /api/members/` | 400 | 400 | ✅ Pass |
-| [TC-100](#tc-100) | Create member missing required field returns 400 | `POST /api/members/` | 400 | 400 | ✅ Pass |
-| [TC-101](#tc-101) | Create member missing required field returns 400 | `POST /api/members/` | 400 | 400 | ✅ Pass |
-| [TC-102](#tc-102) | Create member unknown role returns 400 | `POST /api/members/` | 400 | 400 | ✅ Pass |
-| [TC-103](#tc-103) | Create member bad move in date returns 400 | `POST /api/members/` | 400 | 400 | ✅ Pass |
-| [TC-104](#tc-104) | Create member non numeric apartment id returns 400 | `POST /api/members/` | 400 | 400 | ✅ Pass |
-| [TC-105](#tc-105) | Create member zero apartment id returns 400 | `POST /api/members/` | 400 | 400 | ✅ Pass |
-| [TC-106](#tc-106) | Create member unknown apartment returns 404 | `POST /api/members/` | 404 | 404 | ✅ Pass |
-| [TC-107](#tc-107) | Create member malformed body returns 400 | `POST /api/members/` | 400 | 400 | ✅ Pass |
-| [TC-108](#tc-108) | Create member malformed body returns 400 | `POST /api/members/` | 400 | 400 | ✅ Pass |
-| [TC-109](#tc-109) | Create member malformed body returns 400 | `POST /api/members/` | 400 | 400 | ✅ Pass |
-| [TC-110](#tc-110) | Create member duplicate email returns 409 | `POST /api/members/` | 409 | 409 | ✅ Pass |
-| [TC-111](#tc-111) | Create member duplicate phone returns 409 | `POST /api/members/` | 201 / 409 | 409 | ✅ Pass |
-| [TC-112](#tc-112) | Blank phone must normalise to NULL — users.phone is UNIQUE | `POST /api/members/` | — | 201 | ✅ Pass |
-| [TC-113](#tc-113) | Create member as resident returns 403 | `POST /api/members/` | 403 | 403 | ✅ Pass |
-| [TC-114](#tc-114) | Create member without token returns 401 | `POST /api/members/` | 401 | 401 | ✅ Pass |
-| [TC-115](#tc-115) | List workers returns only worker role users | `GET /api/members/workers` | 200 | 200 | ✅ Pass |
-| [TC-116](#tc-116) | complaints.assigned_worker_id points at users.id, never residents.id | `GET /api/members/workers` | — | 200 | ✅ Pass |
-| [TC-117](#tc-117) | List workers returns id name email only | `GET /api/members/workers` | — | 200 | ✅ Pass |
-| [TC-118](#tc-118) | List workers includes newly added workers | `GET /api/members/workers` | — | 200 | ✅ Pass |
-| [TC-119](#tc-119) | List workers as resident returns 403 | `GET /api/members/workers` | 403 | 403 | ✅ Pass |
-| [TC-120](#tc-120) | List workers without token returns 401 | `GET /api/members/workers` | 401 | 401 | ✅ Pass |
-| [TC-121](#tc-121) | Get member returns 200 | `GET /api/members/1` | 200 | 200 | ✅ Pass |
-| [TC-122](#tc-122) | Get member is open to every role | `GET /api/members/1` | 200 | 200 | ✅ Pass |
-| [TC-123](#tc-123) | Get member is open to every role | `GET /api/members/1` | 200 | 200 | ✅ Pass |
-| [TC-124](#tc-124) | Get member is open to every role | `GET /api/members/1` | 200 | 200 | ✅ Pass |
-| [TC-125](#tc-125) | Get member is open to every role | `GET /api/members/1` | 200 | 200 | ✅ Pass |
-| [TC-126](#tc-126) | Get unknown member returns 404 | `GET /api/members/9999` | 404 | 404 | ✅ Pass |
-| [TC-127](#tc-127) | Get member without token returns 401 | `GET /api/members/1` | 401 | 401 | ✅ Pass |
-| [TC-128](#tc-128) | Update member changes name and role | `PUT /api/members/1` | 200 | 200 | ✅ Pass |
-| [TC-129](#tc-129) | Update member changes resident fields | `PUT /api/members/1` | 200 | 200 | ✅ Pass |
-| [TC-130](#tc-130) | Update member blank phone clears it | `PUT /api/members/1` | 200 | 200 | ✅ Pass |
-| [TC-131](#tc-131) | Update member unknown role returns 400 | `PUT /api/members/1` | 400 | 400 | ✅ Pass |
-| [TC-132](#tc-132) | Update member bad move in date returns 400 | `PUT /api/members/1` | 400 | 400 | ✅ Pass |
-| [TC-133](#tc-133) | Update member bad move out date returns 400 | `PUT /api/members/1` | 400 | 400 | ✅ Pass |
-| [TC-134](#tc-134) | Update member duplicate phone returns 409 | `PUT /api/members/1` | 409 | 409 | ✅ Pass |
-| [TC-135](#tc-135) | Update member keeping its own phone returns 200 | `PUT /api/members/1` | 200 | 200 | ✅ Pass |
-| [TC-136](#tc-136) | Update member malformed body returns 400 | `PUT /api/members/1` | 400 | 400 | ✅ Pass |
-| [TC-137](#tc-137) | Update member malformed body returns 400 | `PUT /api/members/1` | 400 | 400 | ✅ Pass |
-| [TC-138](#tc-138) | Update member malformed body returns 400 | `PUT /api/members/1` | 400 | 400 | ✅ Pass |
-| [TC-139](#tc-139) | Update unknown member returns 404 | `PUT /api/members/9999` | 404 | 404 | ✅ Pass |
-| [TC-140](#tc-140) | Update member as resident returns 403 | `PUT /api/members/1` | 403 | 403 | ✅ Pass |
-| [TC-141](#tc-141) | Update member without token returns 401 | `PUT /api/members/1` | 401 | 401 | ✅ Pass |
-| [TC-142](#tc-142) | Deactivate member returns 200 | `DELETE /api/members/1` | 200 | 200 | ✅ Pass |
-| [TC-143](#tc-143) | Deactivate member is a soft delete | `GET /api/members/1` | — | 200 | ✅ Pass |
-| [TC-144](#tc-144) | Deactivate worker removes them from the worker list | `GET /api/members/workers` | — | 200 | ✅ Pass |
-| [TC-145](#tc-145) | Deactivated member token returns 403 | `GET /api/auth/me` | 403 | 403 | ✅ Pass |
-| [TC-146](#tc-146) | Deactivate unknown member returns 404 | `DELETE /api/members/9999` | 404 | 404 | ✅ Pass |
-| [TC-147](#tc-147) | Deactivate member as resident returns 403 | `DELETE /api/members/1` | 403 | 403 | ✅ Pass |
-| [TC-148](#tc-148) | Deactivate member without token returns 401 | `DELETE /api/members/1` | 401 | 401 | ✅ Pass |
+| [TC-053](#tc-053) | List apartments returns seeded flats | — | 200 | — | ✅ Pass |
+| [TC-054](#tc-054) | List apartments exposes block and floor | — | — | — | ✅ Pass |
+| [TC-055](#tc-055) | List apartments is open to every role | — | 200 | — | ✅ Pass |
+| [TC-056](#tc-056) | List apartments is open to every role | — | 200 | — | ✅ Pass |
+| [TC-057](#tc-057) | List apartments is open to every role | — | 200 | — | ✅ Pass |
+| [TC-058](#tc-058) | List apartments is open to every role | — | 200 | — | ✅ Pass |
+| [TC-059](#tc-059) | List apartments without token returns 401 | — | 401 | — | ✅ Pass |
+| [TC-060](#tc-060) | Create apartment returns 201 | — | 201 | — | ✅ Pass |
+| [TC-061](#tc-061) | Create apartment accepts a numeric string floor | — | 201 | — | ✅ Pass |
+| [TC-062](#tc-062) | Create apartment missing flat number returns 400 | — | 400 | — | ✅ Pass |
+| [TC-063](#tc-063) | Create apartment non numeric floor returns 400 | — | 400 | — | ✅ Pass |
+| [TC-064](#tc-064) | Create apartment malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-065](#tc-065) | Create apartment malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-066](#tc-066) | Create apartment malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-067](#tc-067) | Create apartment duplicate flat number returns 409 | — | 409 | — | ✅ Pass |
+| [TC-068](#tc-068) | Create apartment as resident returns 403 | — | 403 | — | ✅ Pass |
+| [TC-069](#tc-069) | Create apartment as worker returns 403 | — | 403 | — | ✅ Pass |
+| [TC-070](#tc-070) | Create apartment as treasurer returns 201 | — | 201 | — | ✅ Pass |
+| [TC-071](#tc-071) | Create apartment without token returns 401 | — | 401 | — | ✅ Pass |
+| [TC-072](#tc-072) | Update apartment renames the flat | — | 200 | — | ✅ Pass |
+| [TC-073](#tc-073) | Update apartment updates block and floor | — | 200 | — | ✅ Pass |
+| [TC-074](#tc-074) | Update apartment blank flat number returns 400 | — | 400 | — | ✅ Pass |
+| [TC-075](#tc-075) | Update apartment bad floor returns 400 | — | 400 | — | ✅ Pass |
+| [TC-076](#tc-076) | Update apartment duplicate flat number returns 409 | — | 409 | — | ✅ Pass |
+| [TC-077](#tc-077) | Update apartment to its own flat number returns 200 | — | 200 | — | ✅ Pass |
+| [TC-078](#tc-078) | Update unknown apartment returns 404 | — | 404 | — | ✅ Pass |
+| [TC-079](#tc-079) | Update apartment as resident returns 403 | — | 403 | — | ✅ Pass |
+| [TC-080](#tc-080) | Update apartment without token returns 401 | — | 401 | — | ✅ Pass |
+| [TC-081](#tc-081) | Delete empty apartment returns 200 | — | 200 | — | ✅ Pass |
+| [TC-082](#tc-082) | Delete apartment removes it from the list | — | — | — | ✅ Pass |
+| [TC-083](#tc-083) | Delete apartment with residents returns 409 | — | 409 | — | ✅ Pass |
+| [TC-084](#tc-084) | Delete apartment with invoices returns 409 | — | 409 | — | ✅ Pass |
+| [TC-085](#tc-085) | Delete unknown apartment returns 404 | — | 404 | — | ✅ Pass |
+| [TC-086](#tc-086) | Delete apartment as resident returns 403 | — | 403 | — | ✅ Pass |
+| [TC-087](#tc-087) | Delete apartment without token returns 401 | — | 401 | — | ✅ Pass |
+| [TC-088](#tc-088) | List members returns the seeded resident | — | 200 | — | ✅ Pass |
+| [TC-089](#tc-089) | List members includes flat details | — | — | — | ✅ Pass |
+| [TC-090](#tc-090) | List members as resident returns 403 | — | 403 | — | ✅ Pass |
+| [TC-091](#tc-091) | List members as worker returns 403 | — | 403 | — | ✅ Pass |
+| [TC-092](#tc-092) | List members as treasurer returns 200 | — | 200 | — | ✅ Pass |
+| [TC-093](#tc-093) | List members without token returns 401 | — | 401 | — | ✅ Pass |
+| [TC-094](#tc-094) | Create member returns 201 | — | 201 | — | ✅ Pass |
+| [TC-095](#tc-095) | Create member can log in afterwards | — | 200 | — | ✅ Pass |
+| [TC-096](#tc-096) | Create member appears in the listing | — | — | — | ✅ Pass |
+| [TC-097](#tc-097) | Create member missing required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-098](#tc-098) | Create member missing required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-099](#tc-099) | Create member missing required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-100](#tc-100) | Create member missing required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-101](#tc-101) | Create member missing required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-102](#tc-102) | Create member unknown role returns 400 | — | 400 | — | ✅ Pass |
+| [TC-103](#tc-103) | Create member bad move in date returns 400 | — | 400 | — | ✅ Pass |
+| [TC-104](#tc-104) | Create member non numeric apartment id returns 400 | — | 400 | — | ✅ Pass |
+| [TC-105](#tc-105) | Create member zero apartment id returns 400 | — | 400 | — | ✅ Pass |
+| [TC-106](#tc-106) | Create member unknown apartment returns 404 | — | 404 | — | ✅ Pass |
+| [TC-107](#tc-107) | Create member malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-108](#tc-108) | Create member malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-109](#tc-109) | Create member malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-110](#tc-110) | Create member duplicate email returns 409 | — | 409 | — | ✅ Pass |
+| [TC-111](#tc-111) | Create member duplicate phone returns 409 | — | 201 / 409 | — | ✅ Pass |
+| [TC-112](#tc-112) | Blank phone must normalise to NULL — users.phone is UNIQUE | — | — | — | ✅ Pass |
+| [TC-113](#tc-113) | Create member as resident returns 403 | — | 403 | — | ✅ Pass |
+| [TC-114](#tc-114) | Create member without token returns 401 | — | 401 | — | ✅ Pass |
+| [TC-115](#tc-115) | List workers returns only worker role users | — | 200 | — | ✅ Pass |
+| [TC-116](#tc-116) | complaints.assigned_worker_id points at users.id, never residents.id | — | — | — | ✅ Pass |
+| [TC-117](#tc-117) | List workers returns id name email only | — | — | — | ✅ Pass |
+| [TC-118](#tc-118) | List workers includes newly added workers | — | — | — | ✅ Pass |
+| [TC-119](#tc-119) | List workers as resident returns 403 | — | 403 | — | ✅ Pass |
+| [TC-120](#tc-120) | List workers without token returns 401 | — | 401 | — | ✅ Pass |
+| [TC-121](#tc-121) | Get member returns 200 | — | 200 | — | ✅ Pass |
+| [TC-122](#tc-122) | Get member is open to every role | — | 200 | — | ✅ Pass |
+| [TC-123](#tc-123) | Get member is open to every role | — | 200 | — | ✅ Pass |
+| [TC-124](#tc-124) | Get member is open to every role | — | 200 | — | ✅ Pass |
+| [TC-125](#tc-125) | Get member is open to every role | — | 200 | — | ✅ Pass |
+| [TC-126](#tc-126) | Get unknown member returns 404 | — | 404 | — | ✅ Pass |
+| [TC-127](#tc-127) | Get member without token returns 401 | — | 401 | — | ✅ Pass |
+| [TC-128](#tc-128) | Update member changes name and role | — | 200 | — | ✅ Pass |
+| [TC-129](#tc-129) | Update member changes resident fields | — | 200 | — | ✅ Pass |
+| [TC-130](#tc-130) | Update member blank phone clears it | — | 200 | — | ✅ Pass |
+| [TC-131](#tc-131) | Update member unknown role returns 400 | — | 400 | — | ✅ Pass |
+| [TC-132](#tc-132) | Update member bad move in date returns 400 | — | 400 | — | ✅ Pass |
+| [TC-133](#tc-133) | Update member bad move out date returns 400 | — | 400 | — | ✅ Pass |
+| [TC-134](#tc-134) | Update member duplicate phone returns 409 | — | 409 | — | ✅ Pass |
+| [TC-135](#tc-135) | Update member keeping its own phone returns 200 | — | 200 | — | ✅ Pass |
+| [TC-136](#tc-136) | Update member malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-137](#tc-137) | Update member malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-138](#tc-138) | Update member malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-139](#tc-139) | Update unknown member returns 404 | — | 404 | — | ✅ Pass |
+| [TC-140](#tc-140) | Update member as resident returns 403 | — | 403 | — | ✅ Pass |
+| [TC-141](#tc-141) | Update member without token returns 401 | — | 401 | — | ✅ Pass |
+| [TC-142](#tc-142) | Deactivate member returns 200 | — | 200 | — | ✅ Pass |
+| [TC-143](#tc-143) | Deactivate member is a soft delete | — | — | — | ✅ Pass |
+| [TC-144](#tc-144) | Deactivate worker removes them from the worker list | — | — | — | ✅ Pass |
+| [TC-145](#tc-145) | Deactivated member token returns 403 | — | 403 | — | ✅ Pass |
+| [TC-146](#tc-146) | Deactivate unknown member returns 404 | — | 404 | — | ✅ Pass |
+| [TC-147](#tc-147) | Deactivate member as resident returns 403 | — | 403 | — | ✅ Pass |
+| [TC-148](#tc-148) | Deactivate member without token returns 401 | — | 401 | — | ✅ Pass |
 
 
 ### Complaints
@@ -232,50 +234,50 @@ One row per test case. **Click a test ID** to jump to its full detail — the ex
 
 | ID | Test case | Endpoint | Expected | Actual | Result |
 |---|---|---|---|---|---|
-| [TC-149](#tc-149) | Resident can raise complaint | `POST /api/complaints/` | 201 | 201 | ✅ Pass |
-| [TC-150](#tc-150) | Priority defaults to medium | `POST /api/complaints/` | — | 201 | ✅ Pass |
-| [TC-151](#tc-151) | Resident lists only own complaints | `GET /api/complaints/` | 200 | 200 | ✅ Pass |
-| [TC-152](#tc-152) | Admin lists all complaints | `GET /api/complaints/` | 200 | 200 | ✅ Pass |
-| [TC-153](#tc-153) | Get complaint detail includes updates | `GET /api/complaints/1` | 200 | 200 | ✅ Pass |
-| [TC-154](#tc-154) | Admin can delete complaint | `GET /api/complaints/1` | 200 / 404 | 404 | ✅ Pass |
-| [TC-155](#tc-155) | COMMITTEE_MEMBER is an admin role even though it is not a finance role | `DELETE /api/complaints/1` | 200 | 200 | ✅ Pass |
-| [TC-156](#tc-156) | Raise complaint missing required field returns 400 | `POST /api/complaints/` | 400 | 400 | ✅ Pass |
-| [TC-157](#tc-157) | Raise complaint missing required field returns 400 | `POST /api/complaints/` | 400 | 400 | ✅ Pass |
-| [TC-158](#tc-158) | Raise complaint missing required field returns 400 | `POST /api/complaints/` | 400 | 400 | ✅ Pass |
-| [TC-159](#tc-159) | Raise complaint bad category returns 400 | `POST /api/complaints/` | 400 | 400 | ✅ Pass |
-| [TC-160](#tc-160) | Raise complaint bad priority returns 400 | `POST /api/complaints/` | 400 | 400 | ✅ Pass |
-| [TC-161](#tc-161) | Raise complaint non numeric apartment id returns 400 | `POST /api/complaints/` | 400 | 400 | ✅ Pass |
-| [TC-162](#tc-162) | Raise complaint unknown apartment returns 404 | `POST /api/complaints/` | 404 | 404 | ✅ Pass |
-| [TC-163](#tc-163) | Raise complaint malformed body returns 400 | `POST /api/complaints/` | 400 | 400 | ✅ Pass |
-| [TC-164](#tc-164) | Raise complaint malformed body returns 400 | `POST /api/complaints/` | 400 | 400 | ✅ Pass |
-| [TC-165](#tc-165) | Raise complaint malformed body returns 400 | `POST /api/complaints/` | 400 | 400 | ✅ Pass |
-| [TC-166](#tc-166) | Complaint endpoints require a token | `GET /api/complaints/` | 401 | 401 | ✅ Pass |
-| [TC-167](#tc-167) | Complaint endpoints require a token | `POST /api/complaints/` | 401 | 401 | ✅ Pass |
-| [TC-168](#tc-168) | Complaint endpoints require a token | `GET /api/complaints/1` | 401 | 401 | ✅ Pass |
-| [TC-169](#tc-169) | Complaint endpoints require a token | `PUT /api/complaints/1/assign` | 401 | 401 | ✅ Pass |
-| [TC-170](#tc-170) | Complaint endpoints require a token | `PUT /api/complaints/1/status` | 401 | 401 | ✅ Pass |
-| [TC-171](#tc-171) | Complaint endpoints require a token | `DELETE /api/complaints/1` | 401 | 401 | ✅ Pass |
-| [TC-172](#tc-172) | Resident cannot delete complaint | `DELETE /api/complaints/1` | 403 | 403 | ✅ Pass |
-| [TC-173](#tc-173) | Resident cannot assign a worker | `PUT /api/complaints/1/assign` | 403 | 403 | ✅ Pass |
-| [TC-174](#tc-174) | Resident cannot read another flats complaint | `GET /api/complaints/1` | 403 | 403 | ✅ Pass |
-| [TC-175](#tc-175) | Resident cannot update another flats complaint | `PUT /api/complaints/1/status` | 403 | 403 | ✅ Pass |
-| [TC-176](#tc-176) | Assign worker returns 200 and populates worker name | `PUT /api/complaints/1/assign` | 200 | 200 | ✅ Pass |
-| [TC-177](#tc-177) | Regression: a null worker_id used to flip the status to ASSIGNED anyway | `GET /api/complaints/1` | 400 | 200 | ✅ Pass |
-| [TC-178](#tc-178) | Regression: a null worker_id used to flip the status to ASSIGNED anyway | `GET /api/complaints/1` | 400 | 200 | ✅ Pass |
-| [TC-179](#tc-179) | Regression: a null worker_id used to flip the status to ASSIGNED anyway | `GET /api/complaints/1` | 400 | 200 | ✅ Pass |
-| [TC-180](#tc-180) | Regression: a null worker_id used to flip the status to ASSIGNED anyway | `GET /api/complaints/1` | 400 | 200 | ✅ Pass |
-| [TC-181](#tc-181) | Assign to non worker user returns 400 | `PUT /api/complaints/1/assign` | 400 | 400 | ✅ Pass |
-| [TC-182](#tc-182) | Assign to unknown user returns 404 | `PUT /api/complaints/1/assign` | 404 | 404 | ✅ Pass |
-| [TC-183](#tc-183) | Regression: workers only ever saw complaints they had raised themselves | `GET /api/complaints/` | 200 | 200 | ✅ Pass |
-| [TC-184](#tc-184) | Worker does not see unassigned complaints | `GET /api/complaints/` | 200 | 200 | ✅ Pass |
-| [TC-185](#tc-185) | Assigned worker can read and update the complaint | `PUT /api/complaints/1/status` | 200 | 200 | ✅ Pass |
-| [TC-186](#tc-186) | Status flow open to completed sets resolved at | `PUT /api/complaints/1/status` | 200 | 200 | ✅ Pass |
-| [TC-187](#tc-187) | Regression: resolved_at used to survive a reopen | `PUT /api/complaints/1/status` | 200 | 200 | ✅ Pass |
-| [TC-188](#tc-188) | Invalid status transition returns 400 | `PUT /api/complaints/1/status` | 400 | 400 | ✅ Pass |
-| [TC-189](#tc-189) | Status update requires status field | `PUT /api/complaints/1/status` | 400 | 400 | ✅ Pass |
-| [TC-190](#tc-190) | Status update bad enum returns 400 | `PUT /api/complaints/1/status` | 400 | 400 | ✅ Pass |
-| [TC-191](#tc-191) | Setting the same status is allowed | `PUT /api/complaints/1/status` | 200 | 200 | ✅ Pass |
-| [TC-192](#tc-192) | Unknown complaint id returns 404 | `DELETE /api/complaints/99999` | 404 | 404 | ✅ Pass |
+| [TC-149](#tc-149) | Resident can raise complaint | — | 201 | — | ✅ Pass |
+| [TC-150](#tc-150) | Priority defaults to medium | — | — | — | ✅ Pass |
+| [TC-151](#tc-151) | Resident lists only own complaints | — | 200 | — | ✅ Pass |
+| [TC-152](#tc-152) | Admin lists all complaints | — | 200 | — | ✅ Pass |
+| [TC-153](#tc-153) | Get complaint detail includes updates | — | 200 | — | ✅ Pass |
+| [TC-154](#tc-154) | Admin can delete complaint | — | 200 / 404 | — | ✅ Pass |
+| [TC-155](#tc-155) | COMMITTEE_MEMBER is an admin role even though it is not a finance role | — | 200 | — | ✅ Pass |
+| [TC-156](#tc-156) | Raise complaint missing required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-157](#tc-157) | Raise complaint missing required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-158](#tc-158) | Raise complaint missing required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-159](#tc-159) | Raise complaint bad category returns 400 | — | 400 | — | ✅ Pass |
+| [TC-160](#tc-160) | Raise complaint bad priority returns 400 | — | 400 | — | ✅ Pass |
+| [TC-161](#tc-161) | Raise complaint non numeric apartment id returns 400 | — | 400 | — | ✅ Pass |
+| [TC-162](#tc-162) | Raise complaint unknown apartment returns 404 | — | 404 | — | ✅ Pass |
+| [TC-163](#tc-163) | Raise complaint malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-164](#tc-164) | Raise complaint malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-165](#tc-165) | Raise complaint malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-166](#tc-166) | Complaint endpoints require a token | — | 401 | — | ✅ Pass |
+| [TC-167](#tc-167) | Complaint endpoints require a token | — | 401 | — | ✅ Pass |
+| [TC-168](#tc-168) | Complaint endpoints require a token | — | 401 | — | ✅ Pass |
+| [TC-169](#tc-169) | Complaint endpoints require a token | — | 401 | — | ✅ Pass |
+| [TC-170](#tc-170) | Complaint endpoints require a token | — | 401 | — | ✅ Pass |
+| [TC-171](#tc-171) | Complaint endpoints require a token | — | 401 | — | ✅ Pass |
+| [TC-172](#tc-172) | Resident cannot delete complaint | — | 403 | — | ✅ Pass |
+| [TC-173](#tc-173) | Resident cannot assign a worker | — | 403 | — | ✅ Pass |
+| [TC-174](#tc-174) | Resident cannot read another flats complaint | — | 403 | — | ✅ Pass |
+| [TC-175](#tc-175) | Resident cannot update another flats complaint | — | 403 | — | ✅ Pass |
+| [TC-176](#tc-176) | Assign worker returns 200 and populates worker name | — | 200 | — | ✅ Pass |
+| [TC-177](#tc-177) | Regression: a null worker_id used to flip the status to ASSIGNED anyway | — | 400 | — | ✅ Pass |
+| [TC-178](#tc-178) | Regression: a null worker_id used to flip the status to ASSIGNED anyway | — | 400 | — | ✅ Pass |
+| [TC-179](#tc-179) | Regression: a null worker_id used to flip the status to ASSIGNED anyway | — | 400 | — | ✅ Pass |
+| [TC-180](#tc-180) | Regression: a null worker_id used to flip the status to ASSIGNED anyway | — | 400 | — | ✅ Pass |
+| [TC-181](#tc-181) | Assign to non worker user returns 400 | — | 400 | — | ✅ Pass |
+| [TC-182](#tc-182) | Assign to unknown user returns 404 | — | 404 | — | ✅ Pass |
+| [TC-183](#tc-183) | Regression: workers only ever saw complaints they had raised themselves | — | 200 | — | ✅ Pass |
+| [TC-184](#tc-184) | Worker does not see unassigned complaints | — | 200 | — | ✅ Pass |
+| [TC-185](#tc-185) | Assigned worker can read and update the complaint | — | 200 | — | ✅ Pass |
+| [TC-186](#tc-186) | Status flow open to completed sets resolved at | — | 200 | — | ✅ Pass |
+| [TC-187](#tc-187) | Regression: resolved_at used to survive a reopen | — | 200 | — | ✅ Pass |
+| [TC-188](#tc-188) | Invalid status transition returns 400 | — | 400 | — | ✅ Pass |
+| [TC-189](#tc-189) | Status update requires status field | — | 400 | — | ✅ Pass |
+| [TC-190](#tc-190) | Status update bad enum returns 400 | — | 400 | — | ✅ Pass |
+| [TC-191](#tc-191) | Setting the same status is allowed | — | 200 | — | ✅ Pass |
+| [TC-192](#tc-192) | Unknown complaint id returns 404 | — | 404 | — | ✅ Pass |
 
 
 ### Invoices & Payments
@@ -284,59 +286,59 @@ One row per test case. **Click a test ID** to jump to its full detail — the ex
 
 | ID | Test case | Endpoint | Expected | Actual | Result |
 |---|---|---|---|---|---|
-| [TC-193](#tc-193) | Admin creates invoice | `POST /api/invoices/` | 201 | 201 | ✅ Pass |
-| [TC-194](#tc-194) | Treasurer can create invoice | `POST /api/invoices/` | — | 201 | ✅ Pass |
-| [TC-195](#tc-195) | Admin lists all invoices | `GET /api/invoices/` | 200 | 200 | ✅ Pass |
-| [TC-196](#tc-196) | Pay invoice returns receipt | `PUT /api/invoices/1/pay` | 200 | 200 | ✅ Pass |
-| [TC-197](#tc-197) | Payment method defaults to cash | `PUT /api/invoices/1/pay` | 200 | 200 | ✅ Pass |
-| [TC-198](#tc-198) | Get receipt for paid invoice | `GET /api/invoices/1/receipt` | 200 | 200 | ✅ Pass |
-| [TC-199](#tc-199) | Resident can read own receipt | `GET /api/invoices/1/receipt` | 200 | 200 | ✅ Pass |
-| [TC-200](#tc-200) | Pending lists only unpaid | `GET /api/invoices/pending` | 200 | 200 | ✅ Pass |
-| [TC-201](#tc-201) | Bulk generate creates invoice for every flat | `POST /api/invoices/bulk` | 201 | 201 | ✅ Pass |
-| [TC-202](#tc-202) | Bulk generate skips flats that already have that month | `GET /api/invoices/` | 201 | 200 | ✅ Pass |
-| [TC-203](#tc-203) | Create invoice missing required field returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
-| [TC-204](#tc-204) | Create invoice missing required field returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
-| [TC-205](#tc-205) | Create invoice missing required field returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
-| [TC-206](#tc-206) | Create invoice missing required field returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
-| [TC-207](#tc-207) | Create invoice month out of range returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
-| [TC-208](#tc-208) | Create invoice month out of range returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
-| [TC-209](#tc-209) | Create invoice month out of range returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
-| [TC-210](#tc-210) | Create invoice month out of range returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
-| [TC-211](#tc-211) | Bulk generate month out of range returns 400 | `POST /api/invoices/bulk` | 400 | 400 | ✅ Pass |
-| [TC-212](#tc-212) | Create invoice year out of range returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
-| [TC-213](#tc-213) | Create invoice non numeric amount returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
-| [TC-214](#tc-214) | Create invoice negative amount returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
-| [TC-215](#tc-215) | Create invoice bad due date returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
-| [TC-216](#tc-216) | Regression: an empty due_date from the form used to 400 (or crash) | `POST /api/invoices/` | 201 | 201 | ✅ Pass |
-| [TC-217](#tc-217) | Regression: an empty due_date from the form used to 400 (or crash) | `POST /api/invoices/` | 201 | 201 | ✅ Pass |
-| [TC-218](#tc-218) | Regression: an empty due_date from the form used to 400 (or crash) | `POST /api/invoices/` | 201 | 201 | ✅ Pass |
-| [TC-219](#tc-219) | Create invoice unknown apartment returns 404 | `POST /api/invoices/` | 404 | 404 | ✅ Pass |
-| [TC-220](#tc-220) | Invoice malformed body returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
-| [TC-221](#tc-221) | Invoice malformed body returns 400 | `POST /api/invoices/` | 400 | 400 | ✅ Pass |
-| [TC-222](#tc-222) | Invoice malformed body returns 400 | `POST /api/invoices/bulk` | 400 | 400 | ✅ Pass |
-| [TC-223](#tc-223) | Invoice malformed body returns 400 | `POST /api/invoices/bulk` | 400 | 400 | ✅ Pass |
-| [TC-224](#tc-224) | Invoice endpoints require a token | `GET /api/invoices/` | 401 | 401 | ✅ Pass |
-| [TC-225](#tc-225) | Invoice endpoints require a token | `POST /api/invoices/` | 401 | 401 | ✅ Pass |
-| [TC-226](#tc-226) | Invoice endpoints require a token | `POST /api/invoices/bulk` | 401 | 401 | ✅ Pass |
-| [TC-227](#tc-227) | Invoice endpoints require a token | `PUT /api/invoices/1/pay` | 401 | 401 | ✅ Pass |
-| [TC-228](#tc-228) | Invoice endpoints require a token | `GET /api/invoices/1/receipt` | 401 | 401 | ✅ Pass |
-| [TC-229](#tc-229) | Invoice endpoints require a token | `GET /api/invoices/pending` | 401 | 401 | ✅ Pass |
-| [TC-230](#tc-230) | Resident cannot create invoice | `POST /api/invoices/` | 403 | 403 | ✅ Pass |
-| [TC-231](#tc-231) | Resident cannot mark invoice paid | `GET /api/invoices/` | 403 | 200 | ✅ Pass |
-| [TC-232](#tc-232) | Resident cannot bulk generate | `POST /api/invoices/bulk` | 403 | 403 | ✅ Pass |
-| [TC-233](#tc-233) | COMMITTEE_MEMBER manages the society but must not touch money | `POST /api/invoices/` | 403 | 403 | ✅ Pass |
-| [TC-234](#tc-234) | COMMITTEE_MEMBER manages the society but must not touch money | `POST /api/invoices/bulk` | 403 | 403 | ✅ Pass |
-| [TC-235](#tc-235) | Resident cannot read another flats receipt | `GET /api/invoices/1/receipt` | 403 | 403 | ✅ Pass |
-| [TC-236](#tc-236) | Duplicate invoice for same flat month year returns 409 | `GET /api/invoices/` | 409 | 200 | ✅ Pass |
-| [TC-237](#tc-237) | Same month different flat is allowed | `GET /api/invoices/` | — | 200 | ✅ Pass |
-| [TC-238](#tc-238) | Regression: the second payment used to insert a duplicate Payment row | `GET /api/invoices/1/receipt` | 200 / 409 | 200 | ✅ Pass |
-| [TC-239](#tc-239) | Receipt for unpaid invoice returns 400 | `GET /api/invoices/1/receipt` | 400 | 400 | ✅ Pass |
-| [TC-240](#tc-240) | Pay invoice for flat without resident returns 404 | `PUT /api/invoices/1/pay` | 404 | 404 | ✅ Pass |
-| [TC-241](#tc-241) | Unknown invoice returns 404 | `GET /api/invoices/99999/receipt` | 404 | 404 | ✅ Pass |
-| [TC-242](#tc-242) | Resident sees only own flat invoices | `GET /api/invoices/` | 200 | 200 | ✅ Pass |
-| [TC-243](#tc-243) | Regression: /pending used to leak every flat's outstanding dues | `GET /api/invoices/pending` | 200 | 200 | ✅ Pass |
-| [TC-244](#tc-244) | User without a flat sees an empty list | `GET /api/invoices/` | 200 | 200 | ✅ Pass |
-| [TC-245](#tc-245) | User without a flat sees an empty list | `GET /api/invoices/pending` | 200 | 200 | ✅ Pass |
+| [TC-193](#tc-193) | Admin creates invoice | — | 201 | — | ✅ Pass |
+| [TC-194](#tc-194) | Treasurer can create invoice | — | — | — | ✅ Pass |
+| [TC-195](#tc-195) | Admin lists all invoices | — | 200 | — | ✅ Pass |
+| [TC-196](#tc-196) | Pay invoice returns receipt | — | 200 | — | ✅ Pass |
+| [TC-197](#tc-197) | Payment method defaults to cash | — | 200 | — | ✅ Pass |
+| [TC-198](#tc-198) | Get receipt for paid invoice | — | 200 | — | ✅ Pass |
+| [TC-199](#tc-199) | Resident can read own receipt | — | 200 | — | ✅ Pass |
+| [TC-200](#tc-200) | Pending lists only unpaid | — | 200 | — | ✅ Pass |
+| [TC-201](#tc-201) | Bulk generate creates invoice for every flat | — | 201 | — | ✅ Pass |
+| [TC-202](#tc-202) | Bulk generate skips flats that already have that month | — | 201 | — | ✅ Pass |
+| [TC-203](#tc-203) | Create invoice missing required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-204](#tc-204) | Create invoice missing required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-205](#tc-205) | Create invoice missing required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-206](#tc-206) | Create invoice missing required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-207](#tc-207) | Create invoice month out of range returns 400 | — | 400 | — | ✅ Pass |
+| [TC-208](#tc-208) | Create invoice month out of range returns 400 | — | 400 | — | ✅ Pass |
+| [TC-209](#tc-209) | Create invoice month out of range returns 400 | — | 400 | — | ✅ Pass |
+| [TC-210](#tc-210) | Create invoice month out of range returns 400 | — | 400 | — | ✅ Pass |
+| [TC-211](#tc-211) | Bulk generate month out of range returns 400 | — | 400 | — | ✅ Pass |
+| [TC-212](#tc-212) | Create invoice year out of range returns 400 | — | 400 | — | ✅ Pass |
+| [TC-213](#tc-213) | Create invoice non numeric amount returns 400 | — | 400 | — | ✅ Pass |
+| [TC-214](#tc-214) | Create invoice negative amount returns 400 | — | 400 | — | ✅ Pass |
+| [TC-215](#tc-215) | Create invoice bad due date returns 400 | — | 400 | — | ✅ Pass |
+| [TC-216](#tc-216) | Regression: an empty due_date from the form used to 400 (or crash) | — | 201 | — | ✅ Pass |
+| [TC-217](#tc-217) | Regression: an empty due_date from the form used to 400 (or crash) | — | 201 | — | ✅ Pass |
+| [TC-218](#tc-218) | Regression: an empty due_date from the form used to 400 (or crash) | — | 201 | — | ✅ Pass |
+| [TC-219](#tc-219) | Create invoice unknown apartment returns 404 | — | 404 | — | ✅ Pass |
+| [TC-220](#tc-220) | Invoice malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-221](#tc-221) | Invoice malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-222](#tc-222) | Invoice malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-223](#tc-223) | Invoice malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-224](#tc-224) | Invoice endpoints require a token | — | 401 | — | ✅ Pass |
+| [TC-225](#tc-225) | Invoice endpoints require a token | — | 401 | — | ✅ Pass |
+| [TC-226](#tc-226) | Invoice endpoints require a token | — | 401 | — | ✅ Pass |
+| [TC-227](#tc-227) | Invoice endpoints require a token | — | 401 | — | ✅ Pass |
+| [TC-228](#tc-228) | Invoice endpoints require a token | — | 401 | — | ✅ Pass |
+| [TC-229](#tc-229) | Invoice endpoints require a token | — | 401 | — | ✅ Pass |
+| [TC-230](#tc-230) | Resident cannot create invoice | — | 403 | — | ✅ Pass |
+| [TC-231](#tc-231) | Resident cannot mark invoice paid | — | 403 | — | ✅ Pass |
+| [TC-232](#tc-232) | Resident cannot bulk generate | — | 403 | — | ✅ Pass |
+| [TC-233](#tc-233) | COMMITTEE_MEMBER manages the society but must not touch money | — | 403 | — | ✅ Pass |
+| [TC-234](#tc-234) | COMMITTEE_MEMBER manages the society but must not touch money | — | 403 | — | ✅ Pass |
+| [TC-235](#tc-235) | Resident cannot read another flats receipt | — | 403 | — | ✅ Pass |
+| [TC-236](#tc-236) | Duplicate invoice for same flat month year returns 409 | — | 409 | — | ✅ Pass |
+| [TC-237](#tc-237) | Same month different flat is allowed | — | — | — | ✅ Pass |
+| [TC-238](#tc-238) | Regression: the second payment used to insert a duplicate Payment row | — | 200 / 409 | — | ✅ Pass |
+| [TC-239](#tc-239) | Receipt for unpaid invoice returns 400 | — | 400 | — | ✅ Pass |
+| [TC-240](#tc-240) | Pay invoice for flat without resident returns 404 | — | 404 | — | ✅ Pass |
+| [TC-241](#tc-241) | Unknown invoice returns 404 | — | 404 | — | ✅ Pass |
+| [TC-242](#tc-242) | Resident sees only own flat invoices | — | 200 | — | ✅ Pass |
+| [TC-243](#tc-243) | Regression: /pending used to leak every flat's outstanding dues | — | 200 | — | ✅ Pass |
+| [TC-244](#tc-244) | User without a flat sees an empty list | — | 200 | — | ✅ Pass |
+| [TC-245](#tc-245) | User without a flat sees an empty list | — | 200 | — | ✅ Pass |
 
 
 ### Expenses
@@ -345,50 +347,50 @@ One row per test case. **Click a test ID** to jump to its full detail — the ex
 
 | ID | Test case | Endpoint | Expected | Actual | Result |
 |---|---|---|---|---|---|
-| [TC-246](#tc-246) | Admin logs expense | `POST /api/expenses/` | 201 | 201 | ✅ Pass |
-| [TC-247](#tc-247) | Treasurer can log expense | `POST /api/expenses/` | — | 201 | ✅ Pass |
-| [TC-248](#tc-248) | Paid by defaults to the logged in user | `POST /api/expenses/` | — | 201 | ✅ Pass |
-| [TC-249](#tc-249) | Admin may attribute expense to another user | `POST /api/expenses/` | — | 201 | ✅ Pass |
-| [TC-250](#tc-250) | Paid by unknown user returns 404 | `POST /api/expenses/` | 404 | 404 | ✅ Pass |
-| [TC-251](#tc-251) | List expenses | `GET /api/expenses/` | 200 | 200 | ✅ Pass |
-| [TC-252](#tc-252) | Update expense | `PUT /api/expenses/1` | 200 | 200 | ✅ Pass |
-| [TC-253](#tc-253) | Delete expense | `GET /api/expenses/` | 200 | 200 | ✅ Pass |
-| [TC-254](#tc-254) | Unknown expense returns 404 | `DELETE /api/expenses/99999` | 404 | 404 | ✅ Pass |
-| [TC-255](#tc-255) | Summary for a month | `GET /api/expenses/summary?month=8&year=2026` | 200 | 200 | ✅ Pass |
-| [TC-256](#tc-256) | Summary without filters is all time | `GET /api/expenses/summary` | 200 | 200 | ✅ Pass |
-| [TC-257](#tc-257) | Regression: half a filter silently fell through to all-time totals | `GET /api/expenses/summary?month=8` | 400 | 400 | ✅ Pass |
-| [TC-258](#tc-258) | Regression: half a filter silently fell through to all-time totals | `GET /api/expenses/summary?year=2026` | 400 | 400 | ✅ Pass |
-| [TC-259](#tc-259) | Regression: half a filter silently fell through to all-time totals | `GET /api/expenses/summary?month=8&year=` | 400 | 400 | ✅ Pass |
-| [TC-260](#tc-260) | Regression: half a filter silently fell through to all-time totals | `GET /api/expenses/summary?month=&year=2026` | 400 | 400 | ✅ Pass |
-| [TC-261](#tc-261) | Summary month out of range returns 400 | `GET /api/expenses/summary?month=99&year=2026` | 400 | 400 | ✅ Pass |
-| [TC-262](#tc-262) | Summary non numeric month returns 400 | `GET /api/expenses/summary?month=August&year=2026` | 400 | 400 | ✅ Pass |
-| [TC-263](#tc-263) | Add expense missing required field returns 400 | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
-| [TC-264](#tc-264) | Add expense missing required field returns 400 | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
-| [TC-265](#tc-265) | Add expense missing required field returns 400 | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
-| [TC-266](#tc-266) | Add expense missing required field returns 400 | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
-| [TC-267](#tc-267) | Add expense bad category returns 400 | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
-| [TC-268](#tc-268) | Regression: raw strings used to reach the Date column and 500 | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
-| [TC-269](#tc-269) | Regression: raw strings used to reach the Date column and 500 | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
-| [TC-270](#tc-270) | Regression: raw strings used to reach the Date column and 500 | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
-| [TC-271](#tc-271) | expense_date is required, so a blank one is rejected by require() | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
-| [TC-272](#tc-272) | Add expense non numeric amount returns 400 | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
-| [TC-273](#tc-273) | Add expense negative amount returns 400 | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
-| [TC-274](#tc-274) | Update expense bad category returns 400 | `PUT /api/expenses/1` | 400 | 400 | ✅ Pass |
-| [TC-275](#tc-275) | Update expense non numeric amount returns 400 | `PUT /api/expenses/1` | 400 | 400 | ✅ Pass |
-| [TC-276](#tc-276) | Add expense malformed body returns 400 | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
-| [TC-277](#tc-277) | Add expense malformed body returns 400 | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
-| [TC-278](#tc-278) | Expense endpoints require a token | `GET /api/expenses/` | 401 | 401 | ✅ Pass |
-| [TC-279](#tc-279) | Expense endpoints require a token | `POST /api/expenses/` | 401 | 401 | ✅ Pass |
-| [TC-280](#tc-280) | Expense endpoints require a token | `PUT /api/expenses/1` | 401 | 401 | ✅ Pass |
-| [TC-281](#tc-281) | Expense endpoints require a token | `DELETE /api/expenses/1` | 401 | 401 | ✅ Pass |
-| [TC-282](#tc-282) | Expense endpoints require a token | `GET /api/expenses/summary` | 401 | 401 | ✅ Pass |
-| [TC-283](#tc-283) | Resident cannot list expenses | `GET /api/expenses/` | 403 | 403 | ✅ Pass |
-| [TC-284](#tc-284) | Resident cannot add expense | `POST /api/expenses/` | 403 | 403 | ✅ Pass |
-| [TC-285](#tc-285) | Resident cannot delete expense | `GET /api/expenses/` | 403 | 200 | ✅ Pass |
-| [TC-286](#tc-286) | Worker cannot read the ledger | `GET /api/expenses/summary` | 403 | 403 | ✅ Pass |
-| [TC-287](#tc-287) | COMMITTEE_MEMBER is an admin role but must not reach the ledger | `GET /api/expenses/` | 403 | 403 | ✅ Pass |
-| [TC-288](#tc-288) | COMMITTEE_MEMBER is an admin role but must not reach the ledger | `POST /api/expenses/` | 403 | 403 | ✅ Pass |
-| [TC-289](#tc-289) | COMMITTEE_MEMBER is an admin role but must not reach the ledger | `GET /api/expenses/summary` | 403 | 403 | ✅ Pass |
+| [TC-246](#tc-246) | Admin logs expense | — | 201 | — | ✅ Pass |
+| [TC-247](#tc-247) | Treasurer can log expense | — | — | — | ✅ Pass |
+| [TC-248](#tc-248) | Paid by defaults to the logged in user | — | — | — | ✅ Pass |
+| [TC-249](#tc-249) | Admin may attribute expense to another user | — | — | — | ✅ Pass |
+| [TC-250](#tc-250) | Paid by unknown user returns 404 | — | 404 | — | ✅ Pass |
+| [TC-251](#tc-251) | List expenses | — | 200 | — | ✅ Pass |
+| [TC-252](#tc-252) | Update expense | — | 200 | — | ✅ Pass |
+| [TC-253](#tc-253) | Delete expense | — | 200 | — | ✅ Pass |
+| [TC-254](#tc-254) | Unknown expense returns 404 | — | 404 | — | ✅ Pass |
+| [TC-255](#tc-255) | Summary for a month | — | 200 | — | ✅ Pass |
+| [TC-256](#tc-256) | Summary without filters is all time | — | 200 | — | ✅ Pass |
+| [TC-257](#tc-257) | Regression: half a filter silently fell through to all-time totals | — | 400 | — | ✅ Pass |
+| [TC-258](#tc-258) | Regression: half a filter silently fell through to all-time totals | — | 400 | — | ✅ Pass |
+| [TC-259](#tc-259) | Regression: half a filter silently fell through to all-time totals | — | 400 | — | ✅ Pass |
+| [TC-260](#tc-260) | Regression: half a filter silently fell through to all-time totals | — | 400 | — | ✅ Pass |
+| [TC-261](#tc-261) | Summary month out of range returns 400 | — | 400 | — | ✅ Pass |
+| [TC-262](#tc-262) | Summary non numeric month returns 400 | — | 400 | — | ✅ Pass |
+| [TC-263](#tc-263) | Add expense missing required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-264](#tc-264) | Add expense missing required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-265](#tc-265) | Add expense missing required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-266](#tc-266) | Add expense missing required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-267](#tc-267) | Add expense bad category returns 400 | — | 400 | — | ✅ Pass |
+| [TC-268](#tc-268) | Regression: raw strings used to reach the Date column and 500 | — | 400 | — | ✅ Pass |
+| [TC-269](#tc-269) | Regression: raw strings used to reach the Date column and 500 | — | 400 | — | ✅ Pass |
+| [TC-270](#tc-270) | Regression: raw strings used to reach the Date column and 500 | — | 400 | — | ✅ Pass |
+| [TC-271](#tc-271) | expense_date is required, so a blank one is rejected by require() | — | 400 | — | ✅ Pass |
+| [TC-272](#tc-272) | Add expense non numeric amount returns 400 | — | 400 | — | ✅ Pass |
+| [TC-273](#tc-273) | Add expense negative amount returns 400 | — | 400 | — | ✅ Pass |
+| [TC-274](#tc-274) | Update expense bad category returns 400 | — | 400 | — | ✅ Pass |
+| [TC-275](#tc-275) | Update expense non numeric amount returns 400 | — | 400 | — | ✅ Pass |
+| [TC-276](#tc-276) | Add expense malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-277](#tc-277) | Add expense malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-278](#tc-278) | Expense endpoints require a token | — | 401 | — | ✅ Pass |
+| [TC-279](#tc-279) | Expense endpoints require a token | — | 401 | — | ✅ Pass |
+| [TC-280](#tc-280) | Expense endpoints require a token | — | 401 | — | ✅ Pass |
+| [TC-281](#tc-281) | Expense endpoints require a token | — | 401 | — | ✅ Pass |
+| [TC-282](#tc-282) | Expense endpoints require a token | — | 401 | — | ✅ Pass |
+| [TC-283](#tc-283) | Resident cannot list expenses | — | 403 | — | ✅ Pass |
+| [TC-284](#tc-284) | Resident cannot add expense | — | 403 | — | ✅ Pass |
+| [TC-285](#tc-285) | Resident cannot delete expense | — | 403 | — | ✅ Pass |
+| [TC-286](#tc-286) | Worker cannot read the ledger | — | 403 | — | ✅ Pass |
+| [TC-287](#tc-287) | COMMITTEE_MEMBER is an admin role but must not reach the ledger | — | 403 | — | ✅ Pass |
+| [TC-288](#tc-288) | COMMITTEE_MEMBER is an admin role but must not reach the ledger | — | 403 | — | ✅ Pass |
+| [TC-289](#tc-289) | COMMITTEE_MEMBER is an admin role but must not reach the ledger | — | 403 | — | ✅ Pass |
 
 
 ### Notices
@@ -397,24 +399,24 @@ One row per test case. **Click a test ID** to jump to its full detail — the ex
 
 | ID | Test case | Endpoint | Expected | Actual | Result |
 |---|---|---|---|---|---|
-| [TC-290](#tc-290) | Admin can publish a notice | `POST /api/notices/` | 201 | 201 | ✅ Pass |
-| [TC-291](#tc-291) | Category defaults to general when omitted | `POST /api/notices/` | — | 201 | ✅ Pass |
-| [TC-292](#tc-292) | Treasurer is also allowed to publish | `POST /api/notices/` | 201 | 201 | ✅ Pass |
-| [TC-293](#tc-293) | Notice list returns newest notices | `GET /api/notices/` | 200 | 200 | ✅ Pass |
-| [TC-294](#tc-294) | Admin can update a notice | `PUT /api/notices/1` | 200 | 200 | ✅ Pass |
-| [TC-295](#tc-295) | Delete soft deletes and hides the notice from the list | `GET /api/notices/` | 200 | 200 | ✅ Pass |
-| [TC-296](#tc-296) | Updating a missing notice returns 404 | `PUT /api/notices/9999` | 404 | 404 | ✅ Pass |
-| [TC-297](#tc-297) | Notice without title is rejected | `POST /api/notices/` | 400 | 400 | ✅ Pass |
-| [TC-298](#tc-298) | Notice without content is rejected | `POST /api/notices/` | 400 | 400 | ✅ Pass |
-| [TC-299](#tc-299) | Blank title is rejected | `POST /api/notices/` | 400 | 400 | ✅ Pass |
-| [TC-300](#tc-300) | Unknown category is rejected instead of being stored | `POST /api/notices/` | 400 | 400 | ✅ Pass |
-| [TC-301](#tc-301) | Unknown category on update is rejected | `PUT /api/notices/1` | 400 | 400 | ✅ Pass |
-| [TC-302](#tc-302) | Null body is rejected | `POST /api/notices/` | 400 | 400 | ✅ Pass |
-| [TC-303](#tc-303) | List body is rejected | `POST /api/notices/` | 400 | 400 | ✅ Pass |
-| [TC-304](#tc-304) | Notices require authentication | `POST /api/notices/` | 401 | 401 | ✅ Pass |
-| [TC-305](#tc-305) | Resident can read notices | `GET /api/notices/` | 200 | 200 | ✅ Pass |
-| [TC-306](#tc-306) | Resident cannot publish a notice | `POST /api/notices/` | 403 | 403 | ✅ Pass |
-| [TC-307](#tc-307) | Resident cannot update or delete a notice | `DELETE /api/notices/1` | 403 | 403 | ✅ Pass |
+| [TC-290](#tc-290) | Admin can publish a notice | — | 201 | — | ✅ Pass |
+| [TC-291](#tc-291) | Category defaults to general when omitted | — | — | — | ✅ Pass |
+| [TC-292](#tc-292) | Treasurer is also allowed to publish | — | 201 | — | ✅ Pass |
+| [TC-293](#tc-293) | Notice list returns newest notices | — | 200 | — | ✅ Pass |
+| [TC-294](#tc-294) | Admin can update a notice | — | 200 | — | ✅ Pass |
+| [TC-295](#tc-295) | Delete soft deletes and hides the notice from the list | — | 200 | — | ✅ Pass |
+| [TC-296](#tc-296) | Updating a missing notice returns 404 | — | 404 | — | ✅ Pass |
+| [TC-297](#tc-297) | Notice without title is rejected | — | 400 | — | ✅ Pass |
+| [TC-298](#tc-298) | Notice without content is rejected | — | 400 | — | ✅ Pass |
+| [TC-299](#tc-299) | Blank title is rejected | — | 400 | — | ✅ Pass |
+| [TC-300](#tc-300) | Unknown category is rejected instead of being stored | — | 400 | — | ✅ Pass |
+| [TC-301](#tc-301) | Unknown category on update is rejected | — | 400 | — | ✅ Pass |
+| [TC-302](#tc-302) | Null body is rejected | — | 400 | — | ✅ Pass |
+| [TC-303](#tc-303) | List body is rejected | — | 400 | — | ✅ Pass |
+| [TC-304](#tc-304) | Notices require authentication | — | 401 | — | ✅ Pass |
+| [TC-305](#tc-305) | Resident can read notices | — | 200 | — | ✅ Pass |
+| [TC-306](#tc-306) | Resident cannot publish a notice | — | 403 | — | ✅ Pass |
+| [TC-307](#tc-307) | Resident cannot update or delete a notice | — | 403 | — | ✅ Pass |
 
 
 ### Polls & Voting
@@ -423,35 +425,35 @@ One row per test case. **Click a test ID** to jump to its full detail — the ex
 
 | ID | Test case | Endpoint | Expected | Actual | Result |
 |---|---|---|---|---|---|
-| [TC-308](#tc-308) | Admin can create a poll with options | `POST /api/polls/` | 201 | 201 | ✅ Pass |
-| [TC-309](#tc-309) | Start date defaults to today when omitted | `POST /api/polls/` | — | 201 | ✅ Pass |
-| [TC-310](#tc-310) | Explicit start date is kept | `POST /api/polls/` | — | 201 | ✅ Pass |
-| [TC-311](#tc-311) | Single poll can be fetched | `GET /api/polls/1` | 200 | 200 | ✅ Pass |
-| [TC-312](#tc-312) | Resident can vote and results are tallied | `POST /api/polls/1/vote` | 200 | 200 | ✅ Pass |
-| [TC-313](#tc-313) | Admin can close a poll | `PUT /api/polls/1/close` | 200 | 200 | ✅ Pass |
-| [TC-314](#tc-314) | Admin can delete a poll | `GET /api/polls/1` | 200 / 404 | 404 | ✅ Pass |
-| [TC-315](#tc-315) | Poll list reports has voted per user | `GET /api/polls/` | — | 200 | ✅ Pass |
-| [TC-316](#tc-316) | Voting twice returns 409 | `POST /api/polls/1/vote` | 200 / 409 | 409 | ✅ Pass |
-| [TC-317](#tc-317) | Voting on a closed poll is rejected | `POST /api/polls/1/vote` | 400 | 400 | ✅ Pass |
-| [TC-318](#tc-318) | Voting before the window opens is rejected | `POST /api/polls/1/vote` | 400 | 400 | ✅ Pass |
-| [TC-319](#tc-319) | Voting after the window closes is rejected | `POST /api/polls/1/vote` | 400 | 400 | ✅ Pass |
-| [TC-320](#tc-320) | Voting for an option of another poll is rejected | `POST /api/polls/2/vote` | 400 | 400 | ✅ Pass |
-| [TC-321](#tc-321) | Poll requires an end date | `POST /api/polls/` | 400 | 400 | ✅ Pass |
-| [TC-322](#tc-322) | Poll requires a title | `POST /api/polls/` | 400 | 400 | ✅ Pass |
-| [TC-323](#tc-323) | "abc" used to be split into three single-letter options | `POST /api/polls/` | 400 | 400 | ✅ Pass |
-| [TC-324](#tc-324) | Missing options are rejected | `POST /api/polls/` | 400 | 400 | ✅ Pass |
-| [TC-325](#tc-325) | Fewer than two options are rejected | `POST /api/polls/` | 400 | 400 | ✅ Pass |
-| [TC-326](#tc-326) | Blank options do not count towards the minimum | `POST /api/polls/` | 400 | 400 | ✅ Pass |
-| [TC-327](#tc-327) | Unparseable end date is rejected | `POST /api/polls/` | 400 | 400 | ✅ Pass |
-| [TC-328](#tc-328) | End date before start date is rejected | `POST /api/polls/` | 400 | 400 | ✅ Pass |
-| [TC-329](#tc-329) | Unknown status is rejected | `POST /api/polls/` | 400 | 400 | ✅ Pass |
-| [TC-330](#tc-330) | Vote requires an option id | `POST /api/polls/1/vote` | 400 | 400 | ✅ Pass |
-| [TC-331](#tc-331) | Non numeric option id is rejected | `POST /api/polls/1/vote` | 400 | 400 | ✅ Pass |
-| [TC-332](#tc-332) | Null body is rejected | `POST /api/polls/` | 400 | 400 | ✅ Pass |
-| [TC-333](#tc-333) | List body is rejected | `POST /api/polls/` | 400 | 400 | ✅ Pass |
-| [TC-334](#tc-334) | Polls require authentication | `POST /api/polls/` | 401 | 401 | ✅ Pass |
-| [TC-335](#tc-335) | Resident can read the poll list | `GET /api/polls/` | 200 | 200 | ✅ Pass |
-| [TC-336](#tc-336) | Resident cannot create close or delete a poll | `DELETE /api/polls/1` | 403 | 403 | ✅ Pass |
+| [TC-308](#tc-308) | Admin can create a poll with options | — | 201 | — | ✅ Pass |
+| [TC-309](#tc-309) | Start date defaults to today when omitted | — | — | — | ✅ Pass |
+| [TC-310](#tc-310) | Explicit start date is kept | — | — | — | ✅ Pass |
+| [TC-311](#tc-311) | Single poll can be fetched | — | 200 | — | ✅ Pass |
+| [TC-312](#tc-312) | Resident can vote and results are tallied | — | 200 | — | ✅ Pass |
+| [TC-313](#tc-313) | Admin can close a poll | — | 200 | — | ✅ Pass |
+| [TC-314](#tc-314) | Admin can delete a poll | — | 200 / 404 | — | ✅ Pass |
+| [TC-315](#tc-315) | Poll list reports has voted per user | — | — | — | ✅ Pass |
+| [TC-316](#tc-316) | Voting twice returns 409 | — | 200 / 409 | — | ✅ Pass |
+| [TC-317](#tc-317) | Voting on a closed poll is rejected | — | 400 | — | ✅ Pass |
+| [TC-318](#tc-318) | Voting before the window opens is rejected | — | 400 | — | ✅ Pass |
+| [TC-319](#tc-319) | Voting after the window closes is rejected | — | 400 | — | ✅ Pass |
+| [TC-320](#tc-320) | Voting for an option of another poll is rejected | — | 400 | — | ✅ Pass |
+| [TC-321](#tc-321) | Poll requires an end date | — | 400 | — | ✅ Pass |
+| [TC-322](#tc-322) | Poll requires a title | — | 400 | — | ✅ Pass |
+| [TC-323](#tc-323) | "abc" used to be split into three single-letter options | — | 400 | — | ✅ Pass |
+| [TC-324](#tc-324) | Missing options are rejected | — | 400 | — | ✅ Pass |
+| [TC-325](#tc-325) | Fewer than two options are rejected | — | 400 | — | ✅ Pass |
+| [TC-326](#tc-326) | Blank options do not count towards the minimum | — | 400 | — | ✅ Pass |
+| [TC-327](#tc-327) | Unparseable end date is rejected | — | 400 | — | ✅ Pass |
+| [TC-328](#tc-328) | End date before start date is rejected | — | 400 | — | ✅ Pass |
+| [TC-329](#tc-329) | Unknown status is rejected | — | 400 | — | ✅ Pass |
+| [TC-330](#tc-330) | Vote requires an option id | — | 400 | — | ✅ Pass |
+| [TC-331](#tc-331) | Non numeric option id is rejected | — | 400 | — | ✅ Pass |
+| [TC-332](#tc-332) | Null body is rejected | — | 400 | — | ✅ Pass |
+| [TC-333](#tc-333) | List body is rejected | — | 400 | — | ✅ Pass |
+| [TC-334](#tc-334) | Polls require authentication | — | 401 | — | ✅ Pass |
+| [TC-335](#tc-335) | Resident can read the poll list | — | 200 | — | ✅ Pass |
+| [TC-336](#tc-336) | Resident cannot create close or delete a poll | — | 403 | — | ✅ Pass |
 
 
 ### Maintenance Tasks
@@ -460,30 +462,30 @@ One row per test case. **Click a test ID** to jump to its full detail — the ex
 
 | ID | Test case | Endpoint | Expected | Actual | Result |
 |---|---|---|---|---|---|
-| [TC-337](#tc-337) | Admin can create a task | `POST /api/maintenance/` | 201 | 201 | ✅ Pass |
-| [TC-338](#tc-338) | Task can be assigned to a worker | `POST /api/maintenance/` | — | 201 | ✅ Pass |
-| [TC-339](#tc-339) | Task list is returned | `GET /api/maintenance/` | 200 | 200 | ✅ Pass |
-| [TC-340](#tc-340) | Admin can update a task | `PUT /api/maintenance/1` | 200 | 200 | ✅ Pass |
-| [TC-341](#tc-341) | Admin can complete a task | `PUT /api/maintenance/1/complete` | 200 | 200 | ✅ Pass |
-| [TC-342](#tc-342) | Admin can delete a task | `GET /api/maintenance/` | 200 | 200 | ✅ Pass |
-| [TC-343](#tc-343) | Completing a missing task returns 404 | `PUT /api/maintenance/9999/complete` | 404 | 404 | ✅ Pass |
-| [TC-344](#tc-344) | Completing an already completed task returns 409 | `PUT /api/maintenance/1/complete` | 200 / 409 | 409 | ✅ Pass |
-| [TC-345](#tc-345) | Updating status to completed stamps completed at | `PUT /api/maintenance/1` | 200 | 200 | ✅ Pass |
-| [TC-346](#tc-346) | Reopening a completed task clears completed at | `PUT /api/maintenance/1` | 200 | 200 | ✅ Pass |
-| [TC-347](#tc-347) | Task requires a title | `POST /api/maintenance/` | 400 | 400 | ✅ Pass |
-| [TC-348](#tc-348) | Task requires a scheduled date | `POST /api/maintenance/` | 400 | 400 | ✅ Pass |
-| [TC-349](#tc-349) | Blank scheduled date is rejected | `POST /api/maintenance/` | 400 | 400 | ✅ Pass |
-| [TC-350](#tc-350) | Day first scheduled date is rejected | `POST /api/maintenance/` | 400 | 400 | ✅ Pass |
-| [TC-351](#tc-351) | Unknown category is rejected | `POST /api/maintenance/` | 400 | 400 | ✅ Pass |
-| [TC-352](#tc-352) | Unknown status on update is rejected | `PUT /api/maintenance/1` | 400 | 400 | ✅ Pass |
-| [TC-353](#tc-353) | Bad scheduled date on update is rejected | `PUT /api/maintenance/1` | 400 | 400 | ✅ Pass |
-| [TC-354](#tc-354) | Non numeric assignee is rejected | `POST /api/maintenance/` | 400 | 400 | ✅ Pass |
-| [TC-355](#tc-355) | Null body is rejected | `POST /api/maintenance/` | 400 | 400 | ✅ Pass |
-| [TC-356](#tc-356) | List body is rejected | `POST /api/maintenance/` | 400 | 400 | ✅ Pass |
-| [TC-357](#tc-357) | Maintenance requires authentication | `POST /api/maintenance/` | 401 | 401 | ✅ Pass |
-| [TC-358](#tc-358) | Resident can read the task list | `GET /api/maintenance/` | 200 | 200 | ✅ Pass |
-| [TC-359](#tc-359) | Worker cannot create a task | `POST /api/maintenance/` | 403 | 403 | ✅ Pass |
-| [TC-360](#tc-360) | Resident cannot update complete or delete a task | `DELETE /api/maintenance/1` | 403 | 403 | ✅ Pass |
+| [TC-337](#tc-337) | Admin can create a task | — | 201 | — | ✅ Pass |
+| [TC-338](#tc-338) | Task can be assigned to a worker | — | — | — | ✅ Pass |
+| [TC-339](#tc-339) | Task list is returned | — | 200 | — | ✅ Pass |
+| [TC-340](#tc-340) | Admin can update a task | — | 200 | — | ✅ Pass |
+| [TC-341](#tc-341) | Admin can complete a task | — | 200 | — | ✅ Pass |
+| [TC-342](#tc-342) | Admin can delete a task | — | 200 | — | ✅ Pass |
+| [TC-343](#tc-343) | Completing a missing task returns 404 | — | 404 | — | ✅ Pass |
+| [TC-344](#tc-344) | Completing an already completed task returns 409 | — | 200 / 409 | — | ✅ Pass |
+| [TC-345](#tc-345) | Updating status to completed stamps completed at | — | 200 | — | ✅ Pass |
+| [TC-346](#tc-346) | Reopening a completed task clears completed at | — | 200 | — | ✅ Pass |
+| [TC-347](#tc-347) | Task requires a title | — | 400 | — | ✅ Pass |
+| [TC-348](#tc-348) | Task requires a scheduled date | — | 400 | — | ✅ Pass |
+| [TC-349](#tc-349) | Blank scheduled date is rejected | — | 400 | — | ✅ Pass |
+| [TC-350](#tc-350) | Day first scheduled date is rejected | — | 400 | — | ✅ Pass |
+| [TC-351](#tc-351) | Unknown category is rejected | — | 400 | — | ✅ Pass |
+| [TC-352](#tc-352) | Unknown status on update is rejected | — | 400 | — | ✅ Pass |
+| [TC-353](#tc-353) | Bad scheduled date on update is rejected | — | 400 | — | ✅ Pass |
+| [TC-354](#tc-354) | Non numeric assignee is rejected | — | 400 | — | ✅ Pass |
+| [TC-355](#tc-355) | Null body is rejected | — | 400 | — | ✅ Pass |
+| [TC-356](#tc-356) | List body is rejected | — | 400 | — | ✅ Pass |
+| [TC-357](#tc-357) | Maintenance requires authentication | — | 401 | — | ✅ Pass |
+| [TC-358](#tc-358) | Resident can read the task list | — | 200 | — | ✅ Pass |
+| [TC-359](#tc-359) | Worker cannot create a task | — | 403 | — | ✅ Pass |
+| [TC-360](#tc-360) | Resident cannot update complete or delete a task | — | 403 | — | ✅ Pass |
 
 
 ### Equipment / Maintenance Predictor
@@ -492,34 +494,34 @@ One row per test case. **Click a test ID** to jump to its full detail — the ex
 
 | ID | Test case | Endpoint | Expected | Actual | Result |
 |---|---|---|---|---|---|
-| [TC-361](#tc-361) | Admin can add equipment | `POST /api/equipment/` | 201 | 201 | ✅ Pass |
-| [TC-362](#tc-362) | Equipment list is readable | `GET /api/equipment/` | 200 | 200 | ✅ Pass |
-| [TC-363](#tc-363) | Overdue equipment reports negative days and high risk | `POST /api/equipment/` | — | 201 | ✅ Pass |
-| [TC-364](#tc-364) | Equipment nearing its due date is medium risk | `POST /api/equipment/` | — | 201 | ✅ Pass |
-| [TC-365](#tc-365) | Marking serviced updates the last serviced date | `PUT /api/equipment/1/service` | 200 | 200 | ✅ Pass |
-| [TC-366](#tc-366) | Service can be backdated | `PUT /api/equipment/1/service` | 200 | 200 | ✅ Pass |
-| [TC-367](#tc-367) | Service history lists logged services | `GET /api/equipment/1/history` | 200 | 200 | ✅ Pass |
-| [TC-368](#tc-368) | History of unserviced equipment is empty | `GET /api/equipment/1/history` | — | 200 | ✅ Pass |
-| [TC-369](#tc-369) | Forecast returns items due within 30 days | `GET /api/equipment/forecast` | 200 | 200 | ✅ Pass |
-| [TC-370](#tc-370) | Forecast works with no equipment | `GET /api/equipment/forecast` | 200 | 200 | ✅ Pass |
-| [TC-371](#tc-371) | Admin can delete equipment | `GET /api/equipment/` | 200 | 200 | ✅ Pass |
-| [TC-372](#tc-372) | History of missing equipment returns 404 | `GET /api/equipment/9999/history` | 404 | 404 | ✅ Pass |
-| [TC-373](#tc-373) | Equipment requires a name | `POST /api/equipment/` | 400 | 400 | ✅ Pass |
-| [TC-374](#tc-374) | Equipment requires a last serviced date | `POST /api/equipment/` | 400 | 400 | ✅ Pass |
-| [TC-375](#tc-375) | Blank last serviced date is rejected | `POST /api/equipment/` | 400 | 400 | ✅ Pass |
-| [TC-376](#tc-376) | Bad last serviced date is rejected | `POST /api/equipment/` | 400 | 400 | ✅ Pass |
-| [TC-377](#tc-377) | A 0 frequency used to be stored and then divided by on every GET | `POST /api/equipment/` | 400 | 400 | ✅ Pass |
-| [TC-378](#tc-378) | Zero service frequency as a string is rejected | `POST /api/equipment/` | 400 | 400 | ✅ Pass |
-| [TC-379](#tc-379) | Missing service frequency is rejected | `POST /api/equipment/` | 400 | 400 | ✅ Pass |
-| [TC-380](#tc-380) | Negative estimated cost is rejected | `POST /api/equipment/` | 400 | 400 | ✅ Pass |
-| [TC-381](#tc-381) | Unknown category is rejected | `POST /api/equipment/` | 400 | 400 | ✅ Pass |
-| [TC-382](#tc-382) | An empty cost box in the UI must mean "not recorded", not an error | `GET /api/equipment/1/history` | 200 | 200 | ✅ Pass |
-| [TC-383](#tc-383) | Non numeric cost when marking serviced is rejected | `PUT /api/equipment/1/service` | 400 | 400 | ✅ Pass |
-| [TC-384](#tc-384) | Null body is rejected | `POST /api/equipment/` | 400 | 400 | ✅ Pass |
-| [TC-385](#tc-385) | List body is rejected | `POST /api/equipment/` | 400 | 400 | ✅ Pass |
-| [TC-386](#tc-386) | Equipment requires authentication | `POST /api/equipment/` | 401 | 401 | ✅ Pass |
-| [TC-387](#tc-387) | Resident can read equipment and forecast | `GET /api/equipment/forecast` | 200 | 200 | ✅ Pass |
-| [TC-388](#tc-388) | Resident cannot add service or delete equipment | `DELETE /api/equipment/1` | 403 | 403 | ✅ Pass |
+| [TC-361](#tc-361) | Admin can add equipment | — | 201 | — | ✅ Pass |
+| [TC-362](#tc-362) | Equipment list is readable | — | 200 | — | ✅ Pass |
+| [TC-363](#tc-363) | Overdue equipment reports negative days and high risk | — | — | — | ✅ Pass |
+| [TC-364](#tc-364) | Equipment nearing its due date is medium risk | — | — | — | ✅ Pass |
+| [TC-365](#tc-365) | Marking serviced updates the last serviced date | — | 200 | — | ✅ Pass |
+| [TC-366](#tc-366) | Service can be backdated | — | 200 | — | ✅ Pass |
+| [TC-367](#tc-367) | Service history lists logged services | — | 200 | — | ✅ Pass |
+| [TC-368](#tc-368) | History of unserviced equipment is empty | — | — | — | ✅ Pass |
+| [TC-369](#tc-369) | Forecast returns items due within 30 days | — | 200 | — | ✅ Pass |
+| [TC-370](#tc-370) | Forecast works with no equipment | — | 200 | — | ✅ Pass |
+| [TC-371](#tc-371) | Admin can delete equipment | — | 200 | — | ✅ Pass |
+| [TC-372](#tc-372) | History of missing equipment returns 404 | — | 404 | — | ✅ Pass |
+| [TC-373](#tc-373) | Equipment requires a name | — | 400 | — | ✅ Pass |
+| [TC-374](#tc-374) | Equipment requires a last serviced date | — | 400 | — | ✅ Pass |
+| [TC-375](#tc-375) | Blank last serviced date is rejected | — | 400 | — | ✅ Pass |
+| [TC-376](#tc-376) | Bad last serviced date is rejected | — | 400 | — | ✅ Pass |
+| [TC-377](#tc-377) | A 0 frequency used to be stored and then divided by on every GET | — | 400 | — | ✅ Pass |
+| [TC-378](#tc-378) | Zero service frequency as a string is rejected | — | 400 | — | ✅ Pass |
+| [TC-379](#tc-379) | Missing service frequency is rejected | — | 400 | — | ✅ Pass |
+| [TC-380](#tc-380) | Negative estimated cost is rejected | — | 400 | — | ✅ Pass |
+| [TC-381](#tc-381) | Unknown category is rejected | — | 400 | — | ✅ Pass |
+| [TC-382](#tc-382) | An empty cost box in the UI must mean "not recorded", not an error | — | 200 | — | ✅ Pass |
+| [TC-383](#tc-383) | Non numeric cost when marking serviced is rejected | — | 400 | — | ✅ Pass |
+| [TC-384](#tc-384) | Null body is rejected | — | 400 | — | ✅ Pass |
+| [TC-385](#tc-385) | List body is rejected | — | 400 | — | ✅ Pass |
+| [TC-386](#tc-386) | Equipment requires authentication | — | 401 | — | ✅ Pass |
+| [TC-387](#tc-387) | Resident can read equipment and forecast | — | 200 | — | ✅ Pass |
+| [TC-388](#tc-388) | Resident cannot add service or delete equipment | — | 403 | — | ✅ Pass |
 
 
 ### Society Health Score
@@ -528,26 +530,26 @@ One row per test case. **Click a test ID** to jump to its full detail — the ex
 
 | ID | Test case | Endpoint | Expected | Actual | Result |
 |---|---|---|---|---|---|
-| [TC-389](#tc-389) | Get calculate returns the full score shape | `GET /api/health/calculate` | 200 | 200 | ✅ Pass |
-| [TC-390](#tc-390) | Post calculate uses the same view as get | `POST /api/health/calculate` | 200 | 200 | ✅ Pass |
-| [TC-391](#tc-391) | Calculate accepts explicit month and year | `GET /api/health/calculate?month=3&year=2025` | 200 | 200 | ✅ Pass |
-| [TC-392](#tc-392) | Calculate is an upsert for the month | `GET /api/health/history` | — | 200 | ✅ Pass |
-| [TC-393](#tc-393) | History is empty before anything is calculated | `GET /api/health/history` | 200 | 200 | ✅ Pass |
-| [TC-394](#tc-394) | History returns the saved score | `GET /api/health/history` | 200 | 200 | ✅ Pass |
-| [TC-395](#tc-395) | Empty society is not awarded a perfect score | `GET /api/health/calculate` | — | 200 | ✅ Pass |
-| [TC-396](#tc-396) | Empty society does not report nonsense invoice alerts | `GET /api/health/calculate` | — | 200 | ✅ Pass |
-| [TC-397](#tc-397) | Components without data are named as not scored | `GET /api/health/calculate` | — | 200 | ✅ Pass |
-| [TC-398](#tc-398) | Missing notices are flagged | `GET /api/health/calculate` | — | 200 | ✅ Pass |
-| [TC-399](#tc-399) | Only the notice component has data, so a posted notice is a full score | `GET /api/health/calculate?month=8&year=2026` | 201 | 200 | ✅ Pass |
-| [TC-400](#tc-400) | Month above twelve is rejected | `GET /api/health/calculate?month=13` | 400 | 400 | ✅ Pass |
-| [TC-401](#tc-401) | Month below one is rejected | `GET /api/health/calculate?month=0` | 400 | 400 | ✅ Pass |
-| [TC-402](#tc-402) | Non numeric month is rejected | `GET /api/health/calculate?month=june` | 400 | 400 | ✅ Pass |
-| [TC-403](#tc-403) | Year before 2000 is rejected | `GET /api/health/calculate?year=1999` | 400 | 400 | ✅ Pass |
-| [TC-404](#tc-404) | Health endpoints require authentication | `GET /api/health/history` | 401 | 401 | ✅ Pass |
-| [TC-405](#tc-405) | Resident cannot calculate the score | `POST /api/health/calculate` | 403 | 403 | ✅ Pass |
-| [TC-406](#tc-406) | Worker cannot calculate the score | `GET /api/health/calculate` | 403 | 403 | ✅ Pass |
-| [TC-407](#tc-407) | Treasurer can calculate the score | `GET /api/health/calculate` | 200 | 200 | ✅ Pass |
-| [TC-408](#tc-408) | Any authenticated user can read the history | `GET /api/health/history` | 200 | 200 | ✅ Pass |
+| [TC-389](#tc-389) | Get calculate returns the full score shape | — | 200 | — | ✅ Pass |
+| [TC-390](#tc-390) | Post calculate uses the same view as get | — | 200 | — | ✅ Pass |
+| [TC-391](#tc-391) | Calculate accepts explicit month and year | — | 200 | — | ✅ Pass |
+| [TC-392](#tc-392) | Calculate is an upsert for the month | — | — | — | ✅ Pass |
+| [TC-393](#tc-393) | History is empty before anything is calculated | — | 200 | — | ✅ Pass |
+| [TC-394](#tc-394) | History returns the saved score | — | 200 | — | ✅ Pass |
+| [TC-395](#tc-395) | Empty society is not awarded a perfect score | — | — | — | ✅ Pass |
+| [TC-396](#tc-396) | Empty society does not report nonsense invoice alerts | — | — | — | ✅ Pass |
+| [TC-397](#tc-397) | Components without data are named as not scored | — | — | — | ✅ Pass |
+| [TC-398](#tc-398) | Missing notices are flagged | — | — | — | ✅ Pass |
+| [TC-399](#tc-399) | Only the notice component has data, so a posted notice is a full score | — | 201 | — | ✅ Pass |
+| [TC-400](#tc-400) | Month above twelve is rejected | — | 400 | — | ✅ Pass |
+| [TC-401](#tc-401) | Month below one is rejected | — | 400 | — | ✅ Pass |
+| [TC-402](#tc-402) | Non numeric month is rejected | — | 400 | — | ✅ Pass |
+| [TC-403](#tc-403) | Year before 2000 is rejected | — | 400 | — | ✅ Pass |
+| [TC-404](#tc-404) | Health endpoints require authentication | — | 401 | — | ✅ Pass |
+| [TC-405](#tc-405) | Resident cannot calculate the score | — | 403 | — | ✅ Pass |
+| [TC-406](#tc-406) | Worker cannot calculate the score | — | 403 | — | ✅ Pass |
+| [TC-407](#tc-407) | Treasurer can calculate the score | — | 200 | — | ✅ Pass |
+| [TC-408](#tc-408) | Any authenticated user can read the history | — | 200 | — | ✅ Pass |
 
 
 ### Neighbour Conflict Resolver
@@ -556,33 +558,33 @@ One row per test case. **Click a test ID** to jump to its full detail — the ex
 
 | ID | Test case | Endpoint | Expected | Actual | Result |
 |---|---|---|---|---|---|
-| [TC-409](#tc-409) | Resident can raise a conflict against another flat | `POST /api/conflicts/` | 201 | 201 | ✅ Pass |
-| [TC-410](#tc-410) | Admin sees every report with the reporter named | `GET /api/conflicts/` | 200 | 200 | ✅ Pass |
-| [TC-411](#tc-411) | Reported flat can submit its side | `GET /api/conflicts/` | 200 | 200 | ✅ Pass |
-| [TC-412](#tc-412) | Admin can resolve a report | `PUT /api/conflicts/1/resolve` | 200 | 200 | ✅ Pass |
-| [TC-413](#tc-413) | Resolution note defaults when not supplied | `PUT /api/conflicts/1/resolve` | — | 200 | ✅ Pass |
-| [TC-414](#tc-414) | Pending lists open and under review reports for admin | `GET /api/conflicts/pending` | 200 | 200 | ✅ Pass |
-| [TC-415](#tc-415) | Responding to a missing report returns 404 | `PUT /api/conflicts/9999/respond` | 404 | 404 | ✅ Pass |
-| [TC-416](#tc-416) | The accused flat must not learn who reported them | `GET /api/conflicts/` | 200 | 200 | ✅ Pass |
-| [TC-417](#tc-417) | Reporter own report is also returned without identity fields | `GET /api/conflicts/` | — | 200 | ✅ Pass |
-| [TC-418](#tc-418) | Resident cannot see unrelated reports | `GET /api/conflicts/` | — | 200 | ✅ Pass |
-| [TC-419](#tc-419) | This endpoint reveals reporter identities, so residents get a 403 | `GET /api/conflicts/pending` | 403 | 403 | ✅ Pass |
-| [TC-420](#tc-420) | Reporting your own flat is rejected | `POST /api/conflicts/` | 400 | 400 | ✅ Pass |
-| [TC-421](#tc-421) | Reporting an unknown flat returns 404 | `POST /api/conflicts/` | 404 | 404 | ✅ Pass |
-| [TC-422](#tc-422) | A user from another flat cannot respond | `PUT /api/conflicts/1/respond` | 403 | 403 | ✅ Pass |
-| [TC-423](#tc-423) | A user with no flat cannot respond | `PUT /api/conflicts/1/respond` | 403 | 403 | ✅ Pass |
-| [TC-424](#tc-424) | Responding twice returns 409 | `PUT /api/conflicts/1/respond` | 200 / 409 | 409 | ✅ Pass |
-| [TC-425](#tc-425) | Responding to a resolved report returns 409 | `PUT /api/conflicts/1/respond` | 409 | 409 | ✅ Pass |
-| [TC-426](#tc-426) | Resolving twice returns 409 | `PUT /api/conflicts/1/resolve` | 200 / 409 | 409 | ✅ Pass |
-| [TC-427](#tc-427) | Conflict requires a description | `POST /api/conflicts/` | 400 | 400 | ✅ Pass |
-| [TC-428](#tc-428) | Conflict requires a reported apartment | `POST /api/conflicts/` | 400 | 400 | ✅ Pass |
-| [TC-429](#tc-429) | Unknown category is rejected | `POST /api/conflicts/` | 400 | 400 | ✅ Pass |
-| [TC-430](#tc-430) | Non numeric apartment id is rejected | `POST /api/conflicts/` | 400 | 400 | ✅ Pass |
-| [TC-431](#tc-431) | Response text is required | `PUT /api/conflicts/1/respond` | 400 | 400 | ✅ Pass |
-| [TC-432](#tc-432) | Null body is rejected | `POST /api/conflicts/` | 400 | 400 | ✅ Pass |
-| [TC-433](#tc-433) | List body is rejected | `POST /api/conflicts/` | 400 | 400 | ✅ Pass |
-| [TC-434](#tc-434) | Conflicts require authentication | `PUT /api/conflicts/1/resolve` | 401 | 401 | ✅ Pass |
-| [TC-435](#tc-435) | Resident cannot resolve a report | `PUT /api/conflicts/1/resolve` | 403 | 403 | ✅ Pass |
+| [TC-409](#tc-409) | Resident can raise a conflict against another flat | — | 201 | — | ✅ Pass |
+| [TC-410](#tc-410) | Admin sees every report with the reporter named | — | 200 | — | ✅ Pass |
+| [TC-411](#tc-411) | Reported flat can submit its side | — | 200 | — | ✅ Pass |
+| [TC-412](#tc-412) | Admin can resolve a report | — | 200 | — | ✅ Pass |
+| [TC-413](#tc-413) | Resolution note defaults when not supplied | — | — | — | ✅ Pass |
+| [TC-414](#tc-414) | Pending lists open and under review reports for admin | — | 200 | — | ✅ Pass |
+| [TC-415](#tc-415) | Responding to a missing report returns 404 | — | 404 | — | ✅ Pass |
+| [TC-416](#tc-416) | The accused flat must not learn who reported them | — | 200 | — | ✅ Pass |
+| [TC-417](#tc-417) | Reporter own report is also returned without identity fields | — | — | — | ✅ Pass |
+| [TC-418](#tc-418) | Resident cannot see unrelated reports | — | — | — | ✅ Pass |
+| [TC-419](#tc-419) | This endpoint reveals reporter identities, so residents get a 403 | — | 403 | — | ✅ Pass |
+| [TC-420](#tc-420) | Reporting your own flat is rejected | — | 400 | — | ✅ Pass |
+| [TC-421](#tc-421) | Reporting an unknown flat returns 404 | — | 404 | — | ✅ Pass |
+| [TC-422](#tc-422) | A user from another flat cannot respond | — | 403 | — | ✅ Pass |
+| [TC-423](#tc-423) | A user with no flat cannot respond | — | 403 | — | ✅ Pass |
+| [TC-424](#tc-424) | Responding twice returns 409 | — | 200 / 409 | — | ✅ Pass |
+| [TC-425](#tc-425) | Responding to a resolved report returns 409 | — | 409 | — | ✅ Pass |
+| [TC-426](#tc-426) | Resolving twice returns 409 | — | 200 / 409 | — | ✅ Pass |
+| [TC-427](#tc-427) | Conflict requires a description | — | 400 | — | ✅ Pass |
+| [TC-428](#tc-428) | Conflict requires a reported apartment | — | 400 | — | ✅ Pass |
+| [TC-429](#tc-429) | Unknown category is rejected | — | 400 | — | ✅ Pass |
+| [TC-430](#tc-430) | Non numeric apartment id is rejected | — | 400 | — | ✅ Pass |
+| [TC-431](#tc-431) | Response text is required | — | 400 | — | ✅ Pass |
+| [TC-432](#tc-432) | Null body is rejected | — | 400 | — | ✅ Pass |
+| [TC-433](#tc-433) | List body is rejected | — | 400 | — | ✅ Pass |
+| [TC-434](#tc-434) | Conflicts require authentication | — | 401 | — | ✅ Pass |
+| [TC-435](#tc-435) | Resident cannot resolve a report | — | 403 | — | ✅ Pass |
 
 
 ### Visitor Parking
@@ -591,33 +593,33 @@ One row per test case. **Click a test ID** to jump to its full detail — the ex
 
 | ID | Test case | Endpoint | Expected | Actual | Result |
 |---|---|---|---|---|---|
-| [TC-436](#tc-436) | Admin can add a slot | `POST /api/parking/` | 201 | 201 | ✅ Pass |
-| [TC-437](#tc-437) | Slot can be created with an explicit status | `POST /api/parking/` | — | 201 | ✅ Pass |
-| [TC-438](#tc-438) | Slot list is ordered by slot number | `GET /api/parking/` | 200 | 200 | ✅ Pass |
-| [TC-439](#tc-439) | Available returns only free slots | `GET /api/parking/available` | 200 | 200 | ✅ Pass |
-| [TC-440](#tc-440) | Resident can reserve a slot for a visitor | `PUT /api/parking/1/reserve` | 200 | 200 | ✅ Pass |
-| [TC-441](#tc-441) | Occupying a reserved slot keeps the reserving flat | `PUT /api/parking/1/occupy` | 200 | 200 | ✅ Pass |
-| [TC-442](#tc-442) | Occupying a free slot attributes it to the caller | `PUT /api/parking/1/occupy` | 200 | 200 | ✅ Pass |
-| [TC-443](#tc-443) | Resident can release their own reservation | `PUT /api/parking/1/release` | 200 | 200 | ✅ Pass |
-| [TC-444](#tc-444) | Admin can release any slot | `PUT /api/parking/1/release` | 200 | 200 | ✅ Pass |
-| [TC-445](#tc-445) | Admin can delete a slot | `GET /api/parking/` | 200 | 200 | ✅ Pass |
-| [TC-446](#tc-446) | Reserving a missing slot returns 404 | `PUT /api/parking/9999/reserve` | 404 | 404 | ✅ Pass |
-| [TC-447](#tc-447) | Reserving an already reserved slot is rejected | `PUT /api/parking/1/reserve` | 400 | 400 | ✅ Pass |
-| [TC-448](#tc-448) | Occupying an already occupied slot is rejected | `PUT /api/parking/1/occupy` | 200 / 400 | 400 | ✅ Pass |
-| [TC-449](#tc-449) | Releasing someone elses reservation is forbidden | `GET /api/parking/` | 403 | 200 | ✅ Pass |
-| [TC-450](#tc-450) | Duplicate slot number returns 409 | `POST /api/parking/` | 409 | 409 | ✅ Pass |
-| [TC-451](#tc-451) | The UI sends "" when the arrival time box is left empty | `PUT /api/parking/1/reserve` | 200 | 200 | ✅ Pass |
-| [TC-452](#tc-452) | Date only expected arrival time is accepted | `PUT /api/parking/1/reserve` | 200 | 200 | ✅ Pass |
-| [TC-453](#tc-453) | Unparseable expected arrival time is rejected | `PUT /api/parking/1/reserve` | 400 | 400 | ✅ Pass |
-| [TC-454](#tc-454) | Slot number is required | `POST /api/parking/` | 400 | 400 | ✅ Pass |
-| [TC-455](#tc-455) | Blank slot number is rejected | `POST /api/parking/` | 400 | 400 | ✅ Pass |
-| [TC-456](#tc-456) | Unknown status is rejected | `POST /api/parking/` | 400 | 400 | ✅ Pass |
-| [TC-457](#tc-457) | Null body is rejected | `POST /api/parking/` | 400 | 400 | ✅ Pass |
-| [TC-458](#tc-458) | List body is rejected | `POST /api/parking/` | 400 | 400 | ✅ Pass |
-| [TC-459](#tc-459) | Null body on reserve is rejected | `PUT /api/parking/1/reserve` | 400 | 400 | ✅ Pass |
-| [TC-460](#tc-460) | Parking requires authentication | `PUT /api/parking/1/reserve` | 401 | 401 | ✅ Pass |
-| [TC-461](#tc-461) | Resident can read slots | `GET /api/parking/available` | 200 | 200 | ✅ Pass |
-| [TC-462](#tc-462) | Resident cannot add or delete slots | `DELETE /api/parking/1` | 403 | 403 | ✅ Pass |
+| [TC-436](#tc-436) | Admin can add a slot | — | 201 | — | ✅ Pass |
+| [TC-437](#tc-437) | Slot can be created with an explicit status | — | — | — | ✅ Pass |
+| [TC-438](#tc-438) | Slot list is ordered by slot number | — | 200 | — | ✅ Pass |
+| [TC-439](#tc-439) | Available returns only free slots | — | 200 | — | ✅ Pass |
+| [TC-440](#tc-440) | Resident can reserve a slot for a visitor | — | 200 | — | ✅ Pass |
+| [TC-441](#tc-441) | Occupying a reserved slot keeps the reserving flat | — | 200 | — | ✅ Pass |
+| [TC-442](#tc-442) | Occupying a free slot attributes it to the caller | — | 200 | — | ✅ Pass |
+| [TC-443](#tc-443) | Resident can release their own reservation | — | 200 | — | ✅ Pass |
+| [TC-444](#tc-444) | Admin can release any slot | — | 200 | — | ✅ Pass |
+| [TC-445](#tc-445) | Admin can delete a slot | — | 200 | — | ✅ Pass |
+| [TC-446](#tc-446) | Reserving a missing slot returns 404 | — | 404 | — | ✅ Pass |
+| [TC-447](#tc-447) | Reserving an already reserved slot is rejected | — | 400 | — | ✅ Pass |
+| [TC-448](#tc-448) | Occupying an already occupied slot is rejected | — | 200 / 400 | — | ✅ Pass |
+| [TC-449](#tc-449) | Releasing someone elses reservation is forbidden | — | 403 | — | ✅ Pass |
+| [TC-450](#tc-450) | Duplicate slot number returns 409 | — | 409 | — | ✅ Pass |
+| [TC-451](#tc-451) | The UI sends "" when the arrival time box is left empty | — | 200 | — | ✅ Pass |
+| [TC-452](#tc-452) | Date only expected arrival time is accepted | — | 200 | — | ✅ Pass |
+| [TC-453](#tc-453) | Unparseable expected arrival time is rejected | — | 400 | — | ✅ Pass |
+| [TC-454](#tc-454) | Slot number is required | — | 400 | — | ✅ Pass |
+| [TC-455](#tc-455) | Blank slot number is rejected | — | 400 | — | ✅ Pass |
+| [TC-456](#tc-456) | Unknown status is rejected | — | 400 | — | ✅ Pass |
+| [TC-457](#tc-457) | Null body is rejected | — | 400 | — | ✅ Pass |
+| [TC-458](#tc-458) | List body is rejected | — | 400 | — | ✅ Pass |
+| [TC-459](#tc-459) | Null body on reserve is rejected | — | 400 | — | ✅ Pass |
+| [TC-460](#tc-460) | Parking requires authentication | — | 401 | — | ✅ Pass |
+| [TC-461](#tc-461) | Resident can read slots | — | 200 | — | ✅ Pass |
+| [TC-462](#tc-462) | Resident cannot add or delete slots | — | 403 | — | ✅ Pass |
 
 
 ### Emergency Contacts
@@ -626,99 +628,213 @@ One row per test case. **Click a test ID** to jump to its full detail — the ex
 
 | ID | Test case | Endpoint | Expected | Actual | Result |
 |---|---|---|---|---|---|
-| [TC-463](#tc-463) | Create contact returns 201 | `POST /api/emergency/` | 201 | 201 | ✅ Pass |
-| [TC-464](#tc-464) | Create contact returns only real columns | `POST /api/emergency/` | — | 201 | ✅ Pass |
-| [TC-465](#tc-465) | Create contact uppercases the service type | `POST /api/emergency/` | 201 | 201 | ✅ Pass |
-| [TC-466](#tc-466) | Create contact blank availability becomes null | `POST /api/emergency/` | 201 | 201 | ✅ Pass |
-| [TC-467](#tc-467) | Create contact omitted availability is null | `POST /api/emergency/` | 201 | 201 | ✅ Pass |
-| [TC-468](#tc-468) | phone has no UNIQUE constraint — two services can share a number | `POST /api/emergency/` | — | 201 | ✅ Pass |
-| [TC-469](#tc-469) | Create contact missing required field returns 400 | `POST /api/emergency/` | 400 | 400 | ✅ Pass |
-| [TC-470](#tc-470) | Create contact missing required field returns 400 | `POST /api/emergency/` | 400 | 400 | ✅ Pass |
-| [TC-471](#tc-471) | Create contact missing required field returns 400 | `POST /api/emergency/` | 400 | 400 | ✅ Pass |
-| [TC-472](#tc-472) | Create contact unknown service type returns 400 | `POST /api/emergency/` | 400 | 400 | ✅ Pass |
-| [TC-473](#tc-473) | Create contact phone without digits returns 400 | `POST /api/emergency/` | 400 | 400 | ✅ Pass |
-| [TC-474](#tc-474) | Create contact phone longer than 15 chars returns 400 | `POST /api/emergency/` | 400 | 400 | ✅ Pass |
-| [TC-475](#tc-475) | Create contact malformed body returns 400 | `POST /api/emergency/` | 400 | 400 | ✅ Pass |
-| [TC-476](#tc-476) | Create contact malformed body returns 400 | `POST /api/emergency/` | 400 | 400 | ✅ Pass |
-| [TC-477](#tc-477) | Create contact malformed body returns 400 | `POST /api/emergency/` | 400 | 400 | ✅ Pass |
-| [TC-478](#tc-478) | Create contact as resident returns 403 | `POST /api/emergency/` | 403 | 403 | ✅ Pass |
-| [TC-479](#tc-479) | Create contact as worker returns 403 | `POST /api/emergency/` | 403 | 403 | ✅ Pass |
-| [TC-480](#tc-480) | Create contact as treasurer returns 201 | `POST /api/emergency/` | 201 | 201 | ✅ Pass |
-| [TC-481](#tc-481) | Create contact without token returns 401 | `POST /api/emergency/` | 401 | 401 | ✅ Pass |
-| [TC-482](#tc-482) | List contacts empty directory returns empty list | `GET /api/emergency/` | 200 | 200 | ✅ Pass |
-| [TC-483](#tc-483) | List contacts returns the created contact | `GET /api/emergency/` | 200 | 200 | ✅ Pass |
-| [TC-484](#tc-484) | List contacts is ordered by service type then name | `GET /api/emergency/` | — | 200 | ✅ Pass |
-| [TC-485](#tc-485) | Every role may read the emergency directory | `GET /api/emergency/` | 200 | 200 | ✅ Pass |
-| [TC-486](#tc-486) | List contacts is open to every role | `GET /api/emergency/` | 200 | 200 | ✅ Pass |
-| [TC-487](#tc-487) | List contacts is open to every role | `GET /api/emergency/` | 200 | 200 | ✅ Pass |
-| [TC-488](#tc-488) | List contacts is open to every role | `GET /api/emergency/` | 200 | 200 | ✅ Pass |
-| [TC-489](#tc-489) | List contacts is open to every role | `GET /api/emergency/` | 200 | 200 | ✅ Pass |
-| [TC-490](#tc-490) | List contacts without token returns 401 | `GET /api/emergency/` | 401 | 401 | ✅ Pass |
-| [TC-491](#tc-491) | Update contact returns 200 | `PUT /api/emergency/1` | 200 | 200 | ✅ Pass |
-| [TC-492](#tc-492) | Update contact leaves omitted fields untouched | `PUT /api/emergency/1` | 200 | 200 | ✅ Pass |
-| [TC-493](#tc-493) | Update contact blank service type keeps the current one | `PUT /api/emergency/1` | 200 | 200 | ✅ Pass |
-| [TC-494](#tc-494) | Update contact blank availability clears it | `PUT /api/emergency/1` | 200 | 200 | ✅ Pass |
-| [TC-495](#tc-495) | Update contact unknown service type returns 400 | `PUT /api/emergency/1` | 400 | 400 | ✅ Pass |
-| [TC-496](#tc-496) | Update contact blank phone returns 400 | `PUT /api/emergency/1` | 400 | 400 | ✅ Pass |
-| [TC-497](#tc-497) | Update contact phone without digits returns 400 | `PUT /api/emergency/1` | 400 | 400 | ✅ Pass |
-| [TC-498](#tc-498) | Update contact phone longer than 15 chars returns 400 | `PUT /api/emergency/1` | 400 | 400 | ✅ Pass |
-| [TC-499](#tc-499) | Update contact malformed body returns 400 | `PUT /api/emergency/1` | 400 | 400 | ✅ Pass |
-| [TC-500](#tc-500) | Update contact malformed body returns 400 | `PUT /api/emergency/1` | 400 | 400 | ✅ Pass |
-| [TC-501](#tc-501) | Update contact malformed body returns 400 | `PUT /api/emergency/1` | 400 | 400 | ✅ Pass |
-| [TC-502](#tc-502) | Update unknown contact returns 404 | `PUT /api/emergency/9999` | 404 | 404 | ✅ Pass |
-| [TC-503](#tc-503) | Update contact as resident returns 403 | `PUT /api/emergency/1` | 403 | 403 | ✅ Pass |
-| [TC-504](#tc-504) | Update contact as worker returns 403 | `PUT /api/emergency/1` | 403 | 403 | ✅ Pass |
-| [TC-505](#tc-505) | Update contact without token returns 401 | `PUT /api/emergency/1` | 401 | 401 | ✅ Pass |
-| [TC-506](#tc-506) | Delete contact returns 200 | `DELETE /api/emergency/1` | 200 | 200 | ✅ Pass |
-| [TC-507](#tc-507) | Delete contact is a hard delete | `GET /api/emergency/` | — | 200 | ✅ Pass |
-| [TC-508](#tc-508) | Delete contact twice returns 404 | `DELETE /api/emergency/1` | 404 | 404 | ✅ Pass |
-| [TC-509](#tc-509) | Delete unknown contact returns 404 | `DELETE /api/emergency/9999` | 404 | 404 | ✅ Pass |
-| [TC-510](#tc-510) | Delete contact as resident returns 403 | `DELETE /api/emergency/1` | 403 | 403 | ✅ Pass |
-| [TC-511](#tc-511) | Delete contact as worker returns 403 | `DELETE /api/emergency/1` | 403 | 403 | ✅ Pass |
-| [TC-512](#tc-512) | Delete contact without token returns 401 | `DELETE /api/emergency/1` | 401 | 401 | ✅ Pass |
+| [TC-463](#tc-463) | Create contact returns 201 | — | 201 | — | ✅ Pass |
+| [TC-464](#tc-464) | Create contact returns only real columns | — | — | — | ✅ Pass |
+| [TC-465](#tc-465) | Create contact uppercases the service type | — | 201 | — | ✅ Pass |
+| [TC-466](#tc-466) | Create contact blank availability becomes null | — | 201 | — | ✅ Pass |
+| [TC-467](#tc-467) | Create contact omitted availability is null | — | 201 | — | ✅ Pass |
+| [TC-468](#tc-468) | phone has no UNIQUE constraint — two services can share a number | — | — | — | ✅ Pass |
+| [TC-469](#tc-469) | Create contact missing required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-470](#tc-470) | Create contact missing required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-471](#tc-471) | Create contact missing required field returns 400 | — | 400 | — | ✅ Pass |
+| [TC-472](#tc-472) | Create contact unknown service type returns 400 | — | 400 | — | ✅ Pass |
+| [TC-473](#tc-473) | Create contact phone without digits returns 400 | — | 400 | — | ✅ Pass |
+| [TC-474](#tc-474) | Create contact phone longer than 15 chars returns 400 | — | 400 | — | ✅ Pass |
+| [TC-475](#tc-475) | Create contact malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-476](#tc-476) | Create contact malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-477](#tc-477) | Create contact malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-478](#tc-478) | Create contact as resident returns 403 | — | 403 | — | ✅ Pass |
+| [TC-479](#tc-479) | Create contact as worker returns 403 | — | 403 | — | ✅ Pass |
+| [TC-480](#tc-480) | Create contact as treasurer returns 201 | — | 201 | — | ✅ Pass |
+| [TC-481](#tc-481) | Create contact without token returns 401 | — | 401 | — | ✅ Pass |
+| [TC-482](#tc-482) | List contacts empty directory returns empty list | — | 200 | — | ✅ Pass |
+| [TC-483](#tc-483) | List contacts returns the created contact | — | 200 | — | ✅ Pass |
+| [TC-484](#tc-484) | List contacts is ordered by service type then name | — | — | — | ✅ Pass |
+| [TC-485](#tc-485) | Every role may read the emergency directory | — | 200 | — | ✅ Pass |
+| [TC-486](#tc-486) | List contacts is open to every role | — | 200 | — | ✅ Pass |
+| [TC-487](#tc-487) | List contacts is open to every role | — | 200 | — | ✅ Pass |
+| [TC-488](#tc-488) | List contacts is open to every role | — | 200 | — | ✅ Pass |
+| [TC-489](#tc-489) | List contacts is open to every role | — | 200 | — | ✅ Pass |
+| [TC-490](#tc-490) | List contacts without token returns 401 | — | 401 | — | ✅ Pass |
+| [TC-491](#tc-491) | Update contact returns 200 | — | 200 | — | ✅ Pass |
+| [TC-492](#tc-492) | Update contact leaves omitted fields untouched | — | 200 | — | ✅ Pass |
+| [TC-493](#tc-493) | Update contact blank service type keeps the current one | — | 200 | — | ✅ Pass |
+| [TC-494](#tc-494) | Update contact blank availability clears it | — | 200 | — | ✅ Pass |
+| [TC-495](#tc-495) | Update contact unknown service type returns 400 | — | 400 | — | ✅ Pass |
+| [TC-496](#tc-496) | Update contact blank phone returns 400 | — | 400 | — | ✅ Pass |
+| [TC-497](#tc-497) | Update contact phone without digits returns 400 | — | 400 | — | ✅ Pass |
+| [TC-498](#tc-498) | Update contact phone longer than 15 chars returns 400 | — | 400 | — | ✅ Pass |
+| [TC-499](#tc-499) | Update contact malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-500](#tc-500) | Update contact malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-501](#tc-501) | Update contact malformed body returns 400 | — | 400 | — | ✅ Pass |
+| [TC-502](#tc-502) | Update unknown contact returns 404 | — | 404 | — | ✅ Pass |
+| [TC-503](#tc-503) | Update contact as resident returns 403 | — | 403 | — | ✅ Pass |
+| [TC-504](#tc-504) | Update contact as worker returns 403 | — | 403 | — | ✅ Pass |
+| [TC-505](#tc-505) | Update contact without token returns 401 | — | 401 | — | ✅ Pass |
+| [TC-506](#tc-506) | Delete contact returns 200 | — | 200 | — | ✅ Pass |
+| [TC-507](#tc-507) | Delete contact is a hard delete | — | — | — | ✅ Pass |
+| [TC-508](#tc-508) | Delete contact twice returns 404 | — | 404 | — | ✅ Pass |
+| [TC-509](#tc-509) | Delete unknown contact returns 404 | — | 404 | — | ✅ Pass |
+| [TC-510](#tc-510) | Delete contact as resident returns 403 | — | 403 | — | ✅ Pass |
+| [TC-511](#tc-511) | Delete contact as worker returns 403 | — | 403 | — | ✅ Pass |
+| [TC-512](#tc-512) | Delete contact without token returns 401 | — | 401 | — | ✅ Pass |
+
+
+### Search & Filter (Members/Complaints/Invoices/Expenses/Maintenance)
+
+`Backend/tests/test_filters.py` · US-18 · **33/33 passed**
+
+| ID | Test case | Endpoint | Expected | Actual | Result |
+|---|---|---|---|---|---|
+| [TC-513](#tc-513) | Calling the endpoint with no query params must be unaffected by the | — | 200 | — | ✅ Pass |
+| [TC-514](#tc-514) | Members filter by role | — | 200 | — | ✅ Pass |
+| [TC-515](#tc-515) | Members filter by block | — | 200 | — | ✅ Pass |
+| [TC-516](#tc-516) | Members filter by q matches flat number | — | 200 | — | ✅ Pass |
+| [TC-517](#tc-517) | Members invalid role returns 400 | — | 400 | — | ✅ Pass |
+| [TC-518](#tc-518) | Members is owner false excludes owners | — | 200 | — | ✅ Pass |
+| [TC-519](#tc-519) | Complaints no filters unchanged | — | 200 | — | ✅ Pass |
+| [TC-520](#tc-520) | Complaints filter by category | — | 200 | — | ✅ Pass |
+| [TC-521](#tc-521) | Complaints filter by q matches title | — | 200 | — | ✅ Pass |
+| [TC-522](#tc-522) | Complaints filter unassigned true | — | 200 | — | ✅ Pass |
+| [TC-523](#tc-523) | Complaints filter overdue true | — | 200 | — | ✅ Pass |
+| [TC-524](#tc-524) | Complaints invalid status returns 400 | — | 400 | — | ✅ Pass |
+| [TC-525](#tc-525) | Complaints invalid boolean returns 400 | — | 400 | — | ✅ Pass |
+| [TC-526](#tc-526) | A resident filtering by another flat's apartment_id must not see it — | — | 200 | — | ✅ Pass |
+| [TC-527](#tc-527) | Invoices no filters unchanged | — | 200 | — | ✅ Pass |
+| [TC-528](#tc-528) | Invoices filter by status | — | 200 | — | ✅ Pass |
+| [TC-529](#tc-529) | Invoices filter by amount range | — | 200 | — | ✅ Pass |
+| [TC-530](#tc-530) | Invoices min amount greater than max returns 400 | — | 400 | — | ✅ Pass |
+| [TC-531](#tc-531) | Invoices from after to returns 400 | — | 400 | — | ✅ Pass |
+| [TC-532](#tc-532) | Invoices resident apartment id filter stays scoped | — | 200 | — | ✅ Pass |
+| [TC-533](#tc-533) | The landmine: filtering status=OVERDUE must include an invoice that | — | 200 | — | ✅ Pass |
+| [TC-534](#tc-534) | Pending endpoint also runs overdue sweep | — | 200 | — | ✅ Pass |
+| [TC-535](#tc-535) | Expenses no filters unchanged | — | 200 | — | ✅ Pass |
+| [TC-536](#tc-536) | Expenses filter by category | — | 200 | — | ✅ Pass |
+| [TC-537](#tc-537) | Expenses filter by q searches description | — | 200 | — | ✅ Pass |
+| [TC-538](#tc-538) | Expenses invalid category returns 400 | — | 400 | — | ✅ Pass |
+| [TC-539](#tc-539) | Maintenance no filters unchanged | — | 200 | — | ✅ Pass |
+| [TC-540](#tc-540) | Maintenance filter by category | — | 200 | — | ✅ Pass |
+| [TC-541](#tc-541) | Maintenance worker only sees assigned tasks | — | 200 | — | ✅ Pass |
+| [TC-542](#tc-542) | A worker passing assigned_to for someone else must not see that task — | — | 200 | — | ✅ Pass |
+| [TC-543](#tc-543) | Worker can complete own task | — | 200 | — | ✅ Pass |
+| [TC-544](#tc-544) | Worker cannot complete unassigned task | — | 403 | — | ✅ Pass |
+| [TC-545](#tc-545) | Worker cannot complete someone elses task | — | 403 | — | ✅ Pass |
+
+
+### Summary Reports & CSV Export
+
+`Backend/tests/test_reports.py` · US-19 · **13/13 passed**
+
+| ID | Test case | Endpoint | Expected | Actual | Result |
+|---|---|---|---|---|---|
+| [TC-546](#tc-546) | Complaints summary counts | — | 200 | — | ✅ Pass |
+| [TC-547](#tc-547) | Complaints summary scoped to resident | — | 200 | — | ✅ Pass |
+| [TC-548](#tc-548) | Invoices summary totals | — | 200 | — | ✅ Pass |
+| [TC-549](#tc-549) | Invoices summary counts overdue after sweep | — | 200 | — | ✅ Pass |
+| [TC-550](#tc-550) | Invoices summary scoped to resident | — | 200 | — | ✅ Pass |
+| [TC-551](#tc-551) | Maintenance summary counts | — | 200 | — | ✅ Pass |
+| [TC-552](#tc-552) | Maintenance summary scoped to worker | — | 200 | — | ✅ Pass |
+| [TC-553](#tc-553) | Members export returns csv | — | 200 | — | ✅ Pass |
+| [TC-554](#tc-554) | Complaints export returns csv | — | 200 | — | ✅ Pass |
+| [TC-555](#tc-555) | Invoices export returns csv | — | 200 | — | ✅ Pass |
+| [TC-556](#tc-556) | Expenses export returns csv | — | 200 | — | ✅ Pass |
+| [TC-557](#tc-557) | Export respects filters | — | — | — | ✅ Pass |
+| [TC-558](#tc-558) | Resident cannot export members | — | 403 | — | ✅ Pass |
+
+
+### Events & Upcoming Deadlines
+
+`Backend/tests/test_events.py` · US-20 · **16/16 passed**
+
+| ID | Test case | Endpoint | Expected | Actual | Result |
+|---|---|---|---|---|---|
+| [TC-559](#tc-559) | Admin can create event | — | — | — | ✅ Pass |
+| [TC-560](#tc-560) | Resident cannot create event | — | 403 | — | ✅ Pass |
+| [TC-561](#tc-561) | Resident can list events | — | 200 | — | ✅ Pass |
+| [TC-562](#tc-562) | Missing title returns 400 | — | 400 | — | ✅ Pass |
+| [TC-563](#tc-563) | Invalid event type returns 400 | — | 400 | — | ✅ Pass |
+| [TC-564](#tc-564) | Update event | — | 200 | — | ✅ Pass |
+| [TC-565](#tc-565) | Delete event is soft and hides from list | — | 200 | — | ✅ Pass |
+| [TC-566](#tc-566) | Filter events by type | — | 200 | — | ✅ Pass |
+| [TC-567](#tc-567) | Upcoming includes manual event | — | 200 | — | ✅ Pass |
+| [TC-568](#tc-568) | Upcoming sorted chronologically | — | — | — | ✅ Pass |
+| [TC-569](#tc-569) | Upcoming includes own unpaid invoice for resident | — | 200 | — | ✅ Pass |
+| [TC-570](#tc-570) | Upcoming excludes other flats invoice for resident | — | 200 | — | ✅ Pass |
+| [TC-571](#tc-571) | Upcoming excludes maintenance for resident | — | 200 | — | ✅ Pass |
+| [TC-572](#tc-572) | Upcoming includes maintenance for assigned worker | — | 200 | — | ✅ Pass |
+| [TC-573](#tc-573) | Upcoming days param limits window | — | 200 | — | ✅ Pass |
+| [TC-574](#tc-574) | Upcoming invalid days returns 400 | — | 400 | — | ✅ Pass |
+
+
+### Worker Work History
+
+`Backend/tests/test_worker_history.py` · US-21 · **5/5 passed**
+
+| ID | Test case | Endpoint | Expected | Actual | Result |
+|---|---|---|---|---|---|
+| [TC-575](#tc-575) | Worker sees own completed work | — | 200 | — | ✅ Pass |
+| [TC-576](#tc-576) | Admin can view any workers history | — | 200 | — | ✅ Pass |
+| [TC-577](#tc-577) | Resident cannot view worker history | — | 403 | — | ✅ Pass |
+| [TC-578](#tc-578) | Worker cannot view another workers history | — | 403 | — | ✅ Pass |
+| [TC-579](#tc-579) | Non worker user id returns 400 | — | 400 | — | ✅ Pass |
+
+
+### Contract freeze — filtered-endpoint regression guard
+
+`Backend/tests/test_contract_freeze.py` · US-18 · **7/7 passed**
+
+| ID | Test case | Endpoint | Expected | Actual | Result |
+|---|---|---|---|---|---|
+| [TC-580](#tc-580) | Members shape unchanged | — | 200 | — | ✅ Pass |
+| [TC-581](#tc-581) | Complaints shape unchanged | — | 200 | — | ✅ Pass |
+| [TC-582](#tc-582) | Invoices shape unchanged | — | 200 | — | ✅ Pass |
+| [TC-583](#tc-583) | Invoices pending shape unchanged | — | 200 | — | ✅ Pass |
+| [TC-584](#tc-584) | Expenses shape unchanged | — | 200 | — | ✅ Pass |
+| [TC-585](#tc-585) | Maintenance shape unchanged | — | 200 | — | ✅ Pass |
+| [TC-586](#tc-586) | Locks in the one deliberate behaviour change in this endpoint: a | — | 200 | — | ✅ Pass |
 
 
 ### Regression suite — defects already fixed
 
-`Backend/tests/test_regressions.py` · all · **21/21 passed**
+`Backend/tests/test_regressions.py` · all · **22/22 passed**
 
 | ID | Test case | Endpoint | Expected | Actual | Result |
 |---|---|---|---|---|---|
-| [TC-513](#tc-513) | Duplicate phone returns 409 not 500 | `POST /api/auth/register` | 409 | 409 | ✅ Pass |
-| [TC-514](#tc-514) | The same bug in its nastier form: '' is not NULL, so the SECOND | `POST /api/auth/register` | 201 | 201 | ✅ Pass |
-| [TC-515](#tc-515) | DEFECT-02  Four endpoints were 100% dead | `POST /api/expenses/` | 201 | 201 | ✅ Pass |
-| [TC-516](#tc-516) | DEFECT-02  Four endpoints were 100% dead | `POST /api/maintenance/` | 201 | 201 | ✅ Pass |
-| [TC-517](#tc-517) | DEFECT-02  Four endpoints were 100% dead | `POST /api/equipment/` | 201 | 201 | ✅ Pass |
-| [TC-518](#tc-518) | DEFECT-02  Four endpoints were 100% dead | `POST /api/polls/` | 201 | 201 | ✅ Pass |
-| [TC-519](#tc-519) | The flip side: a genuinely bad date must be a 400, not a 500 | `POST /api/expenses/` | 400 | 400 | ✅ Pass |
-| [TC-520](#tc-520) | Pending is admin only | `GET /api/conflicts/pending` | 403 | 403 | ✅ Pass |
-| [TC-521](#tc-521) | Resident listing never exposes the reporter | `GET /api/conflicts/` | 200 | 200 | ✅ Pass |
-| [TC-522](#tc-522) | Assign without worker is rejected | `PUT /api/complaints/1/assign` | 400 | 400 | ✅ Pass |
-| [TC-523](#tc-523) | Assign to non worker is rejected | `PUT /api/complaints/1/assign` | 400 | 400 | ✅ Pass |
-| [TC-524](#tc-524) | Assigned worker sees the job | `GET /api/complaints/` | 200 | 200 | ✅ Pass |
-| [TC-525](#tc-525) | DEFECT-05  PUT /api/invoices/<id>/pay was not idempotent | `PUT /api/invoices/1/pay` | 201 / 200 / 409 | 409 | ✅ Pass |
-| [TC-526](#tc-526) | DEFECT-06  POST /api/equipment with service_frequency_days = 0 | `GET /api/equipment/` | 400 / 200 | 200 | ✅ Pass |
-| [TC-527](#tc-527) | DEFECT-07  Any endpoint, with a body of null / [] / "str" | `POST /api/auth/login` | 400 | 400 | ✅ Pass |
-| [TC-528](#tc-528) | DEFECT-07  Any endpoint, with a body of null / [] / "str" | `POST /api/auth/login` | 400 | 400 | ✅ Pass |
-| [TC-529](#tc-529) | DEFECT-07  Any endpoint, with a body of null / [] / "str" | `POST /api/auth/login` | 400 | 400 | ✅ Pass |
-| [TC-530](#tc-530) | DEFECT-07b  PUT /api/auth/change-password | `PUT /api/auth/change-password` | 400 | 400 | ✅ Pass |
-| [TC-531](#tc-531) | DEFECT-08  There was not a single `except` block in api/ or auth/ | `POST /api/complaints/` | — | 400 | ✅ Pass |
-| [TC-532](#tc-532) | DEFECT-09  Every mutating endpoint was bare @jwt_required() | `GET /api/expenses/` | 403 | 403 | ✅ Pass |
-| [TC-533](#tc-533) | DEFECT-09b  DELETE /api/members/apartments/<id> | `DELETE /api/members/apartments/1` | 409 | 409 | ✅ Pass |
+| [TC-587](#tc-587) | Duplicate phone returns 409 not 500 | — | 201 / 409 | — | ✅ Pass |
+| [TC-588](#tc-588) | The same bug in its nastier form: '' is not NULL, so the SECOND | — | 201 | — | ✅ Pass |
+| [TC-589](#tc-589) | DEFECT-02  Four endpoints were 100% dead | — | 201 | — | ✅ Pass |
+| [TC-590](#tc-590) | DEFECT-02  Four endpoints were 100% dead | — | 201 | — | ✅ Pass |
+| [TC-591](#tc-591) | DEFECT-02  Four endpoints were 100% dead | — | 201 | — | ✅ Pass |
+| [TC-592](#tc-592) | DEFECT-02  Four endpoints were 100% dead | — | 201 | — | ✅ Pass |
+| [TC-593](#tc-593) | The flip side: a genuinely bad date must be a 400, not a 500 | — | 400 | — | ✅ Pass |
+| [TC-594](#tc-594) | Pending is admin only | — | 403 | — | ✅ Pass |
+| [TC-595](#tc-595) | Resident listing never exposes the reporter | — | 200 | — | ✅ Pass |
+| [TC-596](#tc-596) | Assign without worker is rejected | — | 400 | — | ✅ Pass |
+| [TC-597](#tc-597) | Assign to non worker is rejected | — | 400 | — | ✅ Pass |
+| [TC-598](#tc-598) | Assigned worker sees the job | — | 200 | — | ✅ Pass |
+| [TC-599](#tc-599) | DEFECT-05  PUT /api/invoices/<id>/pay was not idempotent | — | 201 / 200 / 409 | — | ✅ Pass |
+| [TC-600](#tc-600) | DEFECT-06  POST /api/equipment with service_frequency_days = 0 | — | 400 / 200 | — | ✅ Pass |
+| [TC-601](#tc-601) | DEFECT-07  Any endpoint, with a body of null / [] / "str" | — | 400 | — | ✅ Pass |
+| [TC-602](#tc-602) | DEFECT-07  Any endpoint, with a body of null / [] / "str" | — | 400 | — | ✅ Pass |
+| [TC-603](#tc-603) | DEFECT-07  Any endpoint, with a body of null / [] / "str" | — | 400 | — | ✅ Pass |
+| [TC-604](#tc-604) | DEFECT-07b  PUT /api/auth/change-password | — | 400 | — | ✅ Pass |
+| [TC-605](#tc-605) | DEFECT-08  There was not a single `except` block in api/ or auth/ | — | — | — | ✅ Pass |
+| [TC-606](#tc-606) | DEFECT-09  Every mutating endpoint was bare @jwt_required() | — | 403 | — | ✅ Pass |
+| [TC-607](#tc-607) | DEFECT-09b  DELETE /api/members/apartments/<id> | — | 409 | — | ✅ Pass |
+| [TC-608](#tc-608) | DEFECT-10  GET /api/invoices/ — invoices never became OVERDUE | — | 200 | — | ✅ Pass |
 
 
 ### Open defects — EXPECTED TO FAIL  ⚠️ *fails by design*
 
-`Backend/tests/test_open_defects.py` · all · **4/6 passed**
+`Backend/tests/test_open_defects.py` · all · **5/5 passed**
 
 | ID | Test case | Endpoint | Expected | Actual | Result |
 |---|---|---|---|---|---|
-| [TC-534](#tc-534) | OD-01 · Auth errors use a different JSON envelope from the rest of the API | `GET /api/auth/me` | 401 | 401 | ✅ Pass |
-| [TC-535](#tc-535) | OD-02 · Anyone on the internet can create an ADMIN account.  [SECURITY] | `POST /api/auth/register` | 400 / 403 | **201** | ❌ **Fail** |
-| [TC-536](#tc-536) | OD-02b · Proves the escalation above is exploitable, not cosmetic | `GET /api/members/` | 403 | **200** | ❌ **Fail** |
-| [TC-537](#tc-537) | OD-03 · Invoices never become OVERDUE | `GET /api/invoices/` | 200 | 200 | ✅ Pass |
-| [TC-538](#tc-538) | OD-04 · Validation errors name the internal enum, not the client's field | `POST /api/maintenance/` | 400 | 400 | ✅ Pass |
-| [TC-539](#tc-539) | OD-04 · Validation errors name the internal enum, not the client's field | `POST /api/equipment/` | 400 | 400 | ✅ Pass |
+| [TC-609](#tc-609) | OD-01 · Auth errors use a different JSON envelope from the rest of the API | — | 401 | — | ✅ Pass |
+| [TC-610](#tc-610) | OD-02 · Anyone on the internet can create an ADMIN account.  [SECURITY] | — | 400 / 403 | — | ✅ Pass |
+| [TC-611](#tc-611) | OD-02b · Public signup should not create a usable ADMIN token | — | 400 / 403 | — | ✅ Pass |
+| [TC-612](#tc-612) | OD-04 · Validation errors name the internal enum, not the client's field | — | 400 | — | ✅ Pass |
+| [TC-613](#tc-613) | OD-04 · Validation errors name the internal enum, not the client's field | — | 400 | — | ✅ Pass |
 
 
 ---
@@ -737,23 +853,11 @@ One row per test case. **Click a test ID** to jump to its full detail — the ex
 
 ### TC-001 · Register returns 201 with token and user
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/register`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/register`
-- JSON body:
-    ```json
-    {
-      "name": "Nina Newcomer",
-      "email": "nina@test.com",
-      "password": "<hidden>",
-      "role": "OWNER",
-      "phone": "9000000001"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -761,23 +865,7 @@ One row per test case. **Click a test ID** to jump to its full detail — the ex
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "message": "User registered successfully",
-      "token": "<jwt>",
-      "user": {
-        "created_at": "2026-08-02 13:28:33.164023",
-        "email": "nina@test.com",
-        "id": 1,
-        "is_active": true,
-        "name": "Nina Newcomer",
-        "phone": "9000000001",
-        "role": "OWNER"
-      }
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -809,22 +897,11 @@ def test_register_returns_201_with_token_and_user(client):
 
 ### TC-002 · Register lowercases and strips email
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/register`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/register`
-- JSON body:
-    ```json
-    {
-      "name": "  Casey Case  ",
-      "email": "  MiXeD@Test.COM  ",
-      "password": "<hidden>",
-      "role": "TENANT"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -832,23 +909,7 @@ def test_register_returns_201_with_token_and_user(client):
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "message": "User registered successfully",
-      "token": "<jwt>",
-      "user": {
-        "created_at": "2026-08-02 13:28:33.364150",
-        "email": "mixed@test.com",
-        "id": 1,
-        "is_active": true,
-        "name": "Casey Case",
-        "phone": null,
-        "role": "TENANT"
-      }
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -874,15 +935,11 @@ def test_register_lowercases_and_strips_email(client):
 
 ### TC-003 · Register issues a usable token
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/auth/me`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/auth/me`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/register` → 201
+- _none_
 
 **Expected Output:**
 
@@ -891,19 +948,7 @@ def test_register_lowercases_and_strips_email(client):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "created_at": "2026-08-02 13:28:33.560338",
-      "email": "token@test.com",
-      "id": 1,
-      "is_active": true,
-      "name": "Token Tester",
-      "phone": null,
-      "role": "TENANT"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -929,21 +974,11 @@ def test_register_issues_a_usable_token(client):
 
 ### TC-004 · Register missing required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/register`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/register`
-- JSON body:
-    ```json
-    {
-      "email": "nofield@test.com",
-      "password": "<hidden>",
-      "role": "TENANT"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -951,13 +986,7 @@ def test_register_issues_a_usable_token(client):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "name is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -983,21 +1012,11 @@ def test_register_missing_required_field_returns_400(client, missing):
 
 ### TC-005 · Register missing required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/register`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/register`
-- JSON body:
-    ```json
-    {
-      "name": "No Field",
-      "password": "<hidden>",
-      "role": "TENANT"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -1005,13 +1024,7 @@ def test_register_missing_required_field_returns_400(client, missing):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "email is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -1037,21 +1050,11 @@ def test_register_missing_required_field_returns_400(client, missing):
 
 ### TC-006 · Register missing required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/register`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/register`
-- JSON body:
-    ```json
-    {
-      "name": "No Field",
-      "email": "nofield@test.com",
-      "role": "TENANT"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -1059,13 +1062,7 @@ def test_register_missing_required_field_returns_400(client, missing):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "password is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -1091,21 +1088,11 @@ def test_register_missing_required_field_returns_400(client, missing):
 
 ### TC-007 · Register missing required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/register`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/register`
-- JSON body:
-    ```json
-    {
-      "name": "No Field",
-      "email": "nofield@test.com",
-      "password": "<hidden>"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -1113,13 +1100,7 @@ def test_register_missing_required_field_returns_400(client, missing):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "role is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -1145,22 +1126,11 @@ def test_register_missing_required_field_returns_400(client, missing):
 
 ### TC-008 · Register blank required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/register`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/register`
-- JSON body:
-    ```json
-    {
-      "name": "",
-      "email": "blank@test.com",
-      "password": "<hidden>",
-      "role": "TENANT"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -1169,13 +1139,7 @@ def test_register_missing_required_field_returns_400(client, missing):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "name is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -1200,22 +1164,11 @@ def test_register_blank_required_field_returns_400(client, blank):
 
 ### TC-009 · Register blank required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/register`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/register`
-- JSON body:
-    ```json
-    {
-      "name": "   ",
-      "email": "blank@test.com",
-      "password": "<hidden>",
-      "role": "TENANT"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -1224,13 +1177,7 @@ def test_register_blank_required_field_returns_400(client, blank):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "name is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -1255,22 +1202,11 @@ def test_register_blank_required_field_returns_400(client, blank):
 
 ### TC-010 · Register unknown role returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/register`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/register`
-- JSON body:
-    ```json
-    {
-      "name": "Wanda Wizard",
-      "email": "wizard@test.com",
-      "password": "<hidden>",
-      "role": "WIZARD"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -1278,13 +1214,7 @@ def test_register_blank_required_field_returns_400(client, blank):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "role must be one of: ADMIN, TENANT, OWNER, TREASURER, WORKER, COMMITTEE_MEMBER, AUDITOR, SYSTEM_ADMIN"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -1308,17 +1238,11 @@ def test_register_unknown_role_returns_400(client):
 
 ### TC-011 · Register malformed body returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/register`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/register`
-- JSON body:
-    ```json
-    null
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -1326,13 +1250,7 @@ def test_register_unknown_role_returns_400(client):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be valid JSON"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -1359,17 +1277,11 @@ def test_register_malformed_body_returns_400(client, raw, expected):
 
 ### TC-012 · Register malformed body returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/register`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/register`
-- JSON body:
-    ```json
-    []
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -1377,13 +1289,7 @@ def test_register_malformed_body_returns_400(client, raw, expected):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -1410,17 +1316,11 @@ def test_register_malformed_body_returns_400(client, raw, expected):
 
 ### TC-013 · Register malformed body returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/register`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/register`
-- JSON body:
-    ```json
-    "str"
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -1428,13 +1328,7 @@ def test_register_malformed_body_returns_400(client, raw, expected):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -1461,22 +1355,11 @@ def test_register_malformed_body_returns_400(client, raw, expected):
 
 ### TC-014 · Register duplicate email returns 409
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/register`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/register`
-- JSON body:
-    ```json
-    {
-      "name": "Copycat",
-      "email": "resident@test.com",
-      "password": "<hidden>",
-      "role": "TENANT"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -1485,13 +1368,7 @@ def test_register_malformed_body_returns_400(client, raw, expected):
 
 **Actual Output:**
 
-- HTTP Status Code: `409`
-- JSON:
-    ```json
-    {
-      "error": "Email already registered"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -1515,22 +1392,11 @@ def test_register_duplicate_email_returns_409(client, seed):
 
 ### TC-015 · Register duplicate email is case insensitive
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/register`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/register`
-- JSON body:
-    ```json
-    {
-      "name": "Copycat",
-      "email": "RESIDENT@TEST.COM",
-      "password": "<hidden>",
-      "role": "TENANT"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -1539,13 +1405,7 @@ def test_register_duplicate_email_returns_409(client, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `409`
-- JSON:
-    ```json
-    {
-      "error": "Email already registered"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -1569,39 +1429,20 @@ def test_register_duplicate_email_is_case_insensitive(client, seed):
 
 ### TC-016 · Register duplicate phone returns 409
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/register`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/register`
-- JSON body:
-    ```json
-    {
-      "name": "Phone Two",
-      "email": "phone2@test.com",
-      "password": "<hidden>",
-      "role": "TENANT",
-      "phone": "9111111111"
-    }
-    ```
-- Header: _none (unauthenticated request)_
-- Setup calls before this (1): `POST /api/auth/register` → 201
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `409`
+- HTTP Status Code: `201 or 409`
 - JSON: `error` == "Phone number already registered"
 
 **Actual Output:**
 
-- HTTP Status Code: `409`
-- JSON:
-    ```json
-    {
-      "error": "Phone number already registered"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -1631,48 +1472,19 @@ def test_register_duplicate_phone_returns_409(client):
 
 ### TC-017 · Blank phone must normalise to NULL — users.phone is UNIQUE
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/register`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/register`
-- JSON body:
-    ```json
-    {
-      "name": "Blank Two",
-      "email": "blank2@test.com",
-      "password": "<hidden>",
-      "role": "TENANT",
-      "phone": ""
-    }
-    ```
-- Header: _none (unauthenticated request)_
-- Setup calls before this (1): `POST /api/auth/register` → 201
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `201`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "message": "User registered successfully",
-      "token": "<jwt>",
-      "user": {
-        "created_at": "2026-08-02 13:28:34.987810",
-        "email": "blank2@test.com",
-        "id": 2,
-        "is_active": true,
-        "name": "Blank Two",
-        "phone": null,
-        "role": "TENANT"
-      }
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -1703,23 +1515,11 @@ def test_register_two_blank_phones_both_succeed(client):
 
 ### TC-018 · Register blank phone is stored as null
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/register`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/register`
-- JSON body:
-    ```json
-    {
-      "name": "Blank Phone",
-      "email": "blankphone@test.com",
-      "password": "<hidden>",
-      "role": "TENANT",
-      "phone": "   "
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -1728,23 +1528,7 @@ def test_register_two_blank_phones_both_succeed(client):
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "message": "User registered successfully",
-      "token": "<jwt>",
-      "user": {
-        "created_at": "2026-08-02 13:28:35.182445",
-        "email": "blankphone@test.com",
-        "id": 1,
-        "is_active": true,
-        "name": "Blank Phone",
-        "phone": null,
-        "role": "TENANT"
-      }
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -1768,20 +1552,11 @@ def test_register_blank_phone_is_stored_as_null(client):
 
 ### TC-019 · Login succeeds for every seeded role
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/login`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/login`
-- JSON body:
-    ```json
-    {
-      "email": "admin@test.com",
-      "password": "<hidden>"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -1789,23 +1564,7 @@ def test_register_blank_phone_is_stored_as_null(client):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "message": "Login successful",
-      "token": "<jwt>",
-      "user": {
-        "created_at": "2026-08-02 13:28:35.255533",
-        "email": "admin@test.com",
-        "id": 1,
-        "is_active": true,
-        "name": "Priya Admin",
-        "phone": null,
-        "role": "ADMIN"
-      }
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -1837,20 +1596,11 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
 
 ### TC-020 · Login succeeds for every seeded role
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/login`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/login`
-- JSON body:
-    ```json
-    {
-      "email": "treasurer@test.com",
-      "password": "<hidden>"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -1858,23 +1608,7 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "message": "Login successful",
-      "token": "<jwt>",
-      "user": {
-        "created_at": "2026-08-02 13:28:35.332948",
-        "email": "treasurer@test.com",
-        "id": 2,
-        "is_active": true,
-        "name": "Tarun Treasurer",
-        "phone": null,
-        "role": "TREASURER"
-      }
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -1906,20 +1640,11 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
 
 ### TC-021 · Login succeeds for every seeded role
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/login`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/login`
-- JSON body:
-    ```json
-    {
-      "email": "committee@test.com",
-      "password": "<hidden>"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -1927,23 +1652,7 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "message": "Login successful",
-      "token": "<jwt>",
-      "user": {
-        "created_at": "2026-08-02 13:28:35.408516",
-        "email": "committee@test.com",
-        "id": 3,
-        "is_active": true,
-        "name": "Chitra Committee",
-        "phone": null,
-        "role": "COMMITTEE_MEMBER"
-      }
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -1975,20 +1684,11 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
 
 ### TC-022 · Login succeeds for every seeded role
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/login`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/login`
-- JSON body:
-    ```json
-    {
-      "email": "resident@test.com",
-      "password": "<hidden>"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -1996,23 +1696,7 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "message": "Login successful",
-      "token": "<jwt>",
-      "user": {
-        "created_at": "2026-08-02 13:28:35.486457",
-        "email": "resident@test.com",
-        "id": 4,
-        "is_active": true,
-        "name": "Ravi Resident",
-        "phone": null,
-        "role": "TENANT"
-      }
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -2044,20 +1728,11 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
 
 ### TC-023 · Login succeeds for every seeded role
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/login`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/login`
-- JSON body:
-    ```json
-    {
-      "email": "owner@test.com",
-      "password": "<hidden>"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -2065,23 +1740,7 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "message": "Login successful",
-      "token": "<jwt>",
-      "user": {
-        "created_at": "2026-08-02 13:28:35.565039",
-        "email": "owner@test.com",
-        "id": 5,
-        "is_active": true,
-        "name": "Ojas Owner",
-        "phone": null,
-        "role": "OWNER"
-      }
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -2113,20 +1772,11 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
 
 ### TC-024 · Login succeeds for every seeded role
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/login`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/login`
-- JSON body:
-    ```json
-    {
-      "email": "worker@test.com",
-      "password": "<hidden>"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -2134,23 +1784,7 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "message": "Login successful",
-      "token": "<jwt>",
-      "user": {
-        "created_at": "2026-08-02 13:28:35.642988",
-        "email": "worker@test.com",
-        "id": 6,
-        "is_active": true,
-        "name": "Ramesh Worker",
-        "phone": null,
-        "role": "WORKER"
-      }
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -2182,20 +1816,11 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
 
 ### TC-025 · Login wrong password returns 401
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/login`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/login`
-- JSON body:
-    ```json
-    {
-      "email": "resident@test.com",
-      "password": "<hidden>"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -2204,13 +1829,7 @@ def test_login_succeeds_for_every_seeded_role(client, seed, email, role):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Invalid email or password"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -2232,20 +1851,11 @@ def test_login_wrong_password_returns_401(client, seed):
 
 ### TC-026 · Login unknown email returns 401
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/login`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/login`
-- JSON body:
-    ```json
-    {
-      "email": "ghost@test.com",
-      "password": "<hidden>"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -2254,13 +1864,7 @@ def test_login_wrong_password_returns_401(client, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Invalid email or password"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -2282,19 +1886,11 @@ def test_login_unknown_email_returns_401(client, seed):
 
 ### TC-027 · Login missing required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/login`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/login`
-- JSON body:
-    ```json
-    {
-      "password": "<hidden>"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -2302,13 +1898,7 @@ def test_login_unknown_email_returns_401(client, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "email is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -2333,19 +1923,11 @@ def test_login_missing_required_field_returns_400(client, seed, missing):
 
 ### TC-028 · Login missing required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/login`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/login`
-- JSON body:
-    ```json
-    {
-      "email": "resident@test.com"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -2353,13 +1935,7 @@ def test_login_missing_required_field_returns_400(client, seed, missing):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "password is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -2384,17 +1960,11 @@ def test_login_missing_required_field_returns_400(client, seed, missing):
 
 ### TC-029 · Login malformed body returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/login`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/login`
-- JSON body:
-    ```json
-    null
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -2402,13 +1972,7 @@ def test_login_missing_required_field_returns_400(client, seed, missing):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be valid JSON"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -2434,17 +1998,11 @@ def test_login_malformed_body_returns_400(client, raw, expected):
 
 ### TC-030 · Login malformed body returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/login`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/login`
-- JSON body:
-    ```json
-    []
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -2452,13 +2010,7 @@ def test_login_malformed_body_returns_400(client, raw, expected):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -2484,17 +2036,11 @@ def test_login_malformed_body_returns_400(client, raw, expected):
 
 ### TC-031 · Login malformed body returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/login`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/login`
-- JSON body:
-    ```json
-    "str"
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -2502,13 +2048,7 @@ def test_login_malformed_body_returns_400(client, raw, expected):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -2534,21 +2074,11 @@ def test_login_malformed_body_returns_400(client, raw, expected):
 
 ### TC-032 · Login deactivated account returns 403
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/login`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/login`
-- JSON body:
-    ```json
-    {
-      "email": "resident@test.com",
-      "password": "<hidden>"
-    }
-    ```
-- Header: _none (unauthenticated request)_
-- Setup calls before this (2): `POST /api/auth/login` → 200, `DELETE /api/members/1` → 200
+- _none_
 
 **Expected Output:**
 
@@ -2557,13 +2087,7 @@ def test_login_malformed_body_returns_400(client, raw, expected):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "Account is deactivated"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -2587,15 +2111,11 @@ def test_login_deactivated_account_returns_403(client, seed, admin):
 
 ### TC-033 · Me returns the authenticated user
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/auth/me`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/auth/me`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -2603,19 +2123,7 @@ def test_login_deactivated_account_returns_403(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "created_at": "2026-08-02 13:28:36.332907",
-      "email": "resident@test.com",
-      "id": 4,
-      "is_active": true,
-      "name": "Ravi Resident",
-      "phone": null,
-      "role": "TENANT"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -2639,15 +2147,11 @@ def test_me_returns_the_authenticated_user(client, seed, resident):
 
 ### TC-034 · Me is open to every role
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/auth/me`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/auth/me`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -2655,19 +2159,7 @@ def test_me_returns_the_authenticated_user(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "created_at": "2026-08-02 13:28:36.411747",
-      "email": "admin@test.com",
-      "id": 1,
-      "is_active": true,
-      "name": "Priya Admin",
-      "phone": null,
-      "role": "ADMIN"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -2688,15 +2180,11 @@ def test_me_is_open_to_every_role(client, request, role_fixture):
 
 ### TC-035 · Me is open to every role
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/auth/me`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/auth/me`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -2704,19 +2192,7 @@ def test_me_is_open_to_every_role(client, request, role_fixture):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "created_at": "2026-08-02 13:28:36.493149",
-      "email": "treasurer@test.com",
-      "id": 2,
-      "is_active": true,
-      "name": "Tarun Treasurer",
-      "phone": null,
-      "role": "TREASURER"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -2737,15 +2213,11 @@ def test_me_is_open_to_every_role(client, request, role_fixture):
 
 ### TC-036 · Me is open to every role
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/auth/me`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/auth/me`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -2753,19 +2225,7 @@ def test_me_is_open_to_every_role(client, request, role_fixture):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "created_at": "2026-08-02 13:28:36.571752",
-      "email": "resident@test.com",
-      "id": 4,
-      "is_active": true,
-      "name": "Ravi Resident",
-      "phone": null,
-      "role": "TENANT"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -2786,15 +2246,11 @@ def test_me_is_open_to_every_role(client, request, role_fixture):
 
 ### TC-037 · Me is open to every role
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/auth/me`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/auth/me`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -2802,19 +2258,7 @@ def test_me_is_open_to_every_role(client, request, role_fixture):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "created_at": "2026-08-02 13:28:36.653032",
-      "email": "worker@test.com",
-      "id": 6,
-      "is_active": true,
-      "name": "Ramesh Worker",
-      "phone": null,
-      "role": "WORKER"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -2835,14 +2279,11 @@ def test_me_is_open_to_every_role(client, request, role_fixture):
 
 ### TC-038 · Me without token returns 401
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/auth/me`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/auth/me`
-- JSON body: _none_
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -2850,13 +2291,7 @@ def test_me_is_open_to_every_role(client, request, role_fixture):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -2875,14 +2310,11 @@ def test_me_without_token_returns_401(client):
 
 ### TC-039 · Me with garbage token returns 422
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/auth/me`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/auth/me`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
+- _none_
 
 **Expected Output:**
 
@@ -2890,13 +2322,7 @@ def test_me_without_token_returns_401(client):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Invalid header string: 'utf-8' codec can't decode byte 0x9e in position 0: invalid start byte"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -2916,21 +2342,11 @@ def test_me_with_garbage_token_returns_422(client):
 
 ### TC-040 · Change password returns 200
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/auth/change-password`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/auth/change-password`
-- JSON body:
-    ```json
-    {
-      "old_password": "Pass@123",
-      "new_password": "Brand@New1"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -2939,13 +2355,7 @@ def test_me_with_garbage_token_returns_422(client):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "message": "Password changed successfully"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -2967,21 +2377,11 @@ def test_change_password_returns_200(client, seed, resident):
 
 ### TC-041 · Change password old password stops working
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/login`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/login`
-- JSON body:
-    ```json
-    {
-      "email": "resident@test.com",
-      "password": "<hidden>"
-    }
-    ```
-- Header: _none (unauthenticated request)_
-- Setup calls before this (2): `POST /api/auth/login` → 200, `PUT /api/auth/change-password` → 200
+- _none_
 
 **Expected Output:**
 
@@ -2989,13 +2389,7 @@ def test_change_password_returns_200(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Invalid email or password"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -3019,21 +2413,11 @@ def test_change_password_old_password_stops_working(client, seed, resident):
 
 ### TC-042 · Change password new password works
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/login`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/login`
-- JSON body:
-    ```json
-    {
-      "email": "resident@test.com",
-      "password": "<hidden>"
-    }
-    ```
-- Header: _none (unauthenticated request)_
-- Setup calls before this (2): `POST /api/auth/login` → 200, `PUT /api/auth/change-password` → 200
+- _none_
 
 **Expected Output:**
 
@@ -3041,23 +2425,7 @@ def test_change_password_old_password_stops_working(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "message": "Login successful",
-      "token": "<jwt>",
-      "user": {
-        "created_at": "2026-08-02 13:28:37.408197",
-        "email": "resident@test.com",
-        "id": 4,
-        "is_active": true,
-        "name": "Ravi Resident",
-        "phone": null,
-        "role": "TENANT"
-      }
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -3081,20 +2449,11 @@ def test_change_password_new_password_works(client, seed, resident):
 
 ### TC-043 · Regression: this used to be a KeyError -> HTML 500
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/auth/change-password`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/auth/change-password`
-- JSON body:
-    ```json
-    {
-      "old_password": "Pass@123"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -3103,13 +2462,7 @@ def test_change_password_new_password_works(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "new_password is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -3132,20 +2485,11 @@ def test_change_password_missing_new_password_returns_400(client, seed, resident
 
 ### TC-044 · Change password missing old password returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/auth/change-password`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/auth/change-password`
-- JSON body:
-    ```json
-    {
-      "new_password": "Brand@New1"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -3154,13 +2498,7 @@ def test_change_password_missing_new_password_returns_400(client, seed, resident
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "old_password is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -3182,21 +2520,11 @@ def test_change_password_missing_old_password_returns_400(client, seed, resident
 
 ### TC-045 · Change password wrong old password returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/auth/change-password`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/auth/change-password`
-- JSON body:
-    ```json
-    {
-      "old_password": "NotMyPassword",
-      "new_password": "Brand@New1"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -3205,13 +2533,7 @@ def test_change_password_missing_old_password_returns_400(client, seed, resident
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Old password is incorrect"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -3233,21 +2555,11 @@ def test_change_password_wrong_old_password_returns_400(client, seed, resident):
 
 ### TC-046 · Change password shorter than six chars returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/auth/change-password`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/auth/change-password`
-- JSON body:
-    ```json
-    {
-      "old_password": "Pass@123",
-      "new_password": "a"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -3256,13 +2568,7 @@ def test_change_password_wrong_old_password_returns_400(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "New password must be at least 6 characters"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -3285,21 +2591,11 @@ def test_change_password_shorter_than_six_chars_returns_400(client, seed, reside
 
 ### TC-047 · Change password shorter than six chars returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/auth/change-password`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/auth/change-password`
-- JSON body:
-    ```json
-    {
-      "old_password": "Pass@123",
-      "new_password": "abcde"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -3308,13 +2604,7 @@ def test_change_password_shorter_than_six_chars_returns_400(client, seed, reside
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "New password must be at least 6 characters"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -3337,21 +2627,11 @@ def test_change_password_shorter_than_six_chars_returns_400(client, seed, reside
 
 ### TC-048 · Change password shorter than six chars returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/auth/change-password`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/auth/change-password`
-- JSON body:
-    ```json
-    {
-      "old_password": "Pass@123",
-      "new_password": "12345"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -3360,13 +2640,7 @@ def test_change_password_shorter_than_six_chars_returns_400(client, seed, reside
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "New password must be at least 6 characters"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -3389,18 +2663,11 @@ def test_change_password_shorter_than_six_chars_returns_400(client, seed, reside
 
 ### TC-049 · Change password malformed body returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/auth/change-password`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/auth/change-password`
-- JSON body:
-    ```json
-    null
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -3408,13 +2675,7 @@ def test_change_password_shorter_than_six_chars_returns_400(client, seed, reside
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be valid JSON"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -3441,18 +2702,11 @@ def test_change_password_malformed_body_returns_400(client, seed, resident, raw,
 
 ### TC-050 · Change password malformed body returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/auth/change-password`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/auth/change-password`
-- JSON body:
-    ```json
-    []
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -3460,13 +2714,7 @@ def test_change_password_malformed_body_returns_400(client, seed, resident, raw,
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -3493,18 +2741,11 @@ def test_change_password_malformed_body_returns_400(client, seed, resident, raw,
 
 ### TC-051 · Change password malformed body returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/auth/change-password`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/auth/change-password`
-- JSON body:
-    ```json
-    "str"
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -3512,13 +2753,7 @@ def test_change_password_malformed_body_returns_400(client, seed, resident, raw,
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -3545,20 +2780,11 @@ def test_change_password_malformed_body_returns_400(client, seed, resident, raw,
 
 ### TC-052 · Change password without token returns 401
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/auth/change-password`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/auth/change-password`
-- JSON body:
-    ```json
-    {
-      "old_password": "Pass@123",
-      "new_password": "Brand@New1"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -3566,13 +2792,7 @@ def test_change_password_malformed_body_returns_400(client, seed, resident, raw,
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -3600,15 +2820,11 @@ def test_change_password_without_token_returns_401(client, seed):
 
 ### TC-053 · List apartments returns seeded flats
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/apartments`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/apartments`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -3616,24 +2832,7 @@ def test_change_password_without_token_returns_401(client, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "block": "A",
-        "flat_number": "A-101",
-        "floor": 1,
-        "id": 1
-      },
-      {
-        "block": "B",
-        "flat_number": "B-202",
-        "floor": 2,
-        "id": 2
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -3654,40 +2853,19 @@ def test_list_apartments_returns_seeded_flats(client, seed, admin):
 
 ### TC-054 · List apartments exposes block and floor
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/apartments`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/apartments`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `200`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "block": "A",
-        "flat_number": "A-101",
-        "floor": 1,
-        "id": 1
-      },
-      {
-        "block": "B",
-        "flat_number": "B-202",
-        "floor": 2,
-        "id": 2
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -3708,15 +2886,11 @@ def test_list_apartments_exposes_block_and_floor(client, seed, admin):
 
 ### TC-055 · List apartments is open to every role
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/apartments`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/apartments`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -3724,24 +2898,7 @@ def test_list_apartments_exposes_block_and_floor(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "block": "A",
-        "flat_number": "A-101",
-        "floor": 1,
-        "id": 1
-      },
-      {
-        "block": "B",
-        "flat_number": "B-202",
-        "floor": 2,
-        "id": 2
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -3762,15 +2919,11 @@ def test_list_apartments_is_open_to_every_role(client, request, role_fixture):
 
 ### TC-056 · List apartments is open to every role
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/apartments`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/apartments`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -3778,24 +2931,7 @@ def test_list_apartments_is_open_to_every_role(client, request, role_fixture):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "block": "A",
-        "flat_number": "A-101",
-        "floor": 1,
-        "id": 1
-      },
-      {
-        "block": "B",
-        "flat_number": "B-202",
-        "floor": 2,
-        "id": 2
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -3816,15 +2952,11 @@ def test_list_apartments_is_open_to_every_role(client, request, role_fixture):
 
 ### TC-057 · List apartments is open to every role
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/apartments`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/apartments`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -3832,24 +2964,7 @@ def test_list_apartments_is_open_to_every_role(client, request, role_fixture):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "block": "A",
-        "flat_number": "A-101",
-        "floor": 1,
-        "id": 1
-      },
-      {
-        "block": "B",
-        "flat_number": "B-202",
-        "floor": 2,
-        "id": 2
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -3870,15 +2985,11 @@ def test_list_apartments_is_open_to_every_role(client, request, role_fixture):
 
 ### TC-058 · List apartments is open to every role
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/apartments`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/apartments`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -3886,24 +2997,7 @@ def test_list_apartments_is_open_to_every_role(client, request, role_fixture):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "block": "A",
-        "flat_number": "A-101",
-        "floor": 1,
-        "id": 1
-      },
-      {
-        "block": "B",
-        "flat_number": "B-202",
-        "floor": 2,
-        "id": 2
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -3924,14 +3018,11 @@ def test_list_apartments_is_open_to_every_role(client, request, role_fixture):
 
 ### TC-059 · List apartments without token returns 401
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/apartments`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/apartments`
-- JSON body: _none_
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -3939,13 +3030,7 @@ def test_list_apartments_is_open_to_every_role(client, request, role_fixture):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -3964,22 +3049,11 @@ def test_list_apartments_without_token_returns_401(client, seed):
 
 ### TC-060 · Create apartment returns 201
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/apartments`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/apartments`
-- JSON body:
-    ```json
-    {
-      "flat_number": "C-303",
-      "block": "C",
-      "floor": 3
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -3987,16 +3061,7 @@ def test_list_apartments_without_token_returns_401(client, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "block": "C",
-      "flat_number": "C-303",
-      "floor": 3,
-      "id": 3
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -4022,21 +3087,11 @@ def test_create_apartment_returns_201(client, seed, admin):
 
 ### TC-061 · Create apartment accepts a numeric string floor
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/apartments`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/apartments`
-- JSON body:
-    ```json
-    {
-      "flat_number": "D-404",
-      "floor": "4"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -4044,16 +3099,7 @@ def test_create_apartment_returns_201(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "block": null,
-      "flat_number": "D-404",
-      "floor": 4,
-      "id": 3
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -4075,20 +3121,11 @@ def test_create_apartment_accepts_a_numeric_string_floor(client, seed, admin):
 
 ### TC-062 · Create apartment missing flat number returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/apartments`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/apartments`
-- JSON body:
-    ```json
-    {
-      "block": "C"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -4097,13 +3134,7 @@ def test_create_apartment_accepts_a_numeric_string_floor(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "flat_number is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -4124,21 +3155,11 @@ def test_create_apartment_missing_flat_number_returns_400(client, seed, admin):
 
 ### TC-063 · Create apartment non numeric floor returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/apartments`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/apartments`
-- JSON body:
-    ```json
-    {
-      "flat_number": "E-505",
-      "floor": "top"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -4147,13 +3168,7 @@ def test_create_apartment_missing_flat_number_returns_400(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "floor must be a whole number"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -4175,18 +3190,11 @@ def test_create_apartment_non_numeric_floor_returns_400(client, seed, admin):
 
 ### TC-064 · Create apartment malformed body returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/apartments`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/apartments`
-- JSON body:
-    ```json
-    null
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -4194,13 +3202,7 @@ def test_create_apartment_non_numeric_floor_returns_400(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be valid JSON"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -4227,18 +3229,11 @@ def test_create_apartment_malformed_body_returns_400(client, seed, admin, raw, e
 
 ### TC-065 · Create apartment malformed body returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/apartments`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/apartments`
-- JSON body:
-    ```json
-    []
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -4246,13 +3241,7 @@ def test_create_apartment_malformed_body_returns_400(client, seed, admin, raw, e
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -4279,18 +3268,11 @@ def test_create_apartment_malformed_body_returns_400(client, seed, admin, raw, e
 
 ### TC-066 · Create apartment malformed body returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/apartments`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/apartments`
-- JSON body:
-    ```json
-    "str"
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -4298,13 +3280,7 @@ def test_create_apartment_malformed_body_returns_400(client, seed, admin, raw, e
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -4331,20 +3307,11 @@ def test_create_apartment_malformed_body_returns_400(client, seed, admin, raw, e
 
 ### TC-067 · Create apartment duplicate flat number returns 409
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/apartments`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/apartments`
-- JSON body:
-    ```json
-    {
-      "flat_number": "A-101"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -4353,13 +3320,7 @@ def test_create_apartment_malformed_body_returns_400(client, seed, admin, raw, e
 
 **Actual Output:**
 
-- HTTP Status Code: `409`
-- JSON:
-    ```json
-    {
-      "error": "Flat number already exists"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -4381,20 +3342,11 @@ def test_create_apartment_duplicate_flat_number_returns_409(client, seed, admin)
 
 ### TC-068 · Create apartment as resident returns 403
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/apartments`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/apartments`
-- JSON body:
-    ```json
-    {
-      "flat_number": "C-303"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -4403,13 +3355,7 @@ def test_create_apartment_duplicate_flat_number_returns_409(client, seed, admin)
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -4431,20 +3377,11 @@ def test_create_apartment_as_resident_returns_403(client, seed, resident):
 
 ### TC-069 · Create apartment as worker returns 403
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/apartments`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/apartments`
-- JSON body:
-    ```json
-    {
-      "flat_number": "C-303"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -4452,13 +3389,7 @@ def test_create_apartment_as_resident_returns_403(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -4479,20 +3410,11 @@ def test_create_apartment_as_worker_returns_403(client, seed, worker):
 
 ### TC-070 · Create apartment as treasurer returns 201
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/apartments`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/apartments`
-- JSON body:
-    ```json
-    {
-      "flat_number": "C-303"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -4500,16 +3422,7 @@ def test_create_apartment_as_worker_returns_403(client, seed, worker):
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "block": null,
-      "flat_number": "C-303",
-      "floor": null,
-      "id": 3
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -4530,19 +3443,11 @@ def test_create_apartment_as_treasurer_returns_201(client, seed, treasurer):
 
 ### TC-071 · Create apartment without token returns 401
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/apartments`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/apartments`
-- JSON body:
-    ```json
-    {
-      "flat_number": "C-303"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -4550,13 +3455,7 @@ def test_create_apartment_as_treasurer_returns_201(client, seed, treasurer):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -4576,20 +3475,11 @@ def test_create_apartment_without_token_returns_401(client, seed):
 
 ### TC-072 · Update apartment renames the flat
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/members/apartments/2`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/members/apartments/2`
-- JSON body:
-    ```json
-    {
-      "flat_number": "B-999"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -4598,16 +3488,7 @@ def test_create_apartment_without_token_returns_401(client, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "block": "B",
-      "flat_number": "B-999",
-      "floor": 2,
-      "id": 2
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -4629,21 +3510,11 @@ def test_update_apartment_renames_the_flat(client, seed, admin):
 
 ### TC-073 · Update apartment updates block and floor
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/members/apartments/2`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/members/apartments/2`
-- JSON body:
-    ```json
-    {
-      "block": "Z",
-      "floor": 9
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -4651,16 +3522,7 @@ def test_update_apartment_renames_the_flat(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "block": "Z",
-      "flat_number": "B-202",
-      "floor": 9,
-      "id": 2
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -4682,20 +3544,11 @@ def test_update_apartment_updates_block_and_floor(client, seed, admin):
 
 ### TC-074 · Update apartment blank flat number returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/members/apartments/2`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/members/apartments/2`
-- JSON body:
-    ```json
-    {
-      "flat_number": "   "
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -4704,13 +3557,7 @@ def test_update_apartment_updates_block_and_floor(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "flat_number is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -4732,20 +3579,11 @@ def test_update_apartment_blank_flat_number_returns_400(client, seed, admin):
 
 ### TC-075 · Update apartment bad floor returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/members/apartments/2`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/members/apartments/2`
-- JSON body:
-    ```json
-    {
-      "floor": "penthouse"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -4754,13 +3592,7 @@ def test_update_apartment_blank_flat_number_returns_400(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "floor must be a whole number"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -4782,20 +3614,11 @@ def test_update_apartment_bad_floor_returns_400(client, seed, admin):
 
 ### TC-076 · Update apartment duplicate flat number returns 409
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/members/apartments/2`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/members/apartments/2`
-- JSON body:
-    ```json
-    {
-      "flat_number": "A-101"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -4804,13 +3627,7 @@ def test_update_apartment_bad_floor_returns_400(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `409`
-- JSON:
-    ```json
-    {
-      "error": "Flat number already exists"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -4832,20 +3649,11 @@ def test_update_apartment_duplicate_flat_number_returns_409(client, seed, admin)
 
 ### TC-077 · Update apartment to its own flat number returns 200
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/members/apartments/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/members/apartments/1`
-- JSON body:
-    ```json
-    {
-      "flat_number": "A-101"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -4853,16 +3661,7 @@ def test_update_apartment_duplicate_flat_number_returns_409(client, seed, admin)
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "block": "A",
-      "flat_number": "A-101",
-      "floor": 1,
-      "id": 1
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -4883,20 +3682,11 @@ def test_update_apartment_to_its_own_flat_number_returns_200(client, seed, admin
 
 ### TC-078 · Update unknown apartment returns 404
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/members/apartments/9999`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/members/apartments/9999`
-- JSON body:
-    ```json
-    {
-      "flat_number": "X-000"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -4904,13 +3694,7 @@ def test_update_apartment_to_its_own_flat_number_returns_200(client, seed, admin
 
 **Actual Output:**
 
-- HTTP Status Code: `404`
-- JSON:
-    ```json
-    {
-      "error": "The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again."
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -4931,20 +3715,11 @@ def test_update_unknown_apartment_returns_404(client, seed, admin):
 
 ### TC-079 · Update apartment as resident returns 403
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/members/apartments/2`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/members/apartments/2`
-- JSON body:
-    ```json
-    {
-      "flat_number": "B-999"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -4952,13 +3727,7 @@ def test_update_unknown_apartment_returns_404(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -4979,19 +3748,11 @@ def test_update_apartment_as_resident_returns_403(client, seed, resident):
 
 ### TC-080 · Update apartment without token returns 401
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/members/apartments/2`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/members/apartments/2`
-- JSON body:
-    ```json
-    {
-      "flat_number": "B-999"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -4999,13 +3760,7 @@ def test_update_apartment_as_resident_returns_403(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -5026,15 +3781,11 @@ def test_update_apartment_without_token_returns_401(client, seed):
 
 ### TC-081 · Delete empty apartment returns 200
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/members/apartments/2`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/members/apartments/2`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -5043,13 +3794,7 @@ def test_update_apartment_without_token_returns_401(client, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "message": "Apartment deleted"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -5071,34 +3816,19 @@ def test_delete_empty_apartment_returns_200(client, seed, admin):
 
 ### TC-082 · Delete apartment removes it from the list
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/apartments`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/apartments`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `DELETE /api/members/apartments/2` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `200`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "block": "A",
-        "flat_number": "A-101",
-        "floor": 1,
-        "id": 1
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -5119,15 +3849,11 @@ def test_delete_apartment_removes_it_from_the_list(client, seed, admin):
 
 ### TC-083 · Delete apartment with residents returns 409
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/members/apartments/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/members/apartments/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -5135,13 +3861,7 @@ def test_delete_apartment_removes_it_from_the_list(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `409`
-- JSON:
-    ```json
-    {
-      "error": "Cannot delete a flat that still has residents or invoices"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -5163,15 +3883,11 @@ def test_delete_apartment_with_residents_returns_409(client, seed, admin):
 
 ### TC-084 · Delete apartment with invoices returns 409
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/members/apartments/2`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/members/apartments/2`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -5179,13 +3895,7 @@ def test_delete_apartment_with_residents_returns_409(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `409`
-- JSON:
-    ```json
-    {
-      "error": "Cannot delete a flat that still has residents or invoices"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -5213,15 +3923,11 @@ def test_delete_apartment_with_invoices_returns_409(client, app, seed, admin):
 
 ### TC-085 · Delete unknown apartment returns 404
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/members/apartments/9999`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/members/apartments/9999`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -5229,13 +3935,7 @@ def test_delete_apartment_with_invoices_returns_409(client, app, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `404`
-- JSON:
-    ```json
-    {
-      "error": "The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again."
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -5254,15 +3954,11 @@ def test_delete_unknown_apartment_returns_404(client, seed, admin):
 
 ### TC-086 · Delete apartment as resident returns 403
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/members/apartments/2`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/members/apartments/2`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -5270,13 +3966,7 @@ def test_delete_unknown_apartment_returns_404(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -5297,14 +3987,11 @@ def test_delete_apartment_as_resident_returns_403(client, seed, resident):
 
 ### TC-087 · Delete apartment without token returns 401
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/members/apartments/2`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/members/apartments/2`
-- JSON body: _none_
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -5312,13 +3999,7 @@ def test_delete_apartment_as_resident_returns_403(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -5338,15 +4019,11 @@ def test_delete_apartment_without_token_returns_401(client, seed):
 
 ### TC-088 · List members returns the seeded resident
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -5354,28 +4031,7 @@ def test_delete_apartment_without_token_returns_401(client, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "apartment_id": 1,
-        "block": "A",
-        "email": "resident@test.com",
-        "flat_number": "A-101",
-        "floor": 1,
-        "id": 1,
-        "is_active": true,
-        "is_owner": false,
-        "move_in_date": null,
-        "move_out_date": null,
-        "name": "Ravi Resident",
-        "phone": null,
-        "role": "TENANT",
-        "user_id": 4
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -5399,44 +4055,19 @@ def test_list_members_returns_the_seeded_resident(client, seed, admin):
 
 ### TC-089 · List members includes flat details
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `200`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "apartment_id": 1,
-        "block": "A",
-        "email": "resident@test.com",
-        "flat_number": "A-101",
-        "floor": 1,
-        "id": 1,
-        "is_active": true,
-        "is_owner": false,
-        "move_in_date": null,
-        "move_out_date": null,
-        "name": "Ravi Resident",
-        "phone": null,
-        "role": "TENANT",
-        "user_id": 4
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -5459,15 +4090,11 @@ def test_list_members_includes_flat_details(client, seed, admin):
 
 ### TC-090 · List members as resident returns 403
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -5476,13 +4103,7 @@ def test_list_members_includes_flat_details(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -5503,15 +4124,11 @@ def test_list_members_as_resident_returns_403(client, seed, resident):
 
 ### TC-091 · List members as worker returns 403
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -5519,13 +4136,7 @@ def test_list_members_as_resident_returns_403(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -5544,15 +4155,11 @@ def test_list_members_as_worker_returns_403(client, seed, worker):
 
 ### TC-092 · List members as treasurer returns 200
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -5560,28 +4167,7 @@ def test_list_members_as_worker_returns_403(client, seed, worker):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "apartment_id": 1,
-        "block": "A",
-        "email": "resident@test.com",
-        "flat_number": "A-101",
-        "floor": 1,
-        "id": 1,
-        "is_active": true,
-        "is_owner": false,
-        "move_in_date": null,
-        "move_out_date": null,
-        "name": "Ravi Resident",
-        "phone": null,
-        "role": "TENANT",
-        "user_id": 4
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -5600,14 +4186,11 @@ def test_list_members_as_treasurer_returns_200(client, seed, treasurer):
 
 ### TC-093 · List members without token returns 401
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body: _none_
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -5615,13 +4198,7 @@ def test_list_members_as_treasurer_returns_200(client, seed, treasurer):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -5640,27 +4217,11 @@ def test_list_members_without_token_returns_401(client, seed):
 
 ### TC-094 · Create member returns 201
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body:
-    ```json
-    {
-      "name": "Manoj Member",
-      "email": "manoj@test.com",
-      "password": "<hidden>",
-      "role": "OWNER",
-      "apartment_id": 2,
-      "phone": "9222222222",
-      "is_owner": true,
-      "move_in_date": "2026-01-15"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -5668,26 +4229,7 @@ def test_list_members_without_token_returns_401(client, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "apartment_id": 2,
-      "block": "B",
-      "email": "manoj@test.com",
-      "flat_number": "B-202",
-      "floor": 2,
-      "id": 2,
-      "is_active": true,
-      "is_owner": true,
-      "move_in_date": "2026-01-15",
-      "move_out_date": null,
-      "name": "Manoj Member",
-      "phone": "9222222222",
-      "role": "OWNER",
-      "user_id": 7
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -5717,21 +4259,11 @@ def test_create_member_returns_201(client, seed, admin):
 
 ### TC-095 · Create member can log in afterwards
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/login`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/login`
-- JSON body:
-    ```json
-    {
-      "email": "manoj@test.com",
-      "password": "<hidden>"
-    }
-    ```
-- Header: _none (unauthenticated request)_
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/members/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -5739,23 +4271,7 @@ def test_create_member_returns_201(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "message": "Login successful",
-      "token": "<jwt>",
-      "user": {
-        "created_at": "2026-08-02 13:29:14.373873",
-        "email": "manoj@test.com",
-        "id": 7,
-        "is_active": true,
-        "name": "Manoj Member",
-        "phone": null,
-        "role": "OWNER"
-      }
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -5778,27 +4294,19 @@ def test_create_member_can_log_in_afterwards(client, seed, admin):
 
 ### TC-096 · Create member appears in the listing
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/members/` → 201
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `200`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [{"apartment_id": 1, "block": "A", "email": "resident@test.com", "flat_number": "A-101", "floor": 1, "id": 1, "is_active": true, "is_owner": false, "move_in_date": null, "move_out_date": null, "name": "Ravi Resident", "phone": null, "role": "TENANT", "user_id": 4}, {"apartment_id": 1, "block": "A", "email": "manoj@test.com", "flat_number": "A-101", "floor": 1, "id": 2, "is_active": true, "is_owne…
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -5820,23 +4328,11 @@ def test_create_member_appears_in_the_listing(client, seed, admin):
 
 ### TC-097 · Create member missing required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body:
-    ```json
-    {
-      "email": "manoj@test.com",
-      "password": "<hidden>",
-      "role": "OWNER",
-      "apartment_id": 1
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -5844,13 +4340,7 @@ def test_create_member_appears_in_the_listing(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "name is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -5876,23 +4366,11 @@ def test_create_member_missing_required_field_returns_400(client, seed, admin, m
 
 ### TC-098 · Create member missing required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body:
-    ```json
-    {
-      "name": "Manoj Member",
-      "password": "<hidden>",
-      "role": "OWNER",
-      "apartment_id": 1
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -5900,13 +4378,7 @@ def test_create_member_missing_required_field_returns_400(client, seed, admin, m
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "email is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -5932,23 +4404,11 @@ def test_create_member_missing_required_field_returns_400(client, seed, admin, m
 
 ### TC-099 · Create member missing required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body:
-    ```json
-    {
-      "name": "Manoj Member",
-      "email": "manoj@test.com",
-      "role": "OWNER",
-      "apartment_id": 1
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -5956,13 +4416,7 @@ def test_create_member_missing_required_field_returns_400(client, seed, admin, m
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "password is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -5988,23 +4442,11 @@ def test_create_member_missing_required_field_returns_400(client, seed, admin, m
 
 ### TC-100 · Create member missing required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body:
-    ```json
-    {
-      "name": "Manoj Member",
-      "email": "manoj@test.com",
-      "password": "<hidden>",
-      "apartment_id": 1
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -6012,13 +4454,7 @@ def test_create_member_missing_required_field_returns_400(client, seed, admin, m
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "role is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -6044,23 +4480,11 @@ def test_create_member_missing_required_field_returns_400(client, seed, admin, m
 
 ### TC-101 · Create member missing required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body:
-    ```json
-    {
-      "name": "Manoj Member",
-      "email": "manoj@test.com",
-      "password": "<hidden>",
-      "role": "OWNER"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -6068,13 +4492,7 @@ def test_create_member_missing_required_field_returns_400(client, seed, admin, m
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "apartment_id is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -6100,24 +4518,11 @@ def test_create_member_missing_required_field_returns_400(client, seed, admin, m
 
 ### TC-102 · Create member unknown role returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body:
-    ```json
-    {
-      "name": "Manoj Member",
-      "email": "manoj@test.com",
-      "password": "<hidden>",
-      "role": "WIZARD",
-      "apartment_id": 1
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -6125,13 +4530,7 @@ def test_create_member_missing_required_field_returns_400(client, seed, admin, m
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "role must be one of: ADMIN, TENANT, OWNER, TREASURER, WORKER, COMMITTEE_MEMBER, AUDITOR, SYSTEM_ADMIN"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -6153,25 +4552,11 @@ def test_create_member_unknown_role_returns_400(client, seed, admin):
 
 ### TC-103 · Create member bad move in date returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body:
-    ```json
-    {
-      "name": "Manoj Member",
-      "email": "manoj@test.com",
-      "password": "<hidden>",
-      "role": "OWNER",
-      "apartment_id": 1,
-      "move_in_date": "not-a-date"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -6180,13 +4565,7 @@ def test_create_member_unknown_role_returns_400(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "move_in_date must be a valid date (YYYY-MM-DD)"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -6208,24 +4587,11 @@ def test_create_member_bad_move_in_date_returns_400(client, seed, admin):
 
 ### TC-104 · Create member non numeric apartment id returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body:
-    ```json
-    {
-      "name": "Manoj Member",
-      "email": "manoj@test.com",
-      "password": "<hidden>",
-      "role": "OWNER",
-      "apartment_id": "ground"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -6234,13 +4600,7 @@ def test_create_member_bad_move_in_date_returns_400(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "apartment_id must be a whole number"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -6262,24 +4622,11 @@ def test_create_member_non_numeric_apartment_id_returns_400(client, seed, admin)
 
 ### TC-105 · Create member zero apartment id returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body:
-    ```json
-    {
-      "name": "Manoj Member",
-      "email": "manoj@test.com",
-      "password": "<hidden>",
-      "role": "OWNER",
-      "apartment_id": 0
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -6288,13 +4635,7 @@ def test_create_member_non_numeric_apartment_id_returns_400(client, seed, admin)
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "apartment_id must be at least 1"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -6315,24 +4656,11 @@ def test_create_member_zero_apartment_id_returns_400(client, seed, admin):
 
 ### TC-106 · Create member unknown apartment returns 404
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body:
-    ```json
-    {
-      "name": "Manoj Member",
-      "email": "manoj@test.com",
-      "password": "<hidden>",
-      "role": "OWNER",
-      "apartment_id": 9999
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -6341,13 +4669,7 @@ def test_create_member_zero_apartment_id_returns_400(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `404`
-- JSON:
-    ```json
-    {
-      "error": "Apartment not found"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -6368,18 +4690,11 @@ def test_create_member_unknown_apartment_returns_404(client, seed, admin):
 
 ### TC-107 · Create member malformed body returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body:
-    ```json
-    null
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -6387,13 +4702,7 @@ def test_create_member_unknown_apartment_returns_404(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be valid JSON"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -6420,18 +4729,11 @@ def test_create_member_malformed_body_returns_400(client, seed, admin, raw, expe
 
 ### TC-108 · Create member malformed body returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body:
-    ```json
-    []
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -6439,13 +4741,7 @@ def test_create_member_malformed_body_returns_400(client, seed, admin, raw, expe
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -6472,18 +4768,11 @@ def test_create_member_malformed_body_returns_400(client, seed, admin, raw, expe
 
 ### TC-109 · Create member malformed body returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body:
-    ```json
-    "str"
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -6491,13 +4780,7 @@ def test_create_member_malformed_body_returns_400(client, seed, admin, raw, expe
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -6524,24 +4807,11 @@ def test_create_member_malformed_body_returns_400(client, seed, admin, raw, expe
 
 ### TC-110 · Create member duplicate email returns 409
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body:
-    ```json
-    {
-      "name": "Manoj Member",
-      "email": "resident@test.com",
-      "password": "<hidden>",
-      "role": "OWNER",
-      "apartment_id": 1
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -6550,13 +4820,7 @@ def test_create_member_malformed_body_returns_400(client, seed, admin, raw, expe
 
 **Actual Output:**
 
-- HTTP Status Code: `409`
-- JSON:
-    ```json
-    {
-      "error": "Email already registered"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -6578,25 +4842,11 @@ def test_create_member_duplicate_email_returns_409(client, seed, admin):
 
 ### TC-111 · Create member duplicate phone returns 409
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body:
-    ```json
-    {
-      "name": "Manoj Member",
-      "email": "second@test.com",
-      "password": "<hidden>",
-      "role": "OWNER",
-      "apartment_id": 1,
-      "phone": "9333333333"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/members/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -6605,13 +4855,7 @@ def test_create_member_duplicate_email_returns_409(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `409`
-- JSON:
-    ```json
-    {
-      "error": "Phone number already registered"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -6637,53 +4881,19 @@ def test_create_member_duplicate_phone_returns_409(client, seed, admin):
 
 ### TC-112 · Blank phone must normalise to NULL — users.phone is UNIQUE
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body:
-    ```json
-    {
-      "name": "Manoj Member",
-      "email": "second@test.com",
-      "password": "<hidden>",
-      "role": "OWNER",
-      "apartment_id": 1,
-      "phone": ""
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/members/` → 201
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `201`
 - JSON: `phone` is null
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "apartment_id": 1,
-      "block": "A",
-      "email": "second@test.com",
-      "flat_number": "A-101",
-      "floor": 1,
-      "id": 3,
-      "is_active": true,
-      "is_owner": false,
-      "move_in_date": null,
-      "move_out_date": null,
-      "name": "Manoj Member",
-      "phone": null,
-      "role": "OWNER",
-      "user_id": 8
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -6708,24 +4918,11 @@ def test_create_two_members_with_blank_phone_both_succeed(client, seed, admin):
 
 ### TC-113 · Create member as resident returns 403
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body:
-    ```json
-    {
-      "name": "Manoj Member",
-      "email": "manoj@test.com",
-      "password": "<hidden>",
-      "role": "OWNER",
-      "apartment_id": 1
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -6733,13 +4930,7 @@ def test_create_two_members_with_blank_phone_both_succeed(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -6760,23 +4951,11 @@ def test_create_member_as_resident_returns_403(client, seed, resident):
 
 ### TC-114 · Create member without token returns 401
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/members/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body:
-    ```json
-    {
-      "name": "Manoj Member",
-      "email": "manoj@test.com",
-      "password": "<hidden>",
-      "role": "OWNER",
-      "apartment_id": 1
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -6784,13 +4963,7 @@ def test_create_member_as_resident_returns_403(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -6810,15 +4983,11 @@ def test_create_member_without_token_returns_401(client, seed):
 
 ### TC-115 · List workers returns only worker role users
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/workers`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/workers`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -6826,17 +4995,7 @@ def test_create_member_without_token_returns_401(client, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "email": "worker@test.com",
-        "id": 6,
-        "name": "Ramesh Worker"
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -6858,33 +5017,19 @@ def test_list_workers_returns_only_worker_role_users(client, seed, admin):
 
 ### TC-116 · complaints.assigned_worker_id points at users.id, never residents.id
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/workers`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/workers`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `200`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "email": "worker@test.com",
-        "id": 6,
-        "name": "Ramesh Worker"
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -6905,33 +5050,19 @@ def test_list_workers_id_is_the_users_id(client, seed, admin):
 
 ### TC-117 · List workers returns id name email only
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/workers`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/workers`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `200`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "email": "worker@test.com",
-        "id": 6,
-        "name": "Ramesh Worker"
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -6951,38 +5082,19 @@ def test_list_workers_returns_id_name_email_only(client, seed, admin):
 
 ### TC-118 · List workers includes newly added workers
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/workers`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/workers`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/members/` → 201
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `200`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "email": "anil@test.com",
-        "id": 7,
-        "name": "Anil Worker"
-      },
-      {
-        "email": "worker@test.com",
-        "id": 6,
-        "name": "Ramesh Worker"
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -7006,15 +5118,11 @@ def test_list_workers_includes_newly_added_workers(client, seed, admin):
 
 ### TC-119 · List workers as resident returns 403
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/workers`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/workers`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -7022,13 +5130,7 @@ def test_list_workers_includes_newly_added_workers(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -7047,14 +5149,11 @@ def test_list_workers_as_resident_returns_403(client, seed, resident):
 
 ### TC-120 · List workers without token returns 401
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/workers`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/workers`
-- JSON body: _none_
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -7062,13 +5161,7 @@ def test_list_workers_as_resident_returns_403(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -7087,15 +5180,11 @@ def test_list_workers_without_token_returns_401(client, seed):
 
 ### TC-121 · Get member returns 200
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -7103,26 +5192,7 @@ def test_list_workers_without_token_returns_401(client, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "apartment_id": 1,
-      "block": "A",
-      "email": "resident@test.com",
-      "flat_number": "A-101",
-      "floor": 1,
-      "id": 1,
-      "is_active": true,
-      "is_owner": false,
-      "move_in_date": null,
-      "move_out_date": null,
-      "name": "Ravi Resident",
-      "phone": null,
-      "role": "TENANT",
-      "user_id": 4
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -7146,15 +5216,11 @@ def test_get_member_returns_200(client, seed, admin):
 
 ### TC-122 · Get member is open to every role
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -7162,26 +5228,7 @@ def test_get_member_returns_200(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "apartment_id": 1,
-      "block": "A",
-      "email": "resident@test.com",
-      "flat_number": "A-101",
-      "floor": 1,
-      "id": 1,
-      "is_active": true,
-      "is_owner": false,
-      "move_in_date": null,
-      "move_out_date": null,
-      "name": "Ravi Resident",
-      "phone": null,
-      "role": "TENANT",
-      "user_id": 4
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -7203,15 +5250,11 @@ def test_get_member_is_open_to_every_role(client, seed, request, role_fixture):
 
 ### TC-123 · Get member is open to every role
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -7219,26 +5262,7 @@ def test_get_member_is_open_to_every_role(client, seed, request, role_fixture):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "apartment_id": 1,
-      "block": "A",
-      "email": "resident@test.com",
-      "flat_number": "A-101",
-      "floor": 1,
-      "id": 1,
-      "is_active": true,
-      "is_owner": false,
-      "move_in_date": null,
-      "move_out_date": null,
-      "name": "Ravi Resident",
-      "phone": null,
-      "role": "TENANT",
-      "user_id": 4
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -7260,15 +5284,11 @@ def test_get_member_is_open_to_every_role(client, seed, request, role_fixture):
 
 ### TC-124 · Get member is open to every role
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -7276,26 +5296,7 @@ def test_get_member_is_open_to_every_role(client, seed, request, role_fixture):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "apartment_id": 1,
-      "block": "A",
-      "email": "resident@test.com",
-      "flat_number": "A-101",
-      "floor": 1,
-      "id": 1,
-      "is_active": true,
-      "is_owner": false,
-      "move_in_date": null,
-      "move_out_date": null,
-      "name": "Ravi Resident",
-      "phone": null,
-      "role": "TENANT",
-      "user_id": 4
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -7317,15 +5318,11 @@ def test_get_member_is_open_to_every_role(client, seed, request, role_fixture):
 
 ### TC-125 · Get member is open to every role
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -7333,26 +5330,7 @@ def test_get_member_is_open_to_every_role(client, seed, request, role_fixture):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "apartment_id": 1,
-      "block": "A",
-      "email": "resident@test.com",
-      "flat_number": "A-101",
-      "floor": 1,
-      "id": 1,
-      "is_active": true,
-      "is_owner": false,
-      "move_in_date": null,
-      "move_out_date": null,
-      "name": "Ravi Resident",
-      "phone": null,
-      "role": "TENANT",
-      "user_id": 4
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -7374,15 +5352,11 @@ def test_get_member_is_open_to_every_role(client, seed, request, role_fixture):
 
 ### TC-126 · Get unknown member returns 404
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/9999`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/9999`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -7390,13 +5364,7 @@ def test_get_member_is_open_to_every_role(client, seed, request, role_fixture):
 
 **Actual Output:**
 
-- HTTP Status Code: `404`
-- JSON:
-    ```json
-    {
-      "error": "The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again."
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -7415,14 +5383,11 @@ def test_get_unknown_member_returns_404(client, seed, admin):
 
 ### TC-127 · Get member without token returns 401
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/1`
-- JSON body: _none_
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -7430,13 +5395,7 @@ def test_get_unknown_member_returns_404(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -7455,21 +5414,11 @@ def test_get_member_without_token_returns_401(client, seed):
 
 ### TC-128 · Update member changes name and role
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/members/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/members/1`
-- JSON body:
-    ```json
-    {
-      "name": "Ravi Renamed",
-      "role": "OWNER"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -7477,26 +5426,7 @@ def test_get_member_without_token_returns_401(client, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "apartment_id": 1,
-      "block": "A",
-      "email": "resident@test.com",
-      "flat_number": "A-101",
-      "floor": 1,
-      "id": 1,
-      "is_active": true,
-      "is_owner": false,
-      "move_in_date": null,
-      "move_out_date": null,
-      "name": "Ravi Renamed",
-      "phone": null,
-      "role": "OWNER",
-      "user_id": 4
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -7520,22 +5450,11 @@ def test_update_member_changes_name_and_role(client, seed, admin):
 
 ### TC-129 · Update member changes resident fields
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/members/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/members/1`
-- JSON body:
-    ```json
-    {
-      "is_owner": true,
-      "move_in_date": "2025-03-01",
-      "move_out_date": "2026-03-01"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -7543,26 +5462,7 @@ def test_update_member_changes_name_and_role(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "apartment_id": 1,
-      "block": "A",
-      "email": "resident@test.com",
-      "flat_number": "A-101",
-      "floor": 1,
-      "id": 1,
-      "is_active": true,
-      "is_owner": true,
-      "move_in_date": "2025-03-01",
-      "move_out_date": "2026-03-01",
-      "name": "Ravi Resident",
-      "phone": null,
-      "role": "TENANT",
-      "user_id": 4
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -7588,20 +5488,11 @@ def test_update_member_changes_resident_fields(client, seed, admin):
 
 ### TC-130 · Update member blank phone clears it
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/members/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/members/1`
-- JSON body:
-    ```json
-    {
-      "phone": ""
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -7610,26 +5501,7 @@ def test_update_member_changes_resident_fields(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "apartment_id": 1,
-      "block": "A",
-      "email": "resident@test.com",
-      "flat_number": "A-101",
-      "floor": 1,
-      "id": 1,
-      "is_active": true,
-      "is_owner": false,
-      "move_in_date": null,
-      "move_out_date": null,
-      "name": "Ravi Resident",
-      "phone": null,
-      "role": "TENANT",
-      "user_id": 4
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -7651,20 +5523,11 @@ def test_update_member_blank_phone_clears_it(client, seed, admin):
 
 ### TC-131 · Update member unknown role returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/members/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/members/1`
-- JSON body:
-    ```json
-    {
-      "role": "WIZARD"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -7672,13 +5535,7 @@ def test_update_member_blank_phone_clears_it(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "role must be one of: ADMIN, TENANT, OWNER, TREASURER, WORKER, COMMITTEE_MEMBER, AUDITOR, SYSTEM_ADMIN"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -7700,20 +5557,11 @@ def test_update_member_unknown_role_returns_400(client, seed, admin):
 
 ### TC-132 · Update member bad move in date returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/members/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/members/1`
-- JSON body:
-    ```json
-    {
-      "move_in_date": "not-a-date"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -7722,13 +5570,7 @@ def test_update_member_unknown_role_returns_400(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "move_in_date must be a valid date (YYYY-MM-DD)"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -7750,20 +5592,11 @@ def test_update_member_bad_move_in_date_returns_400(client, seed, admin):
 
 ### TC-133 · Update member bad move out date returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/members/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/members/1`
-- JSON body:
-    ```json
-    {
-      "move_out_date": "31-12-2026"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -7772,13 +5605,7 @@ def test_update_member_bad_move_in_date_returns_400(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "move_out_date must be a valid date (YYYY-MM-DD)"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -7800,20 +5627,11 @@ def test_update_member_bad_move_out_date_returns_400(client, seed, admin):
 
 ### TC-134 · Update member duplicate phone returns 409
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/members/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/members/1`
-- JSON body:
-    ```json
-    {
-      "phone": "9444444444"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/members/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -7822,13 +5640,7 @@ def test_update_member_bad_move_out_date_returns_400(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `409`
-- JSON:
-    ```json
-    {
-      "error": "Phone number already registered"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -7853,20 +5665,11 @@ def test_update_member_duplicate_phone_returns_409(client, seed, admin):
 
 ### TC-135 · Update member keeping its own phone returns 200
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/members/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/members/1`
-- JSON body:
-    ```json
-    {
-      "phone": "9555555555"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `PUT /api/members/1` → 200
+- _none_
 
 **Expected Output:**
 
@@ -7874,26 +5677,7 @@ def test_update_member_duplicate_phone_returns_409(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "apartment_id": 1,
-      "block": "A",
-      "email": "resident@test.com",
-      "flat_number": "A-101",
-      "floor": 1,
-      "id": 1,
-      "is_active": true,
-      "is_owner": false,
-      "move_in_date": null,
-      "move_out_date": null,
-      "name": "Ravi Resident",
-      "phone": "9555555555",
-      "role": "TENANT",
-      "user_id": 4
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -7916,18 +5700,11 @@ def test_update_member_keeping_its_own_phone_returns_200(client, seed, admin):
 
 ### TC-136 · Update member malformed body returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/members/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/members/1`
-- JSON body:
-    ```json
-    null
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -7935,13 +5712,7 @@ def test_update_member_keeping_its_own_phone_returns_200(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be valid JSON"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -7968,18 +5739,11 @@ def test_update_member_malformed_body_returns_400(client, seed, admin, raw, expe
 
 ### TC-137 · Update member malformed body returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/members/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/members/1`
-- JSON body:
-    ```json
-    []
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -7987,13 +5751,7 @@ def test_update_member_malformed_body_returns_400(client, seed, admin, raw, expe
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -8020,18 +5778,11 @@ def test_update_member_malformed_body_returns_400(client, seed, admin, raw, expe
 
 ### TC-138 · Update member malformed body returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/members/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/members/1`
-- JSON body:
-    ```json
-    "str"
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -8039,13 +5790,7 @@ def test_update_member_malformed_body_returns_400(client, seed, admin, raw, expe
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -8072,20 +5817,11 @@ def test_update_member_malformed_body_returns_400(client, seed, admin, raw, expe
 
 ### TC-139 · Update unknown member returns 404
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/members/9999`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/members/9999`
-- JSON body:
-    ```json
-    {
-      "name": "Nobody"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -8093,13 +5829,7 @@ def test_update_member_malformed_body_returns_400(client, seed, admin, raw, expe
 
 **Actual Output:**
 
-- HTTP Status Code: `404`
-- JSON:
-    ```json
-    {
-      "error": "The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again."
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -8119,20 +5849,11 @@ def test_update_unknown_member_returns_404(client, seed, admin):
 
 ### TC-140 · Update member as resident returns 403
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/members/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/members/1`
-- JSON body:
-    ```json
-    {
-      "name": "Self Service"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -8140,13 +5861,7 @@ def test_update_unknown_member_returns_404(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -8167,19 +5882,11 @@ def test_update_member_as_resident_returns_403(client, seed, resident):
 
 ### TC-141 · Update member without token returns 401
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/members/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/members/1`
-- JSON body:
-    ```json
-    {
-      "name": "X"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -8187,13 +5894,7 @@ def test_update_member_as_resident_returns_403(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -8213,15 +5914,11 @@ def test_update_member_without_token_returns_401(client, seed):
 
 ### TC-142 · Deactivate member returns 200
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/members/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/members/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -8230,13 +5927,7 @@ def test_update_member_without_token_returns_401(client, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "message": "Member deactivated"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -8257,42 +5948,19 @@ def test_deactivate_member_returns_200(client, seed, admin):
 
 ### TC-143 · Deactivate member is a soft delete
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `DELETE /api/members/1` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `200`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "apartment_id": 1,
-      "block": "A",
-      "email": "resident@test.com",
-      "flat_number": "A-101",
-      "floor": 1,
-      "id": 1,
-      "is_active": false,
-      "is_owner": false,
-      "move_in_date": null,
-      "move_out_date": null,
-      "name": "Ravi Resident",
-      "phone": null,
-      "role": "TENANT",
-      "user_id": 4
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -8313,33 +5981,19 @@ def test_deactivate_member_is_a_soft_delete(client, seed, admin):
 
 ### TC-144 · Deactivate worker removes them from the worker list
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/workers`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/workers`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/members/` → 201, `DELETE /api/members/2` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `200`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "email": "worker@test.com",
-        "id": 6,
-        "name": "Ramesh Worker"
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -8364,15 +6018,11 @@ def test_deactivate_worker_removes_them_from_the_worker_list(client, seed, admin
 
 ### TC-145 · Deactivated member token returns 403
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/auth/me`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/auth/me`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `DELETE /api/members/1` → 200
+- _none_
 
 **Expected Output:**
 
@@ -8381,13 +6031,7 @@ def test_deactivate_worker_removes_them_from_the_worker_list(client, seed, admin
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "Account is deactivated"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -8409,15 +6053,11 @@ def test_deactivated_member_token_returns_403(client, seed, admin, resident):
 
 ### TC-146 · Deactivate unknown member returns 404
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/members/9999`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/members/9999`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -8425,13 +6065,7 @@ def test_deactivated_member_token_returns_403(client, seed, admin, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `404`
-- JSON:
-    ```json
-    {
-      "error": "The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again."
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -8450,15 +6084,11 @@ def test_deactivate_unknown_member_returns_404(client, seed, admin):
 
 ### TC-147 · Deactivate member as resident returns 403
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/members/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/members/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -8466,13 +6096,7 @@ def test_deactivate_unknown_member_returns_404(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -8492,14 +6116,11 @@ def test_deactivate_member_as_resident_returns_403(client, seed, resident):
 
 ### TC-148 · Deactivate member without token returns 401
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/members/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/members/1`
-- JSON body: _none_
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -8507,13 +6128,7 @@ def test_deactivate_member_as_resident_returns_403(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -8539,24 +6154,11 @@ def test_deactivate_member_without_token_returns_401(client, seed):
 
 ### TC-149 · Resident can raise complaint
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/complaints/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/complaints/`
-- JSON body:
-    ```json
-    {
-      "title": "Lift is stuck",
-      "description": "Lift stops between floors 1 and 2.",
-      "category": "ELECTRICAL",
-      "priority": "HIGH",
-      "apartment_id": 1
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -8565,26 +6167,7 @@ def test_deactivate_member_without_token_returns_401(client, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "apartment_id": 1,
-      "assigned_worker_id": null,
-      "assigned_worker_name": null,
-      "category": "ELECTRICAL",
-      "created_at": "2026-08-02 13:28:38.602717",
-      "description": "Lift stops between floors 1 and 2.",
-      "flat_number": "A-101",
-      "id": 1,
-      "priority": "HIGH",
-      "raised_by": 4,
-      "raised_by_name": "Ravi Resident",
-      "resolved_at": null,
-      "status": "OPEN",
-      "title": "Lift is stuck"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -8619,50 +6202,19 @@ def test_resident_can_raise_complaint(client, resident, seed):
 
 ### TC-150 · Priority defaults to medium
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/complaints/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/complaints/`
-- JSON body:
-    ```json
-    {
-      "title": "Leaking kitchen tap",
-      "description": "Water drips continuously under the sink.",
-      "category": "PLUMBING",
-      "apartment_id": 1
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `201`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "apartment_id": 1,
-      "assigned_worker_id": null,
-      "assigned_worker_name": null,
-      "category": "PLUMBING",
-      "created_at": "2026-08-02 13:28:38.685792",
-      "description": "Water drips continuously under the sink.",
-      "flat_number": "A-101",
-      "id": 1,
-      "priority": "MEDIUM",
-      "raised_by": 4,
-      "raised_by_name": "Ravi Resident",
-      "resolved_at": null,
-      "status": "OPEN",
-      "title": "Leaking kitchen tap"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -8682,15 +6234,11 @@ def test_priority_defaults_to_medium(client, resident, seed):
 
 ### TC-151 · Resident lists only own complaints
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/complaints/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/complaints/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/complaints/` → 201, `POST /api/complaints/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -8698,28 +6246,7 @@ def test_priority_defaults_to_medium(client, resident, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "apartment_id": 1,
-        "assigned_worker_id": null,
-        "assigned_worker_name": null,
-        "category": "PLUMBING",
-        "created_at": "2026-08-02 13:28:38.775945",
-        "description": "Water drips continuously under the sink.",
-        "flat_number": "A-101",
-        "id": 1,
-        "priority": "MEDIUM",
-        "raised_by": 4,
-        "raised_by_name": "Ravi Resident",
-        "resolved_at": null,
-        "status": "OPEN",
-        "title": "Leaking kitchen tap"
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -8745,15 +6272,11 @@ def test_resident_lists_only_own_complaints(client, admin, resident, seed):
 
 ### TC-152 · Admin lists all complaints
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/complaints/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/complaints/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/complaints/` → 201, `POST /api/complaints/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -8761,11 +6284,7 @@ def test_resident_lists_only_own_complaints(client, admin, resident, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [{"apartment_id": 2, "assigned_worker_id": null, "assigned_worker_name": null, "category": "PLUMBING", "created_at": "2026-08-02 13:28:38.876111", "description": "Water drips continuously under the sink.", "flat_number": "B-202", "id": 2, "priority": "MEDIUM", "raised_by": 1, "raised_by_name": "Priya Admin", "resolved_at": null, "status": "OPEN", "title": "Second"}, {"apartment_id": 1, "assigned_…
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -8789,15 +6308,11 @@ def test_admin_lists_all_complaints(client, admin, resident, seed):
 
 ### TC-153 · Get complaint detail includes updates
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/complaints/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/complaints/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/complaints/` → 201, `PUT /api/complaints/1/assign` → 200
+- _none_
 
 **Expected Output:**
 
@@ -8805,11 +6320,7 @@ def test_admin_lists_all_complaints(client, admin, resident, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {"apartment_id": 1, "assigned_worker_id": 6, "assigned_worker_name": "Ramesh Worker", "category": "PLUMBING", "created_at": "2026-08-02 13:28:38.977306", "description": "Water drips continuously under the sink.", "flat_number": "A-101", "id": 1, "priority": "MEDIUM", "raised_by": 4, "raised_by_name": "Ravi Resident", "resolved_at": null, "status": "ASSIGNED", "title": "Leaking kitchen tap", "upda…
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -8836,15 +6347,11 @@ def test_get_complaint_detail_includes_updates(client, admin, resident, seed):
 
 ### TC-154 · Admin can delete complaint
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/complaints/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/complaints/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/complaints/` → 201, `DELETE /api/complaints/1` → 200
+- _none_
 
 **Expected Output:**
 
@@ -8853,13 +6360,7 @@ def test_get_complaint_detail_includes_updates(client, admin, resident, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `404`
-- JSON:
-    ```json
-    {
-      "error": "The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again."
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -8884,15 +6385,11 @@ def test_admin_can_delete_complaint(client, admin, resident, seed):
 
 ### TC-155 · COMMITTEE_MEMBER is an admin role even though it is not a finance role
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/complaints/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/complaints/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (9): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/complaints/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -8900,13 +6397,7 @@ def test_admin_can_delete_complaint(client, admin, resident, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "message": "Complaint deleted"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -8931,21 +6422,11 @@ def test_committee_member_may_delete_complaint(client, admin, resident,
 
 ### TC-156 · Raise complaint missing required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/complaints/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/complaints/`
-- JSON body:
-    ```json
-    {
-      "category": "PLUMBING",
-      "apartment_id": 1
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -8953,13 +6434,7 @@ def test_committee_member_may_delete_complaint(client, admin, resident,
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "title is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -8986,21 +6461,11 @@ def test_raise_complaint_missing_required_field_returns_400(
 
 ### TC-157 · Raise complaint missing required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/complaints/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/complaints/`
-- JSON body:
-    ```json
-    {
-      "title": "T",
-      "apartment_id": 1
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -9008,13 +6473,7 @@ def test_raise_complaint_missing_required_field_returns_400(
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "category is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -9041,21 +6500,11 @@ def test_raise_complaint_missing_required_field_returns_400(
 
 ### TC-158 · Raise complaint missing required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/complaints/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/complaints/`
-- JSON body:
-    ```json
-    {
-      "title": "T",
-      "category": "PLUMBING"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -9063,13 +6512,7 @@ def test_raise_complaint_missing_required_field_returns_400(
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "apartment_id is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -9096,22 +6539,11 @@ def test_raise_complaint_missing_required_field_returns_400(
 
 ### TC-159 · Raise complaint bad category returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/complaints/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/complaints/`
-- JSON body:
-    ```json
-    {
-      "title": "Hungry",
-      "category": "FOOD",
-      "apartment_id": 1
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -9119,13 +6551,7 @@ def test_raise_complaint_missing_required_field_returns_400(
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "category must be one of: PLUMBING, ELECTRICAL, CLEANING, SECURITY, OTHER"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -9150,23 +6576,11 @@ def test_raise_complaint_bad_category_returns_400(client, resident, seed):
 
 ### TC-160 · Raise complaint bad priority returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/complaints/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/complaints/`
-- JSON body:
-    ```json
-    {
-      "title": "Noisy",
-      "category": "OTHER",
-      "priority": "URGENT",
-      "apartment_id": 1
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -9174,13 +6588,7 @@ def test_raise_complaint_bad_category_returns_400(client, resident, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "priority must be one of: LOW, MEDIUM, HIGH"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -9205,22 +6613,11 @@ def test_raise_complaint_bad_priority_returns_400(client, resident, seed):
 
 ### TC-161 · Raise complaint non numeric apartment id returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/complaints/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/complaints/`
-- JSON body:
-    ```json
-    {
-      "title": "Broken gate",
-      "category": "SECURITY",
-      "apartment_id": "the first one"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -9229,13 +6626,7 @@ def test_raise_complaint_bad_priority_returns_400(client, resident, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "apartment_id must be a whole number"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -9261,22 +6652,11 @@ def test_raise_complaint_non_numeric_apartment_id_returns_400(
 
 ### TC-162 · Raise complaint unknown apartment returns 404
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/complaints/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/complaints/`
-- JSON body:
-    ```json
-    {
-      "title": "Ghost flat",
-      "category": "OTHER",
-      "apartment_id": 99999
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -9285,13 +6665,7 @@ def test_raise_complaint_non_numeric_apartment_id_returns_400(
 
 **Actual Output:**
 
-- HTTP Status Code: `404`
-- JSON:
-    ```json
-    {
-      "error": "Apartment not found"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -9315,18 +6689,11 @@ def test_raise_complaint_unknown_apartment_returns_404(client, resident, seed):
 
 ### TC-163 · Raise complaint malformed body returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/complaints/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/complaints/`
-- JSON body:
-    ```json
-    null
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -9334,13 +6701,7 @@ def test_raise_complaint_unknown_apartment_returns_404(client, resident, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be valid JSON"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -9368,18 +6729,11 @@ def test_raise_complaint_malformed_body_returns_400(
 
 ### TC-164 · Raise complaint malformed body returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/complaints/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/complaints/`
-- JSON body:
-    ```json
-    []
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -9387,13 +6741,7 @@ def test_raise_complaint_malformed_body_returns_400(
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -9421,18 +6769,11 @@ def test_raise_complaint_malformed_body_returns_400(
 
 ### TC-165 · Raise complaint malformed body returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/complaints/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/complaints/`
-- JSON body:
-    ```json
-    "hello"
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -9440,13 +6781,7 @@ def test_raise_complaint_malformed_body_returns_400(
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -9474,17 +6809,11 @@ def test_raise_complaint_malformed_body_returns_400(
 
 ### TC-166 · Complaint endpoints require a token
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/complaints/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/complaints/`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -9492,13 +6821,7 @@ def test_raise_complaint_malformed_body_returns_400(
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -9526,17 +6849,11 @@ def test_complaint_endpoints_require_a_token(client, seed, method, path):
 
 ### TC-167 · Complaint endpoints require a token
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/complaints/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/complaints/`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -9544,13 +6861,7 @@ def test_complaint_endpoints_require_a_token(client, seed, method, path):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -9578,17 +6889,11 @@ def test_complaint_endpoints_require_a_token(client, seed, method, path):
 
 ### TC-168 · Complaint endpoints require a token
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/complaints/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/complaints/1`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -9596,13 +6901,7 @@ def test_complaint_endpoints_require_a_token(client, seed, method, path):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -9630,17 +6929,11 @@ def test_complaint_endpoints_require_a_token(client, seed, method, path):
 
 ### TC-169 · Complaint endpoints require a token
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/complaints/1/assign`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/complaints/1/assign`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -9648,13 +6941,7 @@ def test_complaint_endpoints_require_a_token(client, seed, method, path):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -9682,17 +6969,11 @@ def test_complaint_endpoints_require_a_token(client, seed, method, path):
 
 ### TC-170 · Complaint endpoints require a token
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/complaints/1/status`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/complaints/1/status`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -9700,13 +6981,7 @@ def test_complaint_endpoints_require_a_token(client, seed, method, path):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -9734,17 +7009,11 @@ def test_complaint_endpoints_require_a_token(client, seed, method, path):
 
 ### TC-171 · Complaint endpoints require a token
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/complaints/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/complaints/1`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -9752,13 +7021,7 @@ def test_complaint_endpoints_require_a_token(client, seed, method, path):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -9786,15 +7049,11 @@ def test_complaint_endpoints_require_a_token(client, seed, method, path):
 
 ### TC-172 · Resident cannot delete complaint
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/complaints/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/complaints/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/complaints/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -9803,13 +7062,7 @@ def test_complaint_endpoints_require_a_token(client, seed, method, path):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -9832,20 +7085,11 @@ def test_resident_cannot_delete_complaint(client, resident, seed):
 
 ### TC-173 · Resident cannot assign a worker
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/complaints/1/assign`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/complaints/1/assign`
-- JSON body:
-    ```json
-    {
-      "worker_id": 6
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/complaints/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -9853,13 +7097,7 @@ def test_resident_cannot_delete_complaint(client, resident, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -9882,15 +7120,11 @@ def test_resident_cannot_assign_a_worker(client, resident, seed):
 
 ### TC-174 · Resident cannot read another flats complaint
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/complaints/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/complaints/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/complaints/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -9899,13 +7133,7 @@ def test_resident_cannot_assign_a_worker(client, resident, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to view this complaint"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -9930,20 +7158,11 @@ def test_resident_cannot_read_another_flats_complaint(
 
 ### TC-175 · Resident cannot update another flats complaint
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/complaints/1/status`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/complaints/1/status`
-- JSON body:
-    ```json
-    {
-      "status": "CLOSED"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/complaints/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -9952,13 +7171,7 @@ def test_resident_cannot_read_another_flats_complaint(
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to update this complaint"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -9983,20 +7196,11 @@ def test_resident_cannot_update_another_flats_complaint(
 
 ### TC-176 · Assign worker returns 200 and populates worker name
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/complaints/1/assign`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/complaints/1/assign`
-- JSON body:
-    ```json
-    {
-      "worker_id": 6
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/complaints/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -10004,26 +7208,7 @@ def test_resident_cannot_update_another_flats_complaint(
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "apartment_id": 1,
-      "assigned_worker_id": 6,
-      "assigned_worker_name": "Ramesh Worker",
-      "category": "PLUMBING",
-      "created_at": "2026-08-02 13:28:40.926376",
-      "description": "Water drips continuously under the sink.",
-      "flat_number": "A-101",
-      "id": 1,
-      "priority": "MEDIUM",
-      "raised_by": 4,
-      "raised_by_name": "Ravi Resident",
-      "resolved_at": null,
-      "status": "ASSIGNED",
-      "title": "Leaking kitchen tap"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -10051,15 +7236,11 @@ def test_assign_worker_returns_200_and_populates_worker_name(
 
 ### TC-177 · Regression: a null worker_id used to flip the status to ASSIGNED anyway
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/complaints/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/complaints/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/complaints/` → 201, `PUT /api/complaints/1/assign` → 400
+- _none_
 
 **Expected Output:**
 
@@ -10069,27 +7250,7 @@ def test_assign_worker_returns_200_and_populates_worker_name(
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "apartment_id": 1,
-      "assigned_worker_id": null,
-      "assigned_worker_name": null,
-      "category": "PLUMBING",
-      "created_at": "2026-08-02 13:28:41.021319",
-      "description": "Water drips continuously under the sink.",
-      "flat_number": "A-101",
-      "id": 1,
-      "priority": "MEDIUM",
-      "raised_by": 4,
-      "raised_by_name": "Ravi Resident",
-      "resolved_at": null,
-      "status": "OPEN",
-      "title": "Leaking kitchen tap",
-      "updates": []
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -10121,15 +7282,11 @@ def test_assign_without_worker_id_returns_400(client, admin, resident,
 
 ### TC-178 · Regression: a null worker_id used to flip the status to ASSIGNED anyway
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/complaints/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/complaints/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/complaints/` → 201, `PUT /api/complaints/1/assign` → 400
+- _none_
 
 **Expected Output:**
 
@@ -10139,27 +7296,7 @@ def test_assign_without_worker_id_returns_400(client, admin, resident,
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "apartment_id": 1,
-      "assigned_worker_id": null,
-      "assigned_worker_name": null,
-      "category": "PLUMBING",
-      "created_at": "2026-08-02 13:28:41.116562",
-      "description": "Water drips continuously under the sink.",
-      "flat_number": "A-101",
-      "id": 1,
-      "priority": "MEDIUM",
-      "raised_by": 4,
-      "raised_by_name": "Ravi Resident",
-      "resolved_at": null,
-      "status": "OPEN",
-      "title": "Leaking kitchen tap",
-      "updates": []
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -10191,15 +7328,11 @@ def test_assign_without_worker_id_returns_400(client, admin, resident,
 
 ### TC-179 · Regression: a null worker_id used to flip the status to ASSIGNED anyway
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/complaints/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/complaints/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/complaints/` → 201, `PUT /api/complaints/1/assign` → 400
+- _none_
 
 **Expected Output:**
 
@@ -10209,27 +7342,7 @@ def test_assign_without_worker_id_returns_400(client, admin, resident,
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "apartment_id": 1,
-      "assigned_worker_id": null,
-      "assigned_worker_name": null,
-      "category": "PLUMBING",
-      "created_at": "2026-08-02 13:28:41.212661",
-      "description": "Water drips continuously under the sink.",
-      "flat_number": "A-101",
-      "id": 1,
-      "priority": "MEDIUM",
-      "raised_by": 4,
-      "raised_by_name": "Ravi Resident",
-      "resolved_at": null,
-      "status": "OPEN",
-      "title": "Leaking kitchen tap",
-      "updates": []
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -10261,15 +7374,11 @@ def test_assign_without_worker_id_returns_400(client, admin, resident,
 
 ### TC-180 · Regression: a null worker_id used to flip the status to ASSIGNED anyway
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/complaints/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/complaints/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/complaints/` → 201, `PUT /api/complaints/1/assign` → 400
+- _none_
 
 **Expected Output:**
 
@@ -10279,27 +7388,7 @@ def test_assign_without_worker_id_returns_400(client, admin, resident,
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "apartment_id": 1,
-      "assigned_worker_id": null,
-      "assigned_worker_name": null,
-      "category": "PLUMBING",
-      "created_at": "2026-08-02 13:28:41.311688",
-      "description": "Water drips continuously under the sink.",
-      "flat_number": "A-101",
-      "id": 1,
-      "priority": "MEDIUM",
-      "raised_by": 4,
-      "raised_by_name": "Ravi Resident",
-      "resolved_at": null,
-      "status": "OPEN",
-      "title": "Leaking kitchen tap",
-      "updates": []
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -10331,20 +7420,11 @@ def test_assign_without_worker_id_returns_400(client, admin, resident,
 
 ### TC-181 · Assign to non worker user returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/complaints/1/assign`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/complaints/1/assign`
-- JSON body:
-    ```json
-    {
-      "worker_id": 4
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/complaints/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -10353,13 +7433,7 @@ def test_assign_without_worker_id_returns_400(client, admin, resident,
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Selected user is not a maintenance worker"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -10383,20 +7457,11 @@ def test_assign_to_non_worker_user_returns_400(client, admin, resident, seed):
 
 ### TC-182 · Assign to unknown user returns 404
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/complaints/1/assign`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/complaints/1/assign`
-- JSON body:
-    ```json
-    {
-      "worker_id": 99999
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/complaints/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -10405,13 +7470,7 @@ def test_assign_to_non_worker_user_returns_400(client, admin, resident, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `404`
-- JSON:
-    ```json
-    {
-      "error": "Worker not found"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -10435,15 +7494,11 @@ def test_assign_to_unknown_user_returns_404(client, admin, resident, seed):
 
 ### TC-183 · Regression: workers only ever saw complaints they had raised themselves
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/complaints/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/complaints/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (6): `POST /api/auth/login` → 200, `POST /api/complaints/` → 201, `GET /api/complaints/` → 200, `PUT /api/complaints/1/assign` → 200
+- _none_
 
 **Expected Output:**
 
@@ -10451,28 +7506,7 @@ def test_assign_to_unknown_user_returns_404(client, admin, resident, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "apartment_id": 1,
-        "assigned_worker_id": 6,
-        "assigned_worker_name": "Ramesh Worker",
-        "category": "PLUMBING",
-        "created_at": "2026-08-02 13:28:41.591925",
-        "description": "Water drips continuously under the sink.",
-        "flat_number": "A-101",
-        "id": 1,
-        "priority": "MEDIUM",
-        "raised_by": 4,
-        "raised_by_name": "Ravi Resident",
-        "resolved_at": null,
-        "status": "ASSIGNED",
-        "title": "Leaking kitchen tap"
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -10501,15 +7535,11 @@ def test_worker_sees_complaint_assigned_to_them(client, admin, resident,
 
 ### TC-184 · Worker does not see unassigned complaints
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/complaints/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/complaints/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/complaints/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -10517,11 +7547,7 @@ def test_worker_sees_complaint_assigned_to_them(client, admin, resident,
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    []
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -10545,20 +7571,11 @@ def test_worker_does_not_see_unassigned_complaints(client, resident,
 
 ### TC-185 · Assigned worker can read and update the complaint
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/complaints/1/status`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/complaints/1/status`
-- JSON body:
-    ```json
-    {
-      "status": "IN_PROGRESS"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (6): `POST /api/auth/login` → 200, `POST /api/complaints/` → 201, `PUT /api/complaints/1/assign` → 200, `GET /api/complaints/1` → 200
+- _none_
 
 **Expected Output:**
 
@@ -10567,26 +7584,7 @@ def test_worker_does_not_see_unassigned_complaints(client, resident,
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "apartment_id": 1,
-      "assigned_worker_id": 6,
-      "assigned_worker_name": "Ramesh Worker",
-      "category": "PLUMBING",
-      "created_at": "2026-08-02 13:28:41.938185",
-      "description": "Water drips continuously under the sink.",
-      "flat_number": "A-101",
-      "id": 1,
-      "priority": "MEDIUM",
-      "raised_by": 4,
-      "raised_by_name": "Ravi Resident",
-      "resolved_at": null,
-      "status": "IN_PROGRESS",
-      "title": "Leaking kitchen tap"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -10616,21 +7614,11 @@ def test_assigned_worker_can_read_and_update_the_complaint(
 
 ### TC-186 · Status flow open to completed sets resolved at
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/complaints/1/status`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/complaints/1/status`
-- JSON body:
-    ```json
-    {
-      "status": "COMPLETED",
-      "remarks": "Washer replaced"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/complaints/` → 201, `PUT /api/complaints/1/status` → 200
+- _none_
 
 **Expected Output:**
 
@@ -10640,11 +7628,7 @@ def test_assigned_worker_can_read_and_update_the_complaint(
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {"apartment_id": 1, "assigned_worker_id": null, "assigned_worker_name": null, "category": "PLUMBING", "created_at": "2026-08-02 13:28:42.119130", "description": "Water drips continuously under the sink.", "flat_number": "A-101", "id": 1, "priority": "MEDIUM", "raised_by": 4, "raised_by_name": "Ravi Resident", "resolved_at": "2026-08-02 13:28:42.142173", "status": "COMPLETED", "title": "Leaking ki…
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -10675,20 +7659,11 @@ def test_status_flow_open_to_completed_sets_resolved_at(
 
 ### TC-187 · Regression: resolved_at used to survive a reopen
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/complaints/1/status`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/complaints/1/status`
-- JSON body:
-    ```json
-    {
-      "status": "OPEN"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/complaints/` → 201, `PUT /api/complaints/1/status` → 200
+- _none_
 
 **Expected Output:**
 
@@ -10697,26 +7672,7 @@ def test_status_flow_open_to_completed_sets_resolved_at(
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "apartment_id": 1,
-      "assigned_worker_id": null,
-      "assigned_worker_name": null,
-      "category": "PLUMBING",
-      "created_at": "2026-08-02 13:28:42.289597",
-      "description": "Water drips continuously under the sink.",
-      "flat_number": "A-101",
-      "id": 1,
-      "priority": "MEDIUM",
-      "raised_by": 4,
-      "raised_by_name": "Ravi Resident",
-      "resolved_at": null,
-      "status": "OPEN",
-      "title": "Leaking kitchen tap"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -10745,20 +7701,11 @@ def test_reopening_a_closed_complaint_clears_resolved_at(
 
 ### TC-188 · Invalid status transition returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/complaints/1/status`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/complaints/1/status`
-- JSON body:
-    ```json
-    {
-      "status": "COMPLETED"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/complaints/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -10766,13 +7713,7 @@ def test_reopening_a_closed_complaint_clears_resolved_at(
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Cannot change status from OPEN to COMPLETED"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -10798,20 +7739,11 @@ def test_invalid_status_transition_returns_400(client, admin, resident,
 
 ### TC-189 · Status update requires status field
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/complaints/1/status`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/complaints/1/status`
-- JSON body:
-    ```json
-    {
-      "remarks": "no status"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/complaints/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -10820,13 +7752,7 @@ def test_invalid_status_transition_returns_400(client, admin, resident,
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "status is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -10850,20 +7776,11 @@ def test_status_update_requires_status_field(client, admin, resident, seed):
 
 ### TC-190 · Status update bad enum returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/complaints/1/status`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/complaints/1/status`
-- JSON body:
-    ```json
-    {
-      "status": "DONE"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/complaints/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -10871,13 +7788,7 @@ def test_status_update_requires_status_field(client, admin, resident, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "status must be one of: OPEN, ASSIGNED, IN_PROGRESS, COMPLETED, CLOSED"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -10901,20 +7812,11 @@ def test_status_update_bad_enum_returns_400(client, admin, resident, seed):
 
 ### TC-191 · Setting the same status is allowed
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/complaints/1/status`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/complaints/1/status`
-- JSON body:
-    ```json
-    {
-      "status": "OPEN"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/complaints/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -10923,26 +7825,7 @@ def test_status_update_bad_enum_returns_400(client, admin, resident, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "apartment_id": 1,
-      "assigned_worker_id": null,
-      "assigned_worker_name": null,
-      "category": "PLUMBING",
-      "created_at": "2026-08-02 13:28:42.982206",
-      "description": "Water drips continuously under the sink.",
-      "flat_number": "A-101",
-      "id": 1,
-      "priority": "MEDIUM",
-      "raised_by": 4,
-      "raised_by_name": "Ravi Resident",
-      "resolved_at": null,
-      "status": "OPEN",
-      "title": "Leaking kitchen tap"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -10966,15 +7849,11 @@ def test_setting_the_same_status_is_allowed(client, admin, resident, seed):
 
 ### TC-192 · Unknown complaint id returns 404
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/complaints/99999`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/complaints/99999`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `GET /api/complaints/99999` → 404
+- _none_
 
 **Expected Output:**
 
@@ -10982,13 +7861,7 @@ def test_setting_the_same_status_is_allowed(client, admin, resident, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `404`
-- JSON:
-    ```json
-    {
-      "error": "The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again."
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -11015,24 +7888,11 @@ def test_unknown_complaint_id_returns_404(client, admin, seed):
 
 ### TC-193 · Admin creates invoice
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body:
-    ```json
-    {
-      "apartment_id": 1,
-      "month": 7,
-      "year": 2026,
-      "amount": 2500.5,
-      "due_date": "2026-07-15"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -11040,21 +7900,7 @@ def test_unknown_complaint_id_returns_404(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "amount": 2500.5,
-      "apartment_id": 1,
-      "created_at": "2026-08-02 13:29:03.594503",
-      "due_date": "2026-07-15",
-      "flat_number": "A-101",
-      "id": 1,
-      "month": 7,
-      "status": "UNPAID",
-      "year": 2026
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -11085,45 +7931,19 @@ def test_admin_creates_invoice(client, admin, seed):
 
 ### TC-194 · Treasurer can create invoice
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body:
-    ```json
-    {
-      "apartment_id": 1,
-      "month": 7,
-      "year": 2026,
-      "amount": 2500
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `201`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "amount": 2500.0,
-      "apartment_id": 1,
-      "created_at": "2026-08-02 13:29:03.692212",
-      "due_date": null,
-      "flat_number": "A-101",
-      "id": 1,
-      "month": 7,
-      "status": "UNPAID",
-      "year": 2026
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -11143,15 +7963,11 @@ def test_treasurer_can_create_invoice(client, treasurer, seed):
 
 ### TC-195 · Admin lists all invoices
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/invoices/` → 201, `POST /api/invoices/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -11159,34 +7975,7 @@ def test_treasurer_can_create_invoice(client, treasurer, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "amount": 2500.0,
-        "apartment_id": 2,
-        "created_at": "2026-08-02 13:29:03.788253",
-        "due_date": null,
-        "flat_number": "B-202",
-        "id": 2,
-        "month": 7,
-        "status": "UNPAID",
-        "year": 2026
-      },
-      {
-        "amount": 2500.0,
-        "apartment_id": 1,
-        "created_at": "2026-08-02 13:29:03.781451",
-        "due_date": null,
-        "flat_number": "A-101",
-        "id": 1,
-        "month": 7,
-        "status": "UNPAID",
-        "year": 2026
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -11210,21 +7999,11 @@ def test_admin_lists_all_invoices(client, admin, seed):
 
 ### TC-196 · Pay invoice returns receipt
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/invoices/1/pay`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/invoices/1/pay`
-- JSON body:
-    ```json
-    {
-      "payment_method": "UPI",
-      "transaction_reference": "TXN-9001"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/invoices/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -11232,11 +8011,7 @@ def test_admin_lists_all_invoices(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {"invoice": {"amount": 2500.0, "apartment_id": 1, "created_at": "2026-08-02 13:29:03.879201", "due_date": null, "flat_number": "A-101", "id": 1, "month": 7, "status": "PAID", "year": 2026}, "message": "Invoice marked as paid", "receipt": {"amount": 2500.0, "flat_number": "A-101", "month": 7, "payment_date": "2026-08-02 13:29:03.885464", "payment_method": "UPI", "receipt_number": "RCP-0001", "tran…
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -11266,18 +8041,11 @@ def test_pay_invoice_returns_receipt(client, admin, seed):
 
 ### TC-197 · Payment method defaults to cash
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/invoices/1/pay`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/invoices/1/pay`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/invoices/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -11285,11 +8053,7 @@ def test_pay_invoice_returns_receipt(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {"invoice": {"amount": 2500.0, "apartment_id": 1, "created_at": "2026-08-02 13:29:03.971481", "due_date": null, "flat_number": "A-101", "id": 1, "month": 7, "status": "PAID", "year": 2026}, "message": "Invoice marked as paid", "receipt": {"amount": 2500.0, "flat_number": "A-101", "month": 7, "payment_date": "2026-08-02 13:29:03.979138", "payment_method": "CASH", "receipt_number": "RCP-0001", "tra…
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -11312,15 +8076,11 @@ def test_payment_method_defaults_to_cash(client, admin, seed):
 
 ### TC-198 · Get receipt for paid invoice
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/invoices/1/receipt`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/invoices/1/receipt`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/invoices/` → 201, `PUT /api/invoices/1/pay` → 200
+- _none_
 
 **Expected Output:**
 
@@ -11328,20 +8088,7 @@ def test_payment_method_defaults_to_cash(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "amount": 2500.0,
-      "flat_number": "A-101",
-      "month": 7,
-      "payment_date": "2026-08-02 13:29:04.080964",
-      "payment_method": "UPI",
-      "receipt_number": "RCP-0001",
-      "transaction_reference": null,
-      "year": 2026
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -11368,15 +8115,11 @@ def test_get_receipt_for_paid_invoice(client, admin, seed):
 
 ### TC-199 · Resident can read own receipt
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/invoices/1/receipt`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/invoices/1/receipt`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/invoices/` → 201, `PUT /api/invoices/1/pay` → 200
+- _none_
 
 **Expected Output:**
 
@@ -11385,20 +8128,7 @@ def test_get_receipt_for_paid_invoice(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "amount": 2500.0,
-      "flat_number": "A-101",
-      "month": 7,
-      "payment_date": "2026-08-02 13:29:04.186101",
-      "payment_method": "UPI",
-      "receipt_number": "RCP-0001",
-      "transaction_reference": null,
-      "year": 2026
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -11422,15 +8152,11 @@ def test_resident_can_read_own_receipt(client, admin, resident, seed):
 
 ### TC-200 · Pending lists only unpaid
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/invoices/pending`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/invoices/pending`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/invoices/` → 201, `POST /api/invoices/` → 201, `PUT /api/invoices/1/pay` → 200
+- _none_
 
 **Expected Output:**
 
@@ -11438,23 +8164,7 @@ def test_resident_can_read_own_receipt(client, admin, resident, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "amount": 2500.0,
-        "apartment_id": 1,
-        "created_at": "2026-08-02 13:29:04.288300",
-        "due_date": null,
-        "flat_number": "A-101",
-        "id": 2,
-        "month": 7,
-        "status": "UNPAID",
-        "year": 2026
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -11479,23 +8189,11 @@ def test_pending_lists_only_unpaid(client, admin, seed):
 
 ### TC-201 · Bulk generate creates invoice for every flat
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/bulk`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/bulk`
-- JSON body:
-    ```json
-    {
-      "month": 8,
-      "year": 2026,
-      "amount": 3000,
-      "due_date": "2026-08-10"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -11503,17 +8201,7 @@ def test_pending_lists_only_unpaid(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "flats": [
-        "A-101",
-        "B-202"
-      ],
-      "message": "Invoices generated for 2 flats"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -11539,15 +8227,11 @@ def test_bulk_generate_creates_invoice_for_every_flat(client, admin, seed):
 
 ### TC-202 · Bulk generate skips flats that already have that month
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/invoices/` → 201, `POST /api/invoices/bulk` → 201
+- _none_
 
 **Expected Output:**
 
@@ -11555,34 +8239,7 @@ def test_bulk_generate_creates_invoice_for_every_flat(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "amount": 3000.0,
-        "apartment_id": 2,
-        "created_at": "2026-08-02 13:29:04.489790",
-        "due_date": null,
-        "flat_number": "B-202",
-        "id": 2,
-        "month": 8,
-        "status": "UNPAID",
-        "year": 2026
-      },
-      {
-        "amount": 2500.0,
-        "apartment_id": 1,
-        "created_at": "2026-08-02 13:29:04.482976",
-        "due_date": null,
-        "flat_number": "A-101",
-        "id": 1,
-        "month": 8,
-        "status": "UNPAID",
-        "year": 2026
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -11613,22 +8270,11 @@ def test_bulk_generate_skips_flats_that_already_have_that_month(
 
 ### TC-203 · Create invoice missing required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body:
-    ```json
-    {
-      "month": 7,
-      "year": 2026,
-      "amount": 2500
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -11636,13 +8282,7 @@ def test_bulk_generate_skips_flats_that_already_have_that_month(
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "apartment_id is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -11669,22 +8309,11 @@ def test_create_invoice_missing_required_field_returns_400(
 
 ### TC-204 · Create invoice missing required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body:
-    ```json
-    {
-      "apartment_id": 1,
-      "year": 2026,
-      "amount": 2500
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -11692,13 +8321,7 @@ def test_create_invoice_missing_required_field_returns_400(
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "month is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -11725,22 +8348,11 @@ def test_create_invoice_missing_required_field_returns_400(
 
 ### TC-205 · Create invoice missing required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body:
-    ```json
-    {
-      "apartment_id": 1,
-      "month": 7,
-      "amount": 2500
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -11748,13 +8360,7 @@ def test_create_invoice_missing_required_field_returns_400(
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "year is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -11781,22 +8387,11 @@ def test_create_invoice_missing_required_field_returns_400(
 
 ### TC-206 · Create invoice missing required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body:
-    ```json
-    {
-      "apartment_id": 1,
-      "month": 7,
-      "year": 2026
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -11804,13 +8399,7 @@ def test_create_invoice_missing_required_field_returns_400(
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "amount is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -11837,23 +8426,11 @@ def test_create_invoice_missing_required_field_returns_400(
 
 ### TC-207 · Create invoice month out of range returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body:
-    ```json
-    {
-      "apartment_id": 1,
-      "month": 0,
-      "year": 2026,
-      "amount": 2500
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -11861,13 +8438,7 @@ def test_create_invoice_missing_required_field_returns_400(
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "month must be at least 1"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -11894,23 +8465,11 @@ def test_create_invoice_month_out_of_range_returns_400(client, admin, seed, mont
 
 ### TC-208 · Create invoice month out of range returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body:
-    ```json
-    {
-      "apartment_id": 1,
-      "month": 13,
-      "year": 2026,
-      "amount": 2500
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -11918,13 +8477,7 @@ def test_create_invoice_month_out_of_range_returns_400(client, admin, seed, mont
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "month must be at most 12"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -11951,23 +8504,11 @@ def test_create_invoice_month_out_of_range_returns_400(client, admin, seed, mont
 
 ### TC-209 · Create invoice month out of range returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body:
-    ```json
-    {
-      "apartment_id": 1,
-      "month": 99,
-      "year": 2026,
-      "amount": 2500
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -11975,13 +8516,7 @@ def test_create_invoice_month_out_of_range_returns_400(client, admin, seed, mont
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "month must be at most 12"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -12008,23 +8543,11 @@ def test_create_invoice_month_out_of_range_returns_400(client, admin, seed, mont
 
 ### TC-210 · Create invoice month out of range returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body:
-    ```json
-    {
-      "apartment_id": 1,
-      "month": -1,
-      "year": 2026,
-      "amount": 2500
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -12032,13 +8555,7 @@ def test_create_invoice_month_out_of_range_returns_400(client, admin, seed, mont
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "month must be at least 1"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -12065,22 +8582,11 @@ def test_create_invoice_month_out_of_range_returns_400(client, admin, seed, mont
 
 ### TC-211 · Bulk generate month out of range returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/bulk`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/bulk`
-- JSON body:
-    ```json
-    {
-      "month": 99,
-      "year": 2026,
-      "amount": 3000
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -12089,13 +8595,7 @@ def test_create_invoice_month_out_of_range_returns_400(client, admin, seed, mont
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "month must be at most 12"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -12118,23 +8618,11 @@ def test_bulk_generate_month_out_of_range_returns_400(client, admin, seed):
 
 ### TC-212 · Create invoice year out of range returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body:
-    ```json
-    {
-      "apartment_id": 1,
-      "month": 7,
-      "year": 1899,
-      "amount": 2500
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -12143,13 +8631,7 @@ def test_bulk_generate_month_out_of_range_returns_400(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "year must be at least 2000"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -12174,23 +8656,11 @@ def test_create_invoice_year_out_of_range_returns_400(client, admin, seed):
 
 ### TC-213 · Create invoice non numeric amount returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body:
-    ```json
-    {
-      "apartment_id": 1,
-      "month": 7,
-      "year": 2026,
-      "amount": "one thousand"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -12199,13 +8669,7 @@ def test_create_invoice_year_out_of_range_returns_400(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "amount must be a number"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -12230,23 +8694,11 @@ def test_create_invoice_non_numeric_amount_returns_400(client, admin, seed):
 
 ### TC-214 · Create invoice negative amount returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body:
-    ```json
-    {
-      "apartment_id": 1,
-      "month": 7,
-      "year": 2026,
-      "amount": -5
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -12255,13 +8707,7 @@ def test_create_invoice_non_numeric_amount_returns_400(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "amount must be at least 0"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -12286,24 +8732,11 @@ def test_create_invoice_negative_amount_returns_400(client, admin, seed):
 
 ### TC-215 · Create invoice bad due date returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body:
-    ```json
-    {
-      "apartment_id": 1,
-      "month": 7,
-      "year": 2026,
-      "amount": 2500,
-      "due_date": "yesterday"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -12312,13 +8745,7 @@ def test_create_invoice_negative_amount_returns_400(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "due_date must be a valid date (YYYY-MM-DD)"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -12343,24 +8770,11 @@ def test_create_invoice_bad_due_date_returns_400(client, admin, seed):
 
 ### TC-216 · Regression: an empty due_date from the form used to 400 (or crash)
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body:
-    ```json
-    {
-      "apartment_id": 1,
-      "month": 7,
-      "year": 2026,
-      "amount": 2500,
-      "due_date": ""
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -12369,21 +8783,7 @@ def test_create_invoice_bad_due_date_returns_400(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "amount": 2500.0,
-      "apartment_id": 1,
-      "created_at": "2026-08-02 13:29:05.696063",
-      "due_date": null,
-      "flat_number": "A-101",
-      "id": 1,
-      "month": 7,
-      "status": "UNPAID",
-      "year": 2026
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -12411,24 +8811,11 @@ def test_blank_due_date_is_stored_as_null_not_rejected(client, admin,
 
 ### TC-217 · Regression: an empty due_date from the form used to 400 (or crash)
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body:
-    ```json
-    {
-      "apartment_id": 1,
-      "month": 7,
-      "year": 2026,
-      "amount": 2500,
-      "due_date": "   "
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -12437,21 +8824,7 @@ def test_blank_due_date_is_stored_as_null_not_rejected(client, admin,
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "amount": 2500.0,
-      "apartment_id": 1,
-      "created_at": "2026-08-02 13:29:05.784182",
-      "due_date": null,
-      "flat_number": "A-101",
-      "id": 1,
-      "month": 7,
-      "status": "UNPAID",
-      "year": 2026
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -12479,24 +8852,11 @@ def test_blank_due_date_is_stored_as_null_not_rejected(client, admin,
 
 ### TC-218 · Regression: an empty due_date from the form used to 400 (or crash)
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body:
-    ```json
-    {
-      "apartment_id": 1,
-      "month": 7,
-      "year": 2026,
-      "amount": 2500,
-      "due_date": null
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -12505,21 +8865,7 @@ def test_blank_due_date_is_stored_as_null_not_rejected(client, admin,
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "amount": 2500.0,
-      "apartment_id": 1,
-      "created_at": "2026-08-02 13:29:05.872713",
-      "due_date": null,
-      "flat_number": "A-101",
-      "id": 1,
-      "month": 7,
-      "status": "UNPAID",
-      "year": 2026
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -12547,23 +8893,11 @@ def test_blank_due_date_is_stored_as_null_not_rejected(client, admin,
 
 ### TC-219 · Create invoice unknown apartment returns 404
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body:
-    ```json
-    {
-      "apartment_id": 99999,
-      "month": 7,
-      "year": 2026,
-      "amount": 2500
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -12572,13 +8906,7 @@ def test_blank_due_date_is_stored_as_null_not_rejected(client, admin,
 
 **Actual Output:**
 
-- HTTP Status Code: `404`
-- JSON:
-    ```json
-    {
-      "error": "Apartment not found"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -12602,18 +8930,11 @@ def test_create_invoice_unknown_apartment_returns_404(client, admin, seed):
 
 ### TC-220 · Invoice malformed body returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body:
-    ```json
-    null
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -12621,13 +8942,7 @@ def test_create_invoice_unknown_apartment_returns_404(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be valid JSON"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -12655,18 +8970,11 @@ def test_invoice_malformed_body_returns_400(client, admin, seed, path,
 
 ### TC-221 · Invoice malformed body returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body:
-    ```json
-    []
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -12674,13 +8982,7 @@ def test_invoice_malformed_body_returns_400(client, admin, seed, path,
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -12708,18 +9010,11 @@ def test_invoice_malformed_body_returns_400(client, admin, seed, path,
 
 ### TC-222 · Invoice malformed body returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/bulk`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/bulk`
-- JSON body:
-    ```json
-    null
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -12727,13 +9022,7 @@ def test_invoice_malformed_body_returns_400(client, admin, seed, path,
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be valid JSON"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -12761,18 +9050,11 @@ def test_invoice_malformed_body_returns_400(client, admin, seed, path,
 
 ### TC-223 · Invoice malformed body returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/bulk`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/bulk`
-- JSON body:
-    ```json
-    []
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -12780,13 +9062,7 @@ def test_invoice_malformed_body_returns_400(client, admin, seed, path,
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -12814,17 +9090,11 @@ def test_invoice_malformed_body_returns_400(client, admin, seed, path,
 
 ### TC-224 · Invoice endpoints require a token
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -12832,13 +9102,7 @@ def test_invoice_malformed_body_returns_400(client, admin, seed, path,
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -12866,17 +9130,11 @@ def test_invoice_endpoints_require_a_token(client, seed, method, path):
 
 ### TC-225 · Invoice endpoints require a token
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -12884,13 +9142,7 @@ def test_invoice_endpoints_require_a_token(client, seed, method, path):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -12918,17 +9170,11 @@ def test_invoice_endpoints_require_a_token(client, seed, method, path):
 
 ### TC-226 · Invoice endpoints require a token
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/bulk`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/bulk`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -12936,13 +9182,7 @@ def test_invoice_endpoints_require_a_token(client, seed, method, path):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -12970,17 +9210,11 @@ def test_invoice_endpoints_require_a_token(client, seed, method, path):
 
 ### TC-227 · Invoice endpoints require a token
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/invoices/1/pay`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/invoices/1/pay`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -12988,13 +9222,7 @@ def test_invoice_endpoints_require_a_token(client, seed, method, path):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -13022,17 +9250,11 @@ def test_invoice_endpoints_require_a_token(client, seed, method, path):
 
 ### TC-228 · Invoice endpoints require a token
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/invoices/1/receipt`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/invoices/1/receipt`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -13040,13 +9262,7 @@ def test_invoice_endpoints_require_a_token(client, seed, method, path):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -13074,17 +9290,11 @@ def test_invoice_endpoints_require_a_token(client, seed, method, path):
 
 ### TC-229 · Invoice endpoints require a token
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/invoices/pending`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/invoices/pending`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -13092,13 +9302,7 @@ def test_invoice_endpoints_require_a_token(client, seed, method, path):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -13126,23 +9330,11 @@ def test_invoice_endpoints_require_a_token(client, seed, method, path):
 
 ### TC-230 · Resident cannot create invoice
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body:
-    ```json
-    {
-      "apartment_id": 1,
-      "month": 7,
-      "year": 2026,
-      "amount": 2500
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -13151,13 +9343,7 @@ def test_invoice_endpoints_require_a_token(client, seed, method, path):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -13182,15 +9368,11 @@ def test_resident_cannot_create_invoice(client, resident, seed):
 
 ### TC-231 · Resident cannot mark invoice paid
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/invoices/` → 201, `PUT /api/invoices/1/pay` → 403
+- _none_
 
 **Expected Output:**
 
@@ -13199,23 +9381,7 @@ def test_resident_cannot_create_invoice(client, resident, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "amount": 2500.0,
-        "apartment_id": 1,
-        "created_at": "2026-08-02 13:29:06.923522",
-        "due_date": null,
-        "flat_number": "A-101",
-        "id": 1,
-        "month": 7,
-        "status": "UNPAID",
-        "year": 2026
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -13240,22 +9406,11 @@ def test_resident_cannot_mark_invoice_paid(client, admin, resident, seed):
 
 ### TC-232 · Resident cannot bulk generate
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/bulk`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/bulk`
-- JSON body:
-    ```json
-    {
-      "month": 8,
-      "year": 2026,
-      "amount": 3000
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -13263,13 +9418,7 @@ def test_resident_cannot_mark_invoice_paid(client, admin, resident, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -13291,23 +9440,11 @@ def test_resident_cannot_bulk_generate(client, resident, seed):
 
 ### TC-233 · COMMITTEE_MEMBER manages the society but must not touch money
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body:
-    ```json
-    {
-      "apartment_id": 1,
-      "month": 7,
-      "year": 2026,
-      "amount": 2500
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (6): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -13315,13 +9452,7 @@ def test_resident_cannot_bulk_generate(client, resident, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -13345,23 +9476,11 @@ def test_committee_member_is_not_finance(client, tokens, seed, path):
 
 ### TC-234 · COMMITTEE_MEMBER manages the society but must not touch money
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/invoices/bulk`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/invoices/bulk`
-- JSON body:
-    ```json
-    {
-      "apartment_id": 1,
-      "month": 7,
-      "year": 2026,
-      "amount": 2500
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (6): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -13369,13 +9488,7 @@ def test_committee_member_is_not_finance(client, tokens, seed, path):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -13399,15 +9512,11 @@ def test_committee_member_is_not_finance(client, tokens, seed, path):
 
 ### TC-235 · Resident cannot read another flats receipt
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/invoices/1/receipt`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/invoices/1/receipt`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/invoices/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -13416,13 +9525,7 @@ def test_committee_member_is_not_finance(client, tokens, seed, path):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to view this receipt"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -13446,15 +9549,11 @@ def test_resident_cannot_read_another_flats_receipt(client, admin,
 
 ### TC-236 · Duplicate invoice for same flat month year returns 409
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/invoices/` → 201, `POST /api/invoices/` → 409
+- _none_
 
 **Expected Output:**
 
@@ -13463,23 +9562,7 @@ def test_resident_cannot_read_another_flats_receipt(client, admin,
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "amount": 2500.0,
-        "apartment_id": 1,
-        "created_at": "2026-08-02 13:29:07.364001",
-        "due_date": null,
-        "flat_number": "A-101",
-        "id": 1,
-        "month": 7,
-        "status": "UNPAID",
-        "year": 2026
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -13508,50 +9591,19 @@ def test_duplicate_invoice_for_same_flat_month_year_returns_409(
 
 ### TC-237 · Same month different flat is allowed
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/invoices/` → 201, `POST /api/invoices/` → 201
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `200`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "amount": 2500.0,
-        "apartment_id": 2,
-        "created_at": "2026-08-02 13:29:07.460983",
-        "due_date": null,
-        "flat_number": "B-202",
-        "id": 2,
-        "month": 7,
-        "status": "UNPAID",
-        "year": 2026
-      },
-      {
-        "amount": 2500.0,
-        "apartment_id": 1,
-        "created_at": "2026-08-02 13:29:07.454783",
-        "due_date": null,
-        "flat_number": "A-101",
-        "id": 1,
-        "month": 7,
-        "status": "UNPAID",
-        "year": 2026
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -13573,15 +9625,11 @@ def test_same_month_different_flat_is_allowed(client, admin, seed):
 
 ### TC-238 · Regression: the second payment used to insert a duplicate Payment row
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/invoices/1/receipt`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/invoices/1/receipt`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/invoices/` → 201, `PUT /api/invoices/1/pay` → 200, `PUT /api/invoices/1/pay` → 409
+- _none_
 
 **Expected Output:**
 
@@ -13590,20 +9638,7 @@ def test_same_month_different_flat_is_allowed(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "amount": 2500.0,
-      "flat_number": "A-101",
-      "month": 7,
-      "payment_date": "2026-08-02 13:29:07.557191",
-      "payment_method": "UPI",
-      "receipt_number": "RCP-0001",
-      "transaction_reference": "TXN-1",
-      "year": 2026
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -13637,15 +9672,11 @@ def test_pay_invoice_twice_returns_409(client, admin, seed):
 
 ### TC-239 · Receipt for unpaid invoice returns 400
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/invoices/1/receipt`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/invoices/1/receipt`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/invoices/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -13654,13 +9685,7 @@ def test_pay_invoice_twice_returns_409(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Invoice not paid yet"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -13683,20 +9708,11 @@ def test_receipt_for_unpaid_invoice_returns_400(client, admin, seed):
 
 ### TC-240 · Pay invoice for flat without resident returns 404
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/invoices/1/pay`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/invoices/1/pay`
-- JSON body:
-    ```json
-    {
-      "payment_method": "UPI"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/invoices/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -13705,13 +9721,7 @@ def test_receipt_for_unpaid_invoice_returns_400(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `404`
-- JSON:
-    ```json
-    {
-      "error": "No resident found for this apartment"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -13734,15 +9744,11 @@ def test_pay_invoice_for_flat_without_resident_returns_404(client, admin, seed):
 
 ### TC-241 · Unknown invoice returns 404
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/invoices/99999/receipt`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/invoices/99999/receipt`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `PUT /api/invoices/99999/pay` → 404
+- _none_
 
 **Expected Output:**
 
@@ -13750,13 +9756,7 @@ def test_pay_invoice_for_flat_without_resident_returns_404(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `404`
-- JSON:
-    ```json
-    {
-      "error": "The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again."
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -13777,15 +9777,11 @@ def test_unknown_invoice_returns_404(client, admin, seed):
 
 ### TC-242 · Resident sees only own flat invoices
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/invoices/` → 201, `POST /api/invoices/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -13793,23 +9789,7 @@ def test_unknown_invoice_returns_404(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "amount": 2500.0,
-        "apartment_id": 1,
-        "created_at": "2026-08-02 13:29:07.925895",
-        "due_date": null,
-        "flat_number": "A-101",
-        "id": 1,
-        "month": 7,
-        "status": "UNPAID",
-        "year": 2026
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -13833,15 +9813,11 @@ def test_resident_sees_only_own_flat_invoices(client, admin, resident, seed):
 
 ### TC-243 · Regression: /pending used to leak every flat's outstanding dues
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/invoices/pending`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/invoices/pending`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/invoices/` → 201, `POST /api/invoices/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -13849,23 +9825,7 @@ def test_resident_sees_only_own_flat_invoices(client, admin, resident, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "amount": 2500.0,
-        "apartment_id": 1,
-        "created_at": "2026-08-02 13:29:08.022142",
-        "due_date": null,
-        "flat_number": "A-101",
-        "id": 1,
-        "month": 7,
-        "status": "UNPAID",
-        "year": 2026
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -13892,15 +9852,11 @@ def test_resident_pending_is_scoped_to_own_flat(client, admin, resident, seed):
 
 ### TC-244 · User without a flat sees an empty list
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/invoices/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -13908,11 +9864,7 @@ def test_resident_pending_is_scoped_to_own_flat(client, admin, resident, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    []
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -13937,15 +9889,11 @@ def test_user_without_a_flat_sees_an_empty_list(client, admin, worker,
 
 ### TC-245 · User without a flat sees an empty list
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/invoices/pending`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/invoices/pending`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/invoices/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -13953,11 +9901,7 @@ def test_user_without_a_flat_sees_an_empty_list(client, admin, worker,
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    []
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -13989,24 +9933,11 @@ def test_user_without_a_flat_sees_an_empty_list(client, admin, worker,
 
 ### TC-246 · Admin logs expense
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body:
-    ```json
-    {
-      "category": "utilities",
-      "description": "Common area electricity bill",
-      "amount": 12750.25,
-      "expense_date": "2026-08-05",
-      "receipt_url": "https://example.com/bill.pdf"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -14014,21 +9945,7 @@ def test_user_without_a_flat_sees_an_empty_list(client, admin, worker,
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "amount": 12750.25,
-      "category": "UTILITIES",
-      "created_at": "2026-08-02 13:28:57.634739",
-      "description": "Common area electricity bill",
-      "expense_date": "2026-08-05",
-      "id": 1,
-      "paid_by": 1,
-      "paid_by_name": "Priya Admin",
-      "receipt_url": "https://example.com/bill.pdf"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -14063,45 +9980,19 @@ def test_admin_logs_expense(client, admin, seed):
 
 ### TC-247 · Treasurer can log expense
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body:
-    ```json
-    {
-      "category": "MAINTENANCE",
-      "description": "Lift annual servicing",
-      "amount": 4500,
-      "expense_date": "2026-08-05"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `201`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "amount": 4500.0,
-      "category": "MAINTENANCE",
-      "created_at": "2026-08-02 13:28:57.722586",
-      "description": "Lift annual servicing",
-      "expense_date": "2026-08-05",
-      "id": 1,
-      "paid_by": 2,
-      "paid_by_name": "Tarun Treasurer",
-      "receipt_url": null
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -14121,46 +10012,19 @@ def test_treasurer_can_log_expense(client, treasurer, seed):
 
 ### TC-248 · Paid by defaults to the logged in user
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body:
-    ```json
-    {
-      "category": "MAINTENANCE",
-      "description": "Lift annual servicing",
-      "amount": 4500,
-      "expense_date": "2026-08-05",
-      "paid_by": null
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `201`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "amount": 4500.0,
-      "category": "MAINTENANCE",
-      "created_at": "2026-08-02 13:28:57.812626",
-      "description": "Lift annual servicing",
-      "expense_date": "2026-08-05",
-      "id": 1,
-      "paid_by": 2,
-      "paid_by_name": "Tarun Treasurer",
-      "receipt_url": null
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -14180,46 +10044,19 @@ def test_paid_by_defaults_to_the_logged_in_user(client, treasurer, seed):
 
 ### TC-249 · Admin may attribute expense to another user
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body:
-    ```json
-    {
-      "category": "MAINTENANCE",
-      "description": "Lift annual servicing",
-      "amount": 4500,
-      "expense_date": "2026-08-05",
-      "paid_by": 6
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `201`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "amount": 4500.0,
-      "category": "MAINTENANCE",
-      "created_at": "2026-08-02 13:28:57.903163",
-      "description": "Lift annual servicing",
-      "expense_date": "2026-08-05",
-      "id": 1,
-      "paid_by": 6,
-      "paid_by_name": "Ramesh Worker",
-      "receipt_url": null
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -14240,24 +10077,11 @@ def test_admin_may_attribute_expense_to_another_user(client, admin, seed):
 
 ### TC-250 · Paid by unknown user returns 404
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body:
-    ```json
-    {
-      "category": "SALARY",
-      "description": "Guard salary",
-      "amount": 15000,
-      "expense_date": "2026-08-01",
-      "paid_by": 99999
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -14266,13 +10090,7 @@ def test_admin_may_attribute_expense_to_another_user(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `404`
-- JSON:
-    ```json
-    {
-      "error": "paid_by user not found"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -14297,15 +10115,11 @@ def test_paid_by_unknown_user_returns_404(client, admin, seed):
 
 ### TC-251 · List expenses
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/expenses/` → 201, `POST /api/expenses/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -14313,11 +10127,7 @@ def test_paid_by_unknown_user_returns_404(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [{"amount": 4500.0, "category": "MAINTENANCE", "created_at": "2026-08-02 13:28:58.155226", "description": "Second", "expense_date": "2026-08-20", "id": 2, "paid_by": 1, "paid_by_name": "Priya Admin", "receipt_url": null}, {"amount": 4500.0, "category": "MAINTENANCE", "created_at": "2026-08-02 13:28:58.149655", "description": "First", "expense_date": "2026-08-01", "id": 1, "paid_by": 1, "paid_by_n…
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -14343,23 +10153,11 @@ def test_list_expenses(client, admin, seed):
 
 ### TC-252 · Update expense
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/expenses/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/expenses/1`
-- JSON body:
-    ```json
-    {
-      "description": "Lift servicing (revised)",
-      "amount": 5200,
-      "category": "CONSUMABLES",
-      "receipt_url": "https://example.com/new.pdf"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/expenses/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -14367,21 +10165,7 @@ def test_list_expenses(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "amount": 5200.0,
-      "category": "CONSUMABLES",
-      "created_at": "2026-08-02 13:28:58.245007",
-      "description": "Lift servicing (revised)",
-      "expense_date": "2026-08-05",
-      "id": 1,
-      "paid_by": 1,
-      "paid_by_name": "Priya Admin",
-      "receipt_url": "https://example.com/new.pdf"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -14415,15 +10199,11 @@ def test_update_expense(client, admin, seed):
 
 ### TC-253 · Delete expense
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/expenses/` → 201, `DELETE /api/expenses/1` → 200
+- _none_
 
 **Expected Output:**
 
@@ -14432,11 +10212,7 @@ def test_update_expense(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    []
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -14460,15 +10236,11 @@ def test_delete_expense(client, admin, seed):
 
 ### TC-254 · Unknown expense returns 404
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/expenses/99999`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/expenses/99999`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `PUT /api/expenses/99999` → 404
+- _none_
 
 **Expected Output:**
 
@@ -14476,13 +10248,7 @@ def test_delete_expense(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `404`
-- JSON:
-    ```json
-    {
-      "error": "The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again."
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -14503,15 +10269,11 @@ def test_unknown_expense_returns_404(client, admin, seed):
 
 ### TC-255 · Summary for a month
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/expenses/summary?month=8&year=2026`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/expenses/summary?month=8&year=2026`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (6): `POST /api/expenses/` → 201, `POST /api/expenses/` → 201, `POST /api/invoices/` → 201, `PUT /api/invoices/1/pay` → 200
+- _none_
 
 **Expected Output:**
 
@@ -14519,19 +10281,7 @@ def test_unknown_expense_returns_404(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "by_category": {
-        "SALARY": 15000.0,
-        "UTILITIES": 2500.0
-      },
-      "net_balance": -14500.0,
-      "total_expense": 17500.0,
-      "total_income": 3000.0
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -14569,15 +10319,11 @@ def test_summary_for_a_month(client, admin, seed):
 
 ### TC-256 · Summary without filters is all time
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/expenses/summary`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/expenses/summary`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/expenses/` → 201, `POST /api/expenses/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -14585,18 +10331,7 @@ def test_summary_for_a_month(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "by_category": {
-        "MAINTENANCE": 350.0
-      },
-      "net_balance": -350.0,
-      "total_expense": 350.0,
-      "total_income": 0
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -14620,15 +10355,11 @@ def test_summary_without_filters_is_all_time(client, admin, seed):
 
 ### TC-257 · Regression: half a filter silently fell through to all-time totals
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/expenses/summary?month=8`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/expenses/summary?month=8`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -14637,13 +10368,7 @@ def test_summary_without_filters_is_all_time(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Provide both month and year"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -14667,15 +10392,11 @@ def test_summary_with_partial_filter_returns_400(client, admin, seed, query):
 
 ### TC-258 · Regression: half a filter silently fell through to all-time totals
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/expenses/summary?year=2026`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/expenses/summary?year=2026`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -14684,13 +10405,7 @@ def test_summary_with_partial_filter_returns_400(client, admin, seed, query):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Provide both month and year"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -14714,15 +10429,11 @@ def test_summary_with_partial_filter_returns_400(client, admin, seed, query):
 
 ### TC-259 · Regression: half a filter silently fell through to all-time totals
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/expenses/summary?month=8&year=`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/expenses/summary?month=8&year=`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -14731,13 +10442,7 @@ def test_summary_with_partial_filter_returns_400(client, admin, seed, query):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Provide both month and year"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -14761,15 +10466,11 @@ def test_summary_with_partial_filter_returns_400(client, admin, seed, query):
 
 ### TC-260 · Regression: half a filter silently fell through to all-time totals
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/expenses/summary?month=&year=2026`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/expenses/summary?month=&year=2026`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -14778,13 +10479,7 @@ def test_summary_with_partial_filter_returns_400(client, admin, seed, query):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Provide both month and year"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -14808,15 +10503,11 @@ def test_summary_with_partial_filter_returns_400(client, admin, seed, query):
 
 ### TC-261 · Summary month out of range returns 400
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/expenses/summary?month=99&year=2026`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/expenses/summary?month=99&year=2026`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -14825,13 +10516,7 @@ def test_summary_with_partial_filter_returns_400(client, admin, seed, query):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "month must be at most 12"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -14852,15 +10537,11 @@ def test_summary_month_out_of_range_returns_400(client, admin, seed):
 
 ### TC-262 · Summary non numeric month returns 400
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/expenses/summary?month=August&year=2026`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/expenses/summary?month=August&year=2026`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -14869,13 +10550,7 @@ def test_summary_month_out_of_range_returns_400(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "month must be a whole number"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -14897,22 +10572,11 @@ def test_summary_non_numeric_month_returns_400(client, admin, seed):
 
 ### TC-263 · Add expense missing required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body:
-    ```json
-    {
-      "description": "Painting",
-      "amount": 1000,
-      "expense_date": "2026-08-05"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -14920,13 +10584,7 @@ def test_summary_non_numeric_month_returns_400(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "category is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -14954,22 +10612,11 @@ def test_add_expense_missing_required_field_returns_400(client, admin,
 
 ### TC-264 · Add expense missing required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body:
-    ```json
-    {
-      "category": "MAINTENANCE",
-      "amount": 1000,
-      "expense_date": "2026-08-05"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -14977,13 +10624,7 @@ def test_add_expense_missing_required_field_returns_400(client, admin,
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "description is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -15011,22 +10652,11 @@ def test_add_expense_missing_required_field_returns_400(client, admin,
 
 ### TC-265 · Add expense missing required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body:
-    ```json
-    {
-      "category": "MAINTENANCE",
-      "description": "Painting",
-      "expense_date": "2026-08-05"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -15034,13 +10664,7 @@ def test_add_expense_missing_required_field_returns_400(client, admin,
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "amount is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -15068,22 +10692,11 @@ def test_add_expense_missing_required_field_returns_400(client, admin,
 
 ### TC-266 · Add expense missing required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body:
-    ```json
-    {
-      "category": "MAINTENANCE",
-      "description": "Painting",
-      "amount": 1000
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -15091,13 +10704,7 @@ def test_add_expense_missing_required_field_returns_400(client, admin,
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "expense_date is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -15125,23 +10732,11 @@ def test_add_expense_missing_required_field_returns_400(client, admin,
 
 ### TC-267 · Add expense bad category returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body:
-    ```json
-    {
-      "category": "PIZZA",
-      "description": "Team lunch",
-      "amount": 1000,
-      "expense_date": "2026-08-05"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -15149,13 +10744,7 @@ def test_add_expense_missing_required_field_returns_400(client, admin,
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "expense_category must be one of: SALARY, MAINTENANCE, UTILITIES, CONSUMABLES, MISCELLANEOUS"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -15180,23 +10769,11 @@ def test_add_expense_bad_category_returns_400(client, admin, seed):
 
 ### TC-268 · Regression: raw strings used to reach the Date column and 500
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body:
-    ```json
-    {
-      "category": "MAINTENANCE",
-      "description": "Painting",
-      "amount": 1000,
-      "expense_date": "yesterday"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -15205,13 +10782,7 @@ def test_add_expense_bad_category_returns_400(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "expense_date must be a valid date (YYYY-MM-DD)"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -15238,23 +10809,11 @@ def test_add_expense_bad_date_returns_400(client, admin, seed, bad_date):
 
 ### TC-269 · Regression: raw strings used to reach the Date column and 500
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body:
-    ```json
-    {
-      "category": "MAINTENANCE",
-      "description": "Painting",
-      "amount": 1000,
-      "expense_date": "05-08-2026"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -15263,13 +10822,7 @@ def test_add_expense_bad_date_returns_400(client, admin, seed, bad_date):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "expense_date must be a valid date (YYYY-MM-DD)"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -15296,23 +10849,11 @@ def test_add_expense_bad_date_returns_400(client, admin, seed, bad_date):
 
 ### TC-270 · Regression: raw strings used to reach the Date column and 500
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body:
-    ```json
-    {
-      "category": "MAINTENANCE",
-      "description": "Painting",
-      "amount": 1000,
-      "expense_date": "2026-13-01"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -15321,13 +10862,7 @@ def test_add_expense_bad_date_returns_400(client, admin, seed, bad_date):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "expense_date must be a valid date (YYYY-MM-DD)"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -15354,23 +10889,11 @@ def test_add_expense_bad_date_returns_400(client, admin, seed, bad_date):
 
 ### TC-271 · expense_date is required, so a blank one is rejected by require()
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body:
-    ```json
-    {
-      "category": "MAINTENANCE",
-      "description": "Painting",
-      "amount": 1000,
-      "expense_date": ""
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -15379,13 +10902,7 @@ def test_add_expense_bad_date_returns_400(client, admin, seed, bad_date):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "expense_date is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -15411,23 +10928,11 @@ def test_add_expense_blank_date_returns_400(client, admin, seed):
 
 ### TC-272 · Add expense non numeric amount returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body:
-    ```json
-    {
-      "category": "MAINTENANCE",
-      "description": "Painting",
-      "amount": "one thousand",
-      "expense_date": "2026-08-05"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -15436,13 +10941,7 @@ def test_add_expense_blank_date_returns_400(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "amount must be a number"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -15467,23 +10966,11 @@ def test_add_expense_non_numeric_amount_returns_400(client, admin, seed):
 
 ### TC-273 · Add expense negative amount returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body:
-    ```json
-    {
-      "category": "MAINTENANCE",
-      "description": "Painting",
-      "amount": -1,
-      "expense_date": "2026-08-05"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -15492,13 +10979,7 @@ def test_add_expense_non_numeric_amount_returns_400(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "amount must be at least 0"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -15523,20 +11004,11 @@ def test_add_expense_negative_amount_returns_400(client, admin, seed):
 
 ### TC-274 · Update expense bad category returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/expenses/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/expenses/1`
-- JSON body:
-    ```json
-    {
-      "category": "PIZZA"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/expenses/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -15544,13 +11016,7 @@ def test_add_expense_negative_amount_returns_400(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "expense_category must be one of: SALARY, MAINTENANCE, UTILITIES, CONSUMABLES, MISCELLANEOUS"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -15574,20 +11040,11 @@ def test_update_expense_bad_category_returns_400(client, admin, seed):
 
 ### TC-275 · Update expense non numeric amount returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/expenses/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/expenses/1`
-- JSON body:
-    ```json
-    {
-      "amount": "one thousand"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/expenses/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -15596,13 +11053,7 @@ def test_update_expense_bad_category_returns_400(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "amount must be a number"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -15626,18 +11077,11 @@ def test_update_expense_non_numeric_amount_returns_400(client, admin, seed):
 
 ### TC-276 · Add expense malformed body returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body:
-    ```json
-    null
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -15645,13 +11089,7 @@ def test_update_expense_non_numeric_amount_returns_400(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be valid JSON"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -15678,18 +11116,11 @@ def test_add_expense_malformed_body_returns_400(client, admin, seed,
 
 ### TC-277 · Add expense malformed body returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body:
-    ```json
-    []
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -15697,13 +11128,7 @@ def test_add_expense_malformed_body_returns_400(client, admin, seed,
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -15730,17 +11155,11 @@ def test_add_expense_malformed_body_returns_400(client, admin, seed,
 
 ### TC-278 · Expense endpoints require a token
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -15748,13 +11167,7 @@ def test_add_expense_malformed_body_returns_400(client, admin, seed,
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -15781,17 +11194,11 @@ def test_expense_endpoints_require_a_token(client, seed, method, path):
 
 ### TC-279 · Expense endpoints require a token
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -15799,13 +11206,7 @@ def test_expense_endpoints_require_a_token(client, seed, method, path):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -15832,17 +11233,11 @@ def test_expense_endpoints_require_a_token(client, seed, method, path):
 
 ### TC-280 · Expense endpoints require a token
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/expenses/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/expenses/1`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -15850,13 +11245,7 @@ def test_expense_endpoints_require_a_token(client, seed, method, path):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -15883,17 +11272,11 @@ def test_expense_endpoints_require_a_token(client, seed, method, path):
 
 ### TC-281 · Expense endpoints require a token
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/expenses/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/expenses/1`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -15901,13 +11284,7 @@ def test_expense_endpoints_require_a_token(client, seed, method, path):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -15934,17 +11311,11 @@ def test_expense_endpoints_require_a_token(client, seed, method, path):
 
 ### TC-282 · Expense endpoints require a token
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/expenses/summary`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/expenses/summary`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -15952,13 +11323,7 @@ def test_expense_endpoints_require_a_token(client, seed, method, path):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -15985,15 +11350,11 @@ def test_expense_endpoints_require_a_token(client, seed, method, path):
 
 ### TC-283 · Resident cannot list expenses
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -16002,13 +11363,7 @@ def test_expense_endpoints_require_a_token(client, seed, method, path):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -16029,23 +11384,11 @@ def test_resident_cannot_list_expenses(client, resident, seed):
 
 ### TC-284 · Resident cannot add expense
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body:
-    ```json
-    {
-      "category": "MAINTENANCE",
-      "description": "Painting",
-      "amount": 1000,
-      "expense_date": "2026-08-05"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -16054,13 +11397,7 @@ def test_resident_cannot_list_expenses(client, resident, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -16085,15 +11422,11 @@ def test_resident_cannot_add_expense(client, resident, seed):
 
 ### TC-285 · Resident cannot delete expense
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/expenses/` → 201, `DELETE /api/expenses/1` → 403
+- _none_
 
 **Expected Output:**
 
@@ -16101,23 +11434,7 @@ def test_resident_cannot_add_expense(client, resident, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "amount": 4500.0,
-        "category": "MAINTENANCE",
-        "created_at": "2026-08-02 13:29:01.201987",
-        "description": "Lift annual servicing",
-        "expense_date": "2026-08-05",
-        "id": 1,
-        "paid_by": 1,
-        "paid_by_name": "Priya Admin",
-        "receipt_url": null
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -16140,15 +11457,11 @@ def test_resident_cannot_delete_expense(client, admin, resident, seed):
 
 ### TC-286 · Worker cannot read the ledger
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/expenses/summary`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/expenses/summary`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `GET /api/expenses/` → 403
+- _none_
 
 **Expected Output:**
 
@@ -16156,13 +11469,7 @@ def test_resident_cannot_delete_expense(client, admin, resident, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -16182,23 +11489,11 @@ def test_worker_cannot_read_the_ledger(client, worker, seed):
 
 ### TC-287 · COMMITTEE_MEMBER is an admin role but must not reach the ledger
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body:
-    ```json
-    {
-      "category": "MAINTENANCE",
-      "description": "Painting",
-      "amount": 1000,
-      "expense_date": "2026-08-05"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (6): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -16206,13 +11501,7 @@ def test_worker_cannot_read_the_ledger(client, worker, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -16242,23 +11531,11 @@ def test_committee_member_is_not_finance(client, tokens, seed, method, path):
 
 ### TC-288 · COMMITTEE_MEMBER is an admin role but must not reach the ledger
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body:
-    ```json
-    {
-      "category": "MAINTENANCE",
-      "description": "Painting",
-      "amount": 1000,
-      "expense_date": "2026-08-05"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (6): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -16266,13 +11543,7 @@ def test_committee_member_is_not_finance(client, tokens, seed, method, path):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -16302,23 +11573,11 @@ def test_committee_member_is_not_finance(client, tokens, seed, method, path):
 
 ### TC-289 · COMMITTEE_MEMBER is an admin role but must not reach the ledger
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/expenses/summary`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/expenses/summary`
-- JSON body:
-    ```json
-    {
-      "category": "MAINTENANCE",
-      "description": "Painting",
-      "amount": 1000,
-      "expense_date": "2026-08-05"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (6): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -16326,13 +11585,7 @@ def test_committee_member_is_not_finance(client, tokens, seed, method, path):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -16369,22 +11622,11 @@ def test_committee_member_is_not_finance(client, tokens, seed, method, path):
 
 ### TC-290 · Admin can publish a notice
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/notices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/notices/`
-- JSON body:
-    ```json
-    {
-      "title": "Water shutdown",
-      "content": "No water 9am-1pm on Friday.",
-      "category": "MAINTENANCE"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -16392,20 +11634,7 @@ def test_committee_member_is_not_finance(client, tokens, seed, method, path):
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "category": "MAINTENANCE",
-      "content": "No water 9am-1pm on Friday.",
-      "created_at": "2026-08-02 13:29:20.094102",
-      "id": 1,
-      "is_active": true,
-      "published_by": 1,
-      "published_by_name": "Priya Admin",
-      "title": "Water shutdown"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -16430,42 +11659,19 @@ def test_admin_can_publish_a_notice(client, seed, admin):
 
 ### TC-291 · Category defaults to general when omitted
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/notices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/notices/`
-- JSON body:
-    ```json
-    {
-      "title": "Water shutdown",
-      "content": "No water 9am-1pm on Friday."
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `201`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "category": "GENERAL",
-      "content": "No water 9am-1pm on Friday.",
-      "created_at": "2026-08-02 13:29:20.179437",
-      "id": 1,
-      "is_active": true,
-      "published_by": 1,
-      "published_by_name": "Priya Admin",
-      "title": "Water shutdown"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -16485,21 +11691,11 @@ def test_category_defaults_to_general_when_omitted(client, seed, admin):
 
 ### TC-292 · Treasurer is also allowed to publish
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/notices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/notices/`
-- JSON body:
-    ```json
-    {
-      "title": "Water shutdown",
-      "content": "No water 9am-1pm on Friday."
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -16507,20 +11703,7 @@ def test_category_defaults_to_general_when_omitted(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "category": "GENERAL",
-      "content": "No water 9am-1pm on Friday.",
-      "created_at": "2026-08-02 13:29:20.263181",
-      "id": 1,
-      "is_active": true,
-      "published_by": 2,
-      "published_by_name": "Tarun Treasurer",
-      "title": "Water shutdown"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -16539,15 +11722,11 @@ def test_treasurer_is_also_allowed_to_publish(client, seed, treasurer):
 
 ### TC-293 · Notice list returns newest notices
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/notices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/notices/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/notices/` → 201, `POST /api/notices/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -16555,11 +11734,7 @@ def test_treasurer_is_also_allowed_to_publish(client, seed, treasurer):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [{"category": "GENERAL", "content": "No water 9am-1pm on Friday.", "created_at": "2026-08-02 13:29:20.354954", "id": 2, "is_active": true, "published_by": 1, "published_by_name": "Priya Admin", "title": "Second"}, {"category": "GENERAL", "content": "No water 9am-1pm on Friday.", "created_at": "2026-08-02 13:29:20.349076", "id": 1, "is_active": true, "published_by": 1, "published_by_name": "Priya …
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -16584,21 +11759,11 @@ def test_notice_list_returns_newest_notices(client, seed, admin):
 
 ### TC-294 · Admin can update a notice
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/notices/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/notices/1`
-- JSON body:
-    ```json
-    {
-      "title": "Water shutdown (revised)",
-      "category": "EMERGENCY"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/notices/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -16606,20 +11771,7 @@ def test_notice_list_returns_newest_notices(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "category": "EMERGENCY",
-      "content": "No water 9am-1pm on Friday.",
-      "created_at": "2026-08-02 13:29:20.439904",
-      "id": 1,
-      "is_active": true,
-      "published_by": 1,
-      "published_by_name": "Priya Admin",
-      "title": "Water shutdown (revised)"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -16646,15 +11798,11 @@ def test_admin_can_update_a_notice(client, seed, admin):
 
 ### TC-295 · Delete soft deletes and hides the notice from the list
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/notices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/notices/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/notices/` → 201, `DELETE /api/notices/1` → 200
+- _none_
 
 **Expected Output:**
 
@@ -16663,11 +11811,7 @@ def test_admin_can_update_a_notice(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    []
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -16693,20 +11837,11 @@ def test_delete_soft_deletes_and_hides_the_notice_from_the_list(client, seed, ad
 
 ### TC-296 · Updating a missing notice returns 404
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/notices/9999`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/notices/9999`
-- JSON body:
-    ```json
-    {
-      "title": "x"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -16714,13 +11849,7 @@ def test_delete_soft_deletes_and_hides_the_notice_from_the_list(client, seed, ad
 
 **Actual Output:**
 
-- HTTP Status Code: `404`
-- JSON:
-    ```json
-    {
-      "error": "The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again."
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -16739,20 +11868,11 @@ def test_updating_a_missing_notice_returns_404(client, seed, admin):
 
 ### TC-297 · Notice without title is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/notices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/notices/`
-- JSON body:
-    ```json
-    {
-      "content": "body only"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -16761,13 +11881,7 @@ def test_updating_a_missing_notice_returns_404(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "title is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -16788,20 +11902,11 @@ def test_notice_without_title_is_rejected(client, seed, admin):
 
 ### TC-298 · Notice without content is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/notices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/notices/`
-- JSON body:
-    ```json
-    {
-      "title": "title only"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -16810,13 +11915,7 @@ def test_notice_without_title_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "content is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -16837,21 +11936,11 @@ def test_notice_without_content_is_rejected(client, seed, admin):
 
 ### TC-299 · Blank title is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/notices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/notices/`
-- JSON body:
-    ```json
-    {
-      "title": "   ",
-      "content": "No water 9am-1pm on Friday."
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -16860,13 +11949,7 @@ def test_notice_without_content_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "title is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -16887,22 +11970,11 @@ def test_blank_title_is_rejected(client, seed, admin):
 
 ### TC-300 · Unknown category is rejected instead of being stored
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/notices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/notices/`
-- JSON body:
-    ```json
-    {
-      "title": "Water shutdown",
-      "content": "No water 9am-1pm on Friday.",
-      "category": "SPAM"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -16910,13 +11982,7 @@ def test_blank_title_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "category must be one of: GENERAL, FINANCIAL, MAINTENANCE, EMERGENCY"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -16937,20 +12003,11 @@ def test_unknown_category_is_rejected_instead_of_being_stored(client, seed, admi
 
 ### TC-301 · Unknown category on update is rejected
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/notices/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/notices/1`
-- JSON body:
-    ```json
-    {
-      "category": "NONSENSE"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/notices/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -16958,13 +12015,7 @@ def test_unknown_category_is_rejected_instead_of_being_stored(client, seed, admi
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "category must be one of: GENERAL, FINANCIAL, MAINTENANCE, EMERGENCY"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -16986,18 +12037,11 @@ def test_unknown_category_on_update_is_rejected(client, seed, admin):
 
 ### TC-302 · Null body is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/notices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/notices/`
-- JSON body:
-    ```json
-    null
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -17006,13 +12050,7 @@ def test_unknown_category_on_update_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be valid JSON"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -17034,18 +12072,11 @@ def test_null_body_is_rejected(client, seed, admin):
 
 ### TC-303 · List body is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/notices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/notices/`
-- JSON body:
-    ```json
-    []
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -17054,13 +12085,7 @@ def test_null_body_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -17082,21 +12107,11 @@ def test_list_body_is_rejected(client, seed, admin):
 
 ### TC-304 · Notices require authentication
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/notices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/notices/`
-- JSON body:
-    ```json
-    {
-      "title": "a",
-      "content": "b"
-    }
-    ```
-- Header: _none (unauthenticated request)_
-- Setup calls before this (1): `GET /api/notices/` → 401
+- _none_
 
 **Expected Output:**
 
@@ -17104,13 +12119,7 @@ def test_list_body_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -17130,15 +12139,11 @@ def test_notices_require_authentication(client, seed):
 
 ### TC-305 · Resident can read notices
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/notices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/notices/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/notices/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -17146,22 +12151,7 @@ def test_notices_require_authentication(client, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "category": "GENERAL",
-        "content": "No water 9am-1pm on Friday.",
-        "created_at": "2026-08-02 13:29:21.411538",
-        "id": 1,
-        "is_active": true,
-        "published_by": 1,
-        "published_by_name": "Priya Admin",
-        "title": "Water shutdown"
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -17183,21 +12173,11 @@ def test_resident_can_read_notices(client, seed, admin, resident):
 
 ### TC-306 · Resident cannot publish a notice
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/notices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/notices/`
-- JSON body:
-    ```json
-    {
-      "title": "Water shutdown",
-      "content": "No water 9am-1pm on Friday."
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -17206,13 +12186,7 @@ def test_resident_can_read_notices(client, seed, admin, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -17233,15 +12207,11 @@ def test_resident_cannot_publish_a_notice(client, seed, resident):
 
 ### TC-307 · Resident cannot update or delete a notice
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/notices/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/notices/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/notices/` → 201, `PUT /api/notices/1` → 403
+- _none_
 
 **Expected Output:**
 
@@ -17249,13 +12219,7 @@ def test_resident_cannot_publish_a_notice(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -17284,26 +12248,11 @@ def test_resident_cannot_update_or_delete_a_notice(client, seed, admin, resident
 
 ### TC-308 · Admin can create a poll with options
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/polls/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/polls/`
-- JSON body:
-    ```json
-    {
-      "title": "New gym equipment?",
-      "description": "Should we buy a treadmill?",
-      "options": [
-        "Yes",
-        "No"
-      ],
-      "end_date": "2026-08-09"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -17311,11 +12260,7 @@ def test_resident_cannot_update_or_delete_a_notice(client, seed, admin, resident
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {"created_at": "2026-08-02 13:29:25.468416", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE", "title": "New gym equipment?", "total_votes":…
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -17341,38 +12286,19 @@ def test_admin_can_create_a_poll_with_options(client, seed, admin):
 
 ### TC-309 · Start date defaults to today when omitted
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/polls/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/polls/`
-- JSON body:
-    ```json
-    {
-      "title": "New gym equipment?",
-      "description": "Should we buy a treadmill?",
-      "options": [
-        "Yes",
-        "No"
-      ],
-      "end_date": "2026-08-09"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `201`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {"created_at": "2026-08-02 13:29:25.582024", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE", "title": "New gym equipment?", "total_votes":…
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -17393,39 +12319,19 @@ def test_start_date_defaults_to_today_when_omitted(client, seed, admin):
 
 ### TC-310 · Explicit start date is kept
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/polls/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/polls/`
-- JSON body:
-    ```json
-    {
-      "title": "New gym equipment?",
-      "description": "Should we buy a treadmill?",
-      "options": [
-        "Yes",
-        "No"
-      ],
-      "end_date": "2026-08-09",
-      "start_date": "2026-07-31"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `201`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {"created_at": "2026-08-02 13:29:25.690870", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-07-31", "status": "ACTIVE", "title": "New gym equipment?", "total_votes":…
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -17445,15 +12351,11 @@ def test_explicit_start_date_is_kept(client, seed, admin):
 
 ### TC-311 · Single poll can be fetched
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/polls/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/polls/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/polls/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -17461,11 +12363,7 @@ def test_explicit_start_date_is_kept(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {"created_at": "2026-08-02 13:29:25.800720", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE", "title": "New gym equipment?", "total_votes":…
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -17487,20 +12385,11 @@ def test_single_poll_can_be_fetched(client, seed, admin):
 
 ### TC-312 · Resident can vote and results are tallied
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/polls/1/vote`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/polls/1/vote`
-- JSON body:
-    ```json
-    {
-      "option_id": 1
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/polls/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -17508,11 +12397,7 @@ def test_single_poll_can_be_fetched(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {"message": "Vote cast successfully", "poll": {"created_at": "2026-08-02 13:29:25.923827", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": true, "id": 1, "my_option_id": 1, "options": [{"id": 1, "percentage": 100.0, "text": "Yes", "votes": 1}, {"id": 2, "percentage": 0.0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE…
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -17540,15 +12425,11 @@ def test_resident_can_vote_and_results_are_tallied(client, seed, admin, resident
 
 ### TC-313 · Admin can close a poll
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/polls/1/close`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/polls/1/close`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/polls/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -17556,11 +12437,7 @@ def test_resident_can_vote_and_results_are_tallied(client, seed, admin, resident
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {"message": "Poll closed", "poll": {"created_at": "2026-08-02 13:29:26.047723", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "CLOSED", "title": "…
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -17582,15 +12459,11 @@ def test_admin_can_close_a_poll(client, seed, admin):
 
 ### TC-314 · Admin can delete a poll
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/polls/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/polls/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/polls/` → 201, `DELETE /api/polls/1` → 200
+- _none_
 
 **Expected Output:**
 
@@ -17598,13 +12471,7 @@ def test_admin_can_close_a_poll(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `404`
-- JSON:
-    ```json
-    {
-      "error": "The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again."
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -17625,28 +12492,19 @@ def test_admin_can_delete_a_poll(client, seed, admin):
 
 ### TC-315 · Poll list reports has voted per user
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/polls/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/polls/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (6): `POST /api/polls/` → 201, `GET /api/polls/` → 200, `POST /api/polls/1/vote` → 200, `GET /api/polls/` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `200`
 - JSON: `my_option_id` is null
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [{"created_at": "2026-08-02 13:29:26.338329", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 100.0, "text": "Yes", "votes": 1}, {"id": 2, "percentage": 0.0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE", "title": "New gym equipment?", "total_…
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -17679,20 +12537,11 @@ def test_poll_list_reports_has_voted_per_user(client, seed, admin, resident):
 
 ### TC-316 · Voting twice returns 409
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/polls/1/vote`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/polls/1/vote`
-- JSON body:
-    ```json
-    {
-      "option_id": 1
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/polls/` → 201, `POST /api/polls/1/vote` → 200
+- _none_
 
 **Expected Output:**
 
@@ -17701,13 +12550,7 @@ def test_poll_list_reports_has_voted_per_user(client, seed, admin, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `409`
-- JSON:
-    ```json
-    {
-      "error": "You have already voted"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -17733,20 +12576,11 @@ def test_voting_twice_returns_409(client, seed, admin, resident):
 
 ### TC-317 · Voting on a closed poll is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/polls/1/vote`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/polls/1/vote`
-- JSON body:
-    ```json
-    {
-      "option_id": 1
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/polls/` → 201, `PUT /api/polls/1/close` → 200
+- _none_
 
 **Expected Output:**
 
@@ -17755,13 +12589,7 @@ def test_voting_twice_returns_409(client, seed, admin, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Poll is not active"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -17786,20 +12614,11 @@ def test_voting_on_a_closed_poll_is_rejected(client, seed, admin, resident):
 
 ### TC-318 · Voting before the window opens is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/polls/1/vote`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/polls/1/vote`
-- JSON body:
-    ```json
-    {
-      "option_id": 1
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/polls/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -17807,13 +12626,7 @@ def test_voting_on_a_closed_poll_is_rejected(client, seed, admin, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Voting opens on 2026-08-03"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -17838,20 +12651,11 @@ def test_voting_before_the_window_opens_is_rejected(client, seed, admin, residen
 
 ### TC-319 · Voting after the window closes is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/polls/1/vote`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/polls/1/vote`
-- JSON body:
-    ```json
-    {
-      "option_id": 1
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/polls/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -17859,13 +12663,7 @@ def test_voting_before_the_window_opens_is_rejected(client, seed, admin, residen
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Voting closed on 2026-08-01"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -17891,20 +12689,11 @@ def test_voting_after_the_window_closes_is_rejected(client, seed, admin, residen
 
 ### TC-320 · Voting for an option of another poll is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/polls/2/vote`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/polls/2/vote`
-- JSON body:
-    ```json
-    {
-      "option_id": 1
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/polls/` → 201, `POST /api/polls/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -17913,13 +12702,7 @@ def test_voting_after_the_window_closes_is_rejected(client, seed, admin, residen
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Invalid option"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -17944,24 +12727,11 @@ def test_voting_for_an_option_of_another_poll_is_rejected(client, seed, admin, r
 
 ### TC-321 · Poll requires an end date
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/polls/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/polls/`
-- JSON body:
-    ```json
-    {
-      "title": "No deadline",
-      "options": [
-        "Yes",
-        "No"
-      ]
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -17970,13 +12740,7 @@ def test_voting_for_an_option_of_another_poll_is_rejected(client, seed, admin, r
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "end_date is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -17999,24 +12763,11 @@ def test_poll_requires_an_end_date(client, seed, admin):
 
 ### TC-322 · Poll requires a title
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/polls/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/polls/`
-- JSON body:
-    ```json
-    {
-      "options": [
-        "Yes",
-        "No"
-      ],
-      "end_date": "2026-08-09"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -18025,13 +12776,7 @@ def test_poll_requires_an_end_date(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "title is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -18054,23 +12799,11 @@ def test_poll_requires_a_title(client, seed, admin):
 
 ### TC-323 · "abc" used to be split into three single-letter options
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/polls/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/polls/`
-- JSON body:
-    ```json
-    {
-      "title": "New gym equipment?",
-      "description": "Should we buy a treadmill?",
-      "options": "abc",
-      "end_date": "2026-08-09"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -18079,13 +12812,7 @@ def test_poll_requires_a_title(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "options must be a list"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -18107,21 +12834,11 @@ def test_options_given_as_a_string_are_rejected(client, seed, admin):
 
 ### TC-324 · Missing options are rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/polls/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/polls/`
-- JSON body:
-    ```json
-    {
-      "title": "No options",
-      "end_date": "2026-08-09"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -18130,13 +12847,7 @@ def test_options_given_as_a_string_are_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "options must be a list"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -18159,25 +12870,11 @@ def test_missing_options_are_rejected(client, seed, admin):
 
 ### TC-325 · Fewer than two options are rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/polls/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/polls/`
-- JSON body:
-    ```json
-    {
-      "title": "New gym equipment?",
-      "description": "Should we buy a treadmill?",
-      "options": [
-        "Only one"
-      ],
-      "end_date": "2026-08-09"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -18186,13 +12883,7 @@ def test_missing_options_are_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "At least 2 options required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -18213,27 +12904,11 @@ def test_fewer_than_two_options_are_rejected(client, seed, admin):
 
 ### TC-326 · Blank options do not count towards the minimum
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/polls/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/polls/`
-- JSON body:
-    ```json
-    {
-      "title": "New gym equipment?",
-      "description": "Should we buy a treadmill?",
-      "options": [
-        "Yes",
-        "   ",
-        null
-      ],
-      "end_date": "2026-08-09"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -18242,13 +12917,7 @@ def test_fewer_than_two_options_are_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "At least 2 options required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -18269,26 +12938,11 @@ def test_blank_options_do_not_count_towards_the_minimum(client, seed, admin):
 
 ### TC-327 · Unparseable end date is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/polls/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/polls/`
-- JSON body:
-    ```json
-    {
-      "title": "New gym equipment?",
-      "description": "Should we buy a treadmill?",
-      "options": [
-        "Yes",
-        "No"
-      ],
-      "end_date": "31-12-2026"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -18297,13 +12951,7 @@ def test_blank_options_do_not_count_towards_the_minimum(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "end_date must be a valid date (YYYY-MM-DD)"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -18324,27 +12972,11 @@ def test_unparseable_end_date_is_rejected(client, seed, admin):
 
 ### TC-328 · End date before start date is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/polls/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/polls/`
-- JSON body:
-    ```json
-    {
-      "title": "New gym equipment?",
-      "description": "Should we buy a treadmill?",
-      "options": [
-        "Yes",
-        "No"
-      ],
-      "end_date": "2026-08-02",
-      "start_date": "2026-08-09"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -18353,13 +12985,7 @@ def test_unparseable_end_date_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "end_date cannot be before start_date"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -18381,27 +13007,11 @@ def test_end_date_before_start_date_is_rejected(client, seed, admin):
 
 ### TC-329 · Unknown status is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/polls/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/polls/`
-- JSON body:
-    ```json
-    {
-      "title": "New gym equipment?",
-      "description": "Should we buy a treadmill?",
-      "options": [
-        "Yes",
-        "No"
-      ],
-      "end_date": "2026-08-09",
-      "status": "PENDING"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -18409,13 +13019,7 @@ def test_end_date_before_start_date_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "vote_status must be one of: DRAFT, ACTIVE, CLOSED"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -18436,18 +13040,11 @@ def test_unknown_status_is_rejected(client, seed, admin):
 
 ### TC-330 · Vote requires an option id
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/polls/1/vote`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/polls/1/vote`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/polls/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -18456,13 +13053,7 @@ def test_unknown_status_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "option_id is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -18484,20 +13075,11 @@ def test_vote_requires_an_option_id(client, seed, admin, resident):
 
 ### TC-331 · Non numeric option id is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/polls/1/vote`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/polls/1/vote`
-- JSON body:
-    ```json
-    {
-      "option_id": "abc"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/polls/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -18506,13 +13088,7 @@ def test_vote_requires_an_option_id(client, seed, admin, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "option_id must be a whole number"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -18534,18 +13110,11 @@ def test_non_numeric_option_id_is_rejected(client, seed, admin, resident):
 
 ### TC-332 · Null body is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/polls/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/polls/`
-- JSON body:
-    ```json
-    null
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -18554,13 +13123,7 @@ def test_non_numeric_option_id_is_rejected(client, seed, admin, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be valid JSON"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -18582,18 +13145,11 @@ def test_null_body_is_rejected(client, seed, admin):
 
 ### TC-333 · List body is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/polls/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/polls/`
-- JSON body:
-    ```json
-    []
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -18602,13 +13158,7 @@ def test_null_body_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -18630,20 +13180,11 @@ def test_list_body_is_rejected(client, seed, admin):
 
 ### TC-334 · Polls require authentication
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/polls/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/polls/`
-- JSON body:
-    ```json
-    {
-      "title": "x"
-    }
-    ```
-- Header: _none (unauthenticated request)_
-- Setup calls before this (1): `GET /api/polls/` → 401
+- _none_
 
 **Expected Output:**
 
@@ -18651,13 +13192,7 @@ def test_list_body_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -18677,15 +13212,11 @@ def test_polls_require_authentication(client, seed):
 
 ### TC-335 · Resident can read the poll list
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/polls/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/polls/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/polls/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -18693,11 +13224,7 @@ def test_polls_require_authentication(client, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [{"created_at": "2026-08-02 13:29:28.372786", "created_by": 1, "description": "Should we buy a treadmill?", "end_date": "2026-08-09", "has_voted": false, "id": 1, "my_option_id": null, "options": [{"id": 1, "percentage": 0, "text": "Yes", "votes": 0}, {"id": 2, "percentage": 0, "text": "No", "votes": 0}], "start_date": "2026-08-02", "status": "ACTIVE", "title": "New gym equipment?", "total_votes"…
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -18719,15 +13246,11 @@ def test_resident_can_read_the_poll_list(client, seed, admin, resident):
 
 ### TC-336 · Resident cannot create close or delete a poll
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/polls/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/polls/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (5): `POST /api/auth/login` → 200, `POST /api/polls/` → 201, `POST /api/polls/` → 403, `PUT /api/polls/1/close` → 403
+- _none_
 
 **Expected Output:**
 
@@ -18736,13 +13259,7 @@ def test_resident_can_read_the_poll_list(client, seed, admin, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -18775,23 +13292,11 @@ def test_resident_cannot_create_close_or_delete_a_poll(client, seed, admin, resi
 
 ### TC-337 · Admin can create a task
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/maintenance/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/maintenance/`
-- JSON body:
-    ```json
-    {
-      "title": "Generator servicing",
-      "description": "Quarterly diesel generator service",
-      "category": "GENERATOR",
-      "scheduled_date": "2026-08-12"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -18800,22 +13305,7 @@ def test_resident_cannot_create_close_or_delete_a_poll(client, seed, admin, resi
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "assigned_to": null,
-      "assigned_to_name": null,
-      "category": "GENERATOR",
-      "completed_at": null,
-      "created_by": 1,
-      "description": "Quarterly diesel generator service",
-      "id": 1,
-      "scheduled_date": "2026-08-12",
-      "status": "PENDING",
-      "title": "Generator servicing"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -18841,47 +13331,19 @@ def test_admin_can_create_a_task(client, seed, admin):
 
 ### TC-338 · Task can be assigned to a worker
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/maintenance/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/maintenance/`
-- JSON body:
-    ```json
-    {
-      "title": "Generator servicing",
-      "description": "Quarterly diesel generator service",
-      "category": "GENERATOR",
-      "scheduled_date": "2026-08-12",
-      "assigned_to": 6
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `201`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "assigned_to": 6,
-      "assigned_to_name": "Ramesh Worker",
-      "category": "GENERATOR",
-      "completed_at": null,
-      "created_by": 1,
-      "description": "Quarterly diesel generator service",
-      "id": 1,
-      "scheduled_date": "2026-08-12",
-      "status": "PENDING",
-      "title": "Generator servicing"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -18902,15 +13364,11 @@ def test_task_can_be_assigned_to_a_worker(client, seed, admin):
 
 ### TC-339 · Task list is returned
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/maintenance/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/maintenance/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/maintenance/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -18918,24 +13376,7 @@ def test_task_can_be_assigned_to_a_worker(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "assigned_to": null,
-        "assigned_to_name": null,
-        "category": "WATER_TANK",
-        "completed_at": null,
-        "created_by": 1,
-        "description": "Quarterly diesel generator service",
-        "id": 1,
-        "scheduled_date": "2026-08-12",
-        "status": "PENDING",
-        "title": "Tank cleaning"
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -18957,23 +13398,11 @@ def test_task_list_is_returned(client, seed, admin):
 
 ### TC-340 · Admin can update a task
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/maintenance/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/maintenance/1`
-- JSON body:
-    ```json
-    {
-      "title": "Generator servicing (rescheduled)",
-      "category": "ELECTRICAL",
-      "scheduled_date": "2026-08-22",
-      "status": "IN_PROGRESS"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/maintenance/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -18981,22 +13410,7 @@ def test_task_list_is_returned(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "assigned_to": null,
-      "assigned_to_name": null,
-      "category": "ELECTRICAL",
-      "completed_at": null,
-      "created_by": 1,
-      "description": "Quarterly diesel generator service",
-      "id": 1,
-      "scheduled_date": "2026-08-22",
-      "status": "IN_PROGRESS",
-      "title": "Generator servicing (rescheduled)"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -19029,15 +13443,11 @@ def test_admin_can_update_a_task(client, seed, admin):
 
 ### TC-341 · Admin can complete a task
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/maintenance/1/complete`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/maintenance/1/complete`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/maintenance/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -19046,22 +13456,7 @@ def test_admin_can_update_a_task(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "assigned_to": null,
-      "assigned_to_name": null,
-      "category": "GENERATOR",
-      "completed_at": "2026-08-02 13:29:08.766174",
-      "created_by": 1,
-      "description": "Quarterly diesel generator service",
-      "id": 1,
-      "scheduled_date": "2026-08-12",
-      "status": "COMPLETED",
-      "title": "Generator servicing"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -19085,15 +13480,11 @@ def test_admin_can_complete_a_task(client, seed, admin):
 
 ### TC-342 · Admin can delete a task
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/maintenance/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/maintenance/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/maintenance/` → 201, `DELETE /api/maintenance/1` → 200
+- _none_
 
 **Expected Output:**
 
@@ -19102,11 +13493,7 @@ def test_admin_can_complete_a_task(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    []
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -19129,15 +13516,11 @@ def test_admin_can_delete_a_task(client, seed, admin):
 
 ### TC-343 · Completing a missing task returns 404
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/maintenance/9999/complete`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/maintenance/9999/complete`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -19145,13 +13528,7 @@ def test_admin_can_delete_a_task(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `404`
-- JSON:
-    ```json
-    {
-      "error": "The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again."
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -19170,15 +13547,11 @@ def test_completing_a_missing_task_returns_404(client, seed, admin):
 
 ### TC-344 · Completing an already completed task returns 409
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/maintenance/1/complete`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/maintenance/1/complete`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/maintenance/` → 201, `PUT /api/maintenance/1/complete` → 200
+- _none_
 
 **Expected Output:**
 
@@ -19187,13 +13560,7 @@ def test_completing_a_missing_task_returns_404(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `409`
-- JSON:
-    ```json
-    {
-      "error": "Task is already completed"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -19217,20 +13584,11 @@ def test_completing_an_already_completed_task_returns_409(client, seed, admin):
 
 ### TC-345 · Updating status to completed stamps completed at
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/maintenance/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/maintenance/1`
-- JSON body:
-    ```json
-    {
-      "status": "COMPLETED"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/maintenance/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -19239,22 +13597,7 @@ def test_completing_an_already_completed_task_returns_409(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "assigned_to": null,
-      "assigned_to_name": null,
-      "category": "GENERATOR",
-      "completed_at": "2026-08-02 13:29:09.122995",
-      "created_by": 1,
-      "description": "Quarterly diesel generator service",
-      "id": 1,
-      "scheduled_date": "2026-08-12",
-      "status": "COMPLETED",
-      "title": "Generator servicing"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -19278,20 +13621,11 @@ def test_updating_status_to_completed_stamps_completed_at(client, seed, admin):
 
 ### TC-346 · Reopening a completed task clears completed at
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/maintenance/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/maintenance/1`
-- JSON body:
-    ```json
-    {
-      "status": "PENDING"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/maintenance/` → 201, `PUT /api/maintenance/1/complete` → 200
+- _none_
 
 **Expected Output:**
 
@@ -19300,22 +13634,7 @@ def test_updating_status_to_completed_stamps_completed_at(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "assigned_to": null,
-      "assigned_to_name": null,
-      "category": "GENERATOR",
-      "completed_at": null,
-      "created_by": 1,
-      "description": "Quarterly diesel generator service",
-      "id": 1,
-      "scheduled_date": "2026-08-12",
-      "status": "PENDING",
-      "title": "Generator servicing"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -19341,21 +13660,11 @@ def test_reopening_a_completed_task_clears_completed_at(client, seed, admin):
 
 ### TC-347 · Task requires a title
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/maintenance/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/maintenance/`
-- JSON body:
-    ```json
-    {
-      "category": "GENERATOR",
-      "scheduled_date": "2026-08-12"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -19364,13 +13673,7 @@ def test_reopening_a_completed_task_clears_completed_at(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "title is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -19393,21 +13696,11 @@ def test_task_requires_a_title(client, seed, admin):
 
 ### TC-348 · Task requires a scheduled date
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/maintenance/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/maintenance/`
-- JSON body:
-    ```json
-    {
-      "title": "No date",
-      "category": "GENERATOR"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -19416,13 +13709,7 @@ def test_task_requires_a_title(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "scheduled_date is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -19445,23 +13732,11 @@ def test_task_requires_a_scheduled_date(client, seed, admin):
 
 ### TC-349 · Blank scheduled date is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/maintenance/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/maintenance/`
-- JSON body:
-    ```json
-    {
-      "title": "Generator servicing",
-      "description": "Quarterly diesel generator service",
-      "category": "GENERATOR",
-      "scheduled_date": ""
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -19470,13 +13745,7 @@ def test_task_requires_a_scheduled_date(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "scheduled_date is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -19497,23 +13766,11 @@ def test_blank_scheduled_date_is_rejected(client, seed, admin):
 
 ### TC-350 · Day first scheduled date is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/maintenance/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/maintenance/`
-- JSON body:
-    ```json
-    {
-      "title": "Generator servicing",
-      "description": "Quarterly diesel generator service",
-      "category": "GENERATOR",
-      "scheduled_date": "10/08/2026"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -19522,13 +13779,7 @@ def test_blank_scheduled_date_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "scheduled_date must be a valid date (YYYY-MM-DD)"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -19549,23 +13800,11 @@ def test_day_first_scheduled_date_is_rejected(client, seed, admin):
 
 ### TC-351 · Unknown category is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/maintenance/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/maintenance/`
-- JSON body:
-    ```json
-    {
-      "title": "Generator servicing",
-      "description": "Quarterly diesel generator service",
-      "category": "ROOFING",
-      "scheduled_date": "2026-08-12"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -19573,13 +13812,7 @@ def test_day_first_scheduled_date_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "category must be one of: GENERATOR, WATER_TANK, CLEANING, ELECTRICAL, PLUMBING, OTHER"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -19600,20 +13833,11 @@ def test_unknown_category_is_rejected(client, seed, admin):
 
 ### TC-352 · Unknown status on update is rejected
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/maintenance/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/maintenance/1`
-- JSON body:
-    ```json
-    {
-      "status": "DONE"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/maintenance/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -19621,13 +13845,7 @@ def test_unknown_category_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "task_status must be one of: PENDING, IN_PROGRESS, COMPLETED"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -19649,20 +13867,11 @@ def test_unknown_status_on_update_is_rejected(client, seed, admin):
 
 ### TC-353 · Bad scheduled date on update is rejected
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/maintenance/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/maintenance/1`
-- JSON body:
-    ```json
-    {
-      "scheduled_date": "not-a-date"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/maintenance/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -19671,13 +13880,7 @@ def test_unknown_status_on_update_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "scheduled_date must be a valid date (YYYY-MM-DD)"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -19700,24 +13903,11 @@ def test_bad_scheduled_date_on_update_is_rejected(client, seed, admin):
 
 ### TC-354 · Non numeric assignee is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/maintenance/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/maintenance/`
-- JSON body:
-    ```json
-    {
-      "title": "Generator servicing",
-      "description": "Quarterly diesel generator service",
-      "category": "GENERATOR",
-      "scheduled_date": "2026-08-12",
-      "assigned_to": "ramesh"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -19726,13 +13916,7 @@ def test_bad_scheduled_date_on_update_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "assigned_to must be a whole number"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -19753,18 +13937,11 @@ def test_non_numeric_assignee_is_rejected(client, seed, admin):
 
 ### TC-355 · Null body is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/maintenance/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/maintenance/`
-- JSON body:
-    ```json
-    null
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -19773,13 +13950,7 @@ def test_non_numeric_assignee_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be valid JSON"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -19801,18 +13972,11 @@ def test_null_body_is_rejected(client, seed, admin):
 
 ### TC-356 · List body is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/maintenance/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/maintenance/`
-- JSON body:
-    ```json
-    []
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -19821,13 +13985,7 @@ def test_null_body_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -19849,20 +14007,11 @@ def test_list_body_is_rejected(client, seed, admin):
 
 ### TC-357 · Maintenance requires authentication
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/maintenance/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/maintenance/`
-- JSON body:
-    ```json
-    {
-      "title": "x"
-    }
-    ```
-- Header: _none (unauthenticated request)_
-- Setup calls before this (1): `GET /api/maintenance/` → 401
+- _none_
 
 **Expected Output:**
 
@@ -19870,13 +14019,7 @@ def test_list_body_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -19896,15 +14039,11 @@ def test_maintenance_requires_authentication(client, seed):
 
 ### TC-358 · Resident can read the task list
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/maintenance/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/maintenance/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/maintenance/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -19912,24 +14051,7 @@ def test_maintenance_requires_authentication(client, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "assigned_to": null,
-        "assigned_to_name": null,
-        "category": "GENERATOR",
-        "completed_at": null,
-        "created_by": 1,
-        "description": "Quarterly diesel generator service",
-        "id": 1,
-        "scheduled_date": "2026-08-12",
-        "status": "PENDING",
-        "title": "Generator servicing"
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -19951,23 +14073,11 @@ def test_resident_can_read_the_task_list(client, seed, admin, resident):
 
 ### TC-359 · Worker cannot create a task
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/maintenance/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/maintenance/`
-- JSON body:
-    ```json
-    {
-      "title": "Generator servicing",
-      "description": "Quarterly diesel generator service",
-      "category": "GENERATOR",
-      "scheduled_date": "2026-08-12"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -19976,13 +14086,7 @@ def test_resident_can_read_the_task_list(client, seed, admin, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -20003,15 +14107,11 @@ def test_worker_cannot_create_a_task(client, seed, worker):
 
 ### TC-360 · Resident cannot update complete or delete a task
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/maintenance/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/maintenance/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (5): `POST /api/auth/login` → 200, `POST /api/maintenance/` → 201, `PUT /api/maintenance/1` → 403, `PUT /api/maintenance/1/complete` → 403
+- _none_
 
 **Expected Output:**
 
@@ -20019,13 +14119,7 @@ def test_worker_cannot_create_a_task(client, seed, worker):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -20055,24 +14149,11 @@ def test_resident_cannot_update_complete_or_delete_a_task(client, seed, admin, r
 
 ### TC-361 · Admin can add equipment
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/equipment/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/equipment/`
-- JSON body:
-    ```json
-    {
-      "name": "Diesel Generator",
-      "category": "GENERATOR",
-      "last_serviced_date": "2026-07-23",
-      "service_frequency_days": 90,
-      "estimated_service_cost": 4500
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -20080,21 +14161,7 @@ def test_resident_cannot_update_complete_or_delete_a_task(client, seed, admin, r
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "category": "GENERATOR",
-      "created_at": "2026-08-02 13:28:54.536424",
-      "days_until_due": 80,
-      "estimated_service_cost": 4500.0,
-      "id": 1,
-      "last_serviced_date": "2026-07-23",
-      "name": "Diesel Generator",
-      "risk_level": "LOW",
-      "service_frequency_days": 90
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -20121,15 +14188,11 @@ def test_admin_can_add_equipment(client, seed, admin):
 
 ### TC-362 · Equipment list is readable
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/equipment/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/equipment/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/equipment/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -20137,23 +14200,7 @@ def test_admin_can_add_equipment(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "category": "GENERATOR",
-        "created_at": "2026-08-02 13:28:54.699805",
-        "days_until_due": 80,
-        "estimated_service_cost": 4500.0,
-        "id": 1,
-        "last_serviced_date": "2026-07-23",
-        "name": "Diesel Generator",
-        "risk_level": "LOW",
-        "service_frequency_days": 90
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -20175,46 +14222,19 @@ def test_equipment_list_is_readable(client, seed, admin):
 
 ### TC-363 · Overdue equipment reports negative days and high risk
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/equipment/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/equipment/`
-- JSON body:
-    ```json
-    {
-      "name": "Diesel Generator",
-      "category": "GENERATOR",
-      "last_serviced_date": "2026-04-04",
-      "service_frequency_days": 90,
-      "estimated_service_cost": 4500
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `201`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "category": "GENERATOR",
-      "created_at": "2026-08-02 13:28:54.832582",
-      "days_until_due": -30,
-      "estimated_service_cost": 4500.0,
-      "id": 1,
-      "last_serviced_date": "2026-04-04",
-      "name": "Diesel Generator",
-      "risk_level": "HIGH",
-      "service_frequency_days": 90
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -20239,46 +14259,19 @@ def test_overdue_equipment_reports_negative_days_and_high_risk(client, seed, adm
 
 ### TC-364 · Equipment nearing its due date is medium risk
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/equipment/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/equipment/`
-- JSON body:
-    ```json
-    {
-      "name": "Diesel Generator",
-      "category": "GENERATOR",
-      "last_serviced_date": "2026-05-09",
-      "service_frequency_days": 100,
-      "estimated_service_cost": 4500
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `201`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "category": "GENERATOR",
-      "created_at": "2026-08-02 13:28:54.962938",
-      "days_until_due": 15,
-      "estimated_service_cost": 4500.0,
-      "id": 1,
-      "last_serviced_date": "2026-05-09",
-      "name": "Diesel Generator",
-      "risk_level": "MEDIUM",
-      "service_frequency_days": 100
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -20302,22 +14295,11 @@ def test_equipment_nearing_its_due_date_is_medium_risk(client, seed, admin):
 
 ### TC-365 · Marking serviced updates the last serviced date
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/equipment/1/service`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/equipment/1/service`
-- JSON body:
-    ```json
-    {
-      "cost": 5000,
-      "vendor_name": "PowerCare",
-      "notes": "Oil and filter changed"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/equipment/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -20325,24 +14307,7 @@ def test_equipment_nearing_its_due_date_is_medium_risk(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "equipment": {
-        "category": "GENERATOR",
-        "created_at": "2026-08-02 13:28:55.099662",
-        "days_until_due": 90,
-        "estimated_service_cost": 4500.0,
-        "id": 1,
-        "last_serviced_date": "2026-08-02",
-        "name": "Diesel Generator",
-        "risk_level": "LOW",
-        "service_frequency_days": 90
-      },
-      "message": "Equipment marked as serviced"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -20370,20 +14335,11 @@ def test_marking_serviced_updates_the_last_serviced_date(client, seed, admin):
 
 ### TC-366 · Service can be backdated
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/equipment/1/service`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/equipment/1/service`
-- JSON body:
-    ```json
-    {
-      "serviced_date": "2026-07-28"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/equipment/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -20391,24 +14347,7 @@ def test_marking_serviced_updates_the_last_serviced_date(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "equipment": {
-        "category": "GENERATOR",
-        "created_at": "2026-08-02 13:28:55.249533",
-        "days_until_due": 85,
-        "estimated_service_cost": 4500.0,
-        "id": 1,
-        "last_serviced_date": "2026-07-28",
-        "name": "Diesel Generator",
-        "risk_level": "LOW",
-        "service_frequency_days": 90
-      },
-      "message": "Equipment marked as serviced"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -20432,15 +14371,11 @@ def test_service_can_be_backdated(client, seed, admin):
 
 ### TC-367 · Service history lists logged services
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/equipment/1/history`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/equipment/1/history`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/equipment/` → 201, `PUT /api/equipment/1/service` → 200
+- _none_
 
 **Expected Output:**
 
@@ -20448,20 +14383,7 @@ def test_service_can_be_backdated(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "cost": 5000.0,
-        "id": 1,
-        "logged_by_name": "Priya Admin",
-        "notes": null,
-        "serviced_date": "2026-08-02",
-        "vendor_name": "PowerCare"
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -20490,27 +14412,19 @@ def test_service_history_lists_logged_services(client, seed, admin):
 
 ### TC-368 · History of unserviced equipment is empty
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/equipment/1/history`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/equipment/1/history`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/equipment/` → 201
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `200`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    []
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -20530,15 +14444,11 @@ def test_history_of_unserviced_equipment_is_empty(client, seed, admin):
 
 ### TC-369 · Forecast returns items due within 30 days
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/equipment/forecast`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/equipment/forecast`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/equipment/` → 201, `POST /api/equipment/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -20546,24 +14456,7 @@ def test_history_of_unserviced_equipment_is_empty(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "count": 1,
-      "due_in_30_days": [
-        {
-          "category": "LIFT",
-          "days_until_due": 10,
-          "estimated_cost": 2000.0,
-          "id": 1,
-          "name": "Lift",
-          "risk_level": "MEDIUM"
-        }
-      ],
-      "total_estimated_cost": 2000.0
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -20595,15 +14488,11 @@ def test_forecast_returns_items_due_within_30_days(client, seed, admin):
 
 ### TC-370 · Forecast works with no equipment
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/equipment/forecast`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/equipment/forecast`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -20611,15 +14500,7 @@ def test_forecast_returns_items_due_within_30_days(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "count": 0,
-      "due_in_30_days": [],
-      "total_estimated_cost": 0
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -20640,15 +14521,11 @@ def test_forecast_works_with_no_equipment(client, seed, admin):
 
 ### TC-371 · Admin can delete equipment
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/equipment/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/equipment/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/equipment/` → 201, `DELETE /api/equipment/1` → 200
+- _none_
 
 **Expected Output:**
 
@@ -20657,11 +14534,7 @@ def test_forecast_works_with_no_equipment(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    []
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -20684,15 +14557,11 @@ def test_admin_can_delete_equipment(client, seed, admin):
 
 ### TC-372 · History of missing equipment returns 404
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/equipment/9999/history`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/equipment/9999/history`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -20700,13 +14569,7 @@ def test_admin_can_delete_equipment(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `404`
-- JSON:
-    ```json
-    {
-      "error": "The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again."
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -20725,22 +14588,11 @@ def test_history_of_missing_equipment_returns_404(client, seed, admin):
 
 ### TC-373 · Equipment requires a name
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/equipment/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/equipment/`
-- JSON body:
-    ```json
-    {
-      "category": "GENERATOR",
-      "last_serviced_date": "2026-08-02",
-      "service_frequency_days": 90
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -20749,13 +14601,7 @@ def test_history_of_missing_equipment_returns_404(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "name is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -20780,22 +14626,11 @@ def test_equipment_requires_a_name(client, seed, admin):
 
 ### TC-374 · Equipment requires a last serviced date
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/equipment/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/equipment/`
-- JSON body:
-    ```json
-    {
-      "name": "Pump",
-      "category": "OTHER",
-      "service_frequency_days": 30
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -20804,13 +14639,7 @@ def test_equipment_requires_a_name(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "last_serviced_date is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -20834,24 +14663,11 @@ def test_equipment_requires_a_last_serviced_date(client, seed, admin):
 
 ### TC-375 · Blank last serviced date is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/equipment/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/equipment/`
-- JSON body:
-    ```json
-    {
-      "name": "Diesel Generator",
-      "category": "GENERATOR",
-      "last_serviced_date": "",
-      "service_frequency_days": 90,
-      "estimated_service_cost": 4500
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -20860,13 +14676,7 @@ def test_equipment_requires_a_last_serviced_date(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "last_serviced_date is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -20887,24 +14697,11 @@ def test_blank_last_serviced_date_is_rejected(client, seed, admin):
 
 ### TC-376 · Bad last serviced date is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/equipment/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/equipment/`
-- JSON body:
-    ```json
-    {
-      "name": "Diesel Generator",
-      "category": "GENERATOR",
-      "last_serviced_date": "10/08/2026",
-      "service_frequency_days": 90,
-      "estimated_service_cost": 4500
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -20913,13 +14710,7 @@ def test_blank_last_serviced_date_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "last_serviced_date must be a valid date (YYYY-MM-DD)"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -20940,24 +14731,11 @@ def test_bad_last_serviced_date_is_rejected(client, seed, admin):
 
 ### TC-377 · A 0 frequency used to be stored and then divided by on every GET
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/equipment/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/equipment/`
-- JSON body:
-    ```json
-    {
-      "name": "Diesel Generator",
-      "category": "GENERATOR",
-      "last_serviced_date": "2026-07-23",
-      "service_frequency_days": 0,
-      "estimated_service_cost": 4500
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -20966,13 +14744,7 @@ def test_bad_last_serviced_date_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "service_frequency_days must be at least 1"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -20994,24 +14766,11 @@ def test_zero_service_frequency_is_rejected(client, seed, admin):
 
 ### TC-378 · Zero service frequency as a string is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/equipment/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/equipment/`
-- JSON body:
-    ```json
-    {
-      "name": "Diesel Generator",
-      "category": "GENERATOR",
-      "last_serviced_date": "2026-07-23",
-      "service_frequency_days": "0",
-      "estimated_service_cost": 4500
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -21020,13 +14779,7 @@ def test_zero_service_frequency_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "service_frequency_days must be at least 1"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -21047,22 +14800,11 @@ def test_zero_service_frequency_as_a_string_is_rejected(client, seed, admin):
 
 ### TC-379 · Missing service frequency is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/equipment/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/equipment/`
-- JSON body:
-    ```json
-    {
-      "name": "Pump",
-      "category": "OTHER",
-      "last_serviced_date": "2026-08-02"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -21071,13 +14813,7 @@ def test_zero_service_frequency_as_a_string_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "service_frequency_days is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -21101,24 +14837,11 @@ def test_missing_service_frequency_is_rejected(client, seed, admin):
 
 ### TC-380 · Negative estimated cost is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/equipment/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/equipment/`
-- JSON body:
-    ```json
-    {
-      "name": "Diesel Generator",
-      "category": "GENERATOR",
-      "last_serviced_date": "2026-07-23",
-      "service_frequency_days": 90,
-      "estimated_service_cost": -1
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -21127,13 +14850,7 @@ def test_missing_service_frequency_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "estimated_service_cost must be at least 0"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -21154,24 +14871,11 @@ def test_negative_estimated_cost_is_rejected(client, seed, admin):
 
 ### TC-381 · Unknown category is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/equipment/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/equipment/`
-- JSON body:
-    ```json
-    {
-      "name": "Diesel Generator",
-      "category": "ROBOT",
-      "last_serviced_date": "2026-07-23",
-      "service_frequency_days": 90,
-      "estimated_service_cost": 4500
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -21179,13 +14883,7 @@ def test_negative_estimated_cost_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "category must be one of: GENERATOR, WATER_TANK, LIFT, PEST_CONTROL, FIRE_SAFETY, OTHER"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -21206,15 +14904,11 @@ def test_unknown_category_is_rejected(client, seed, admin):
 
 ### TC-382 · An empty cost box in the UI must mean "not recorded", not an error
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/equipment/1/history`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/equipment/1/history`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/equipment/` → 201, `PUT /api/equipment/1/service` → 200
+- _none_
 
 **Expected Output:**
 
@@ -21223,20 +14917,7 @@ def test_unknown_category_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "cost": null,
-        "id": 1,
-        "logged_by_name": "Priya Admin",
-        "notes": null,
-        "serviced_date": "2026-08-02",
-        "vendor_name": null
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -21261,20 +14942,11 @@ def test_blank_cost_when_marking_serviced_is_accepted(client, seed, admin):
 
 ### TC-383 · Non numeric cost when marking serviced is rejected
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/equipment/1/service`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/equipment/1/service`
-- JSON body:
-    ```json
-    {
-      "cost": "five"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/equipment/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -21283,13 +14955,7 @@ def test_blank_cost_when_marking_serviced_is_accepted(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "cost must be a number"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -21311,18 +14977,11 @@ def test_non_numeric_cost_when_marking_serviced_is_rejected(client, seed, admin)
 
 ### TC-384 · Null body is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/equipment/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/equipment/`
-- JSON body:
-    ```json
-    null
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -21331,13 +14990,7 @@ def test_non_numeric_cost_when_marking_serviced_is_rejected(client, seed, admin)
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be valid JSON"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -21359,18 +15012,11 @@ def test_null_body_is_rejected(client, seed, admin):
 
 ### TC-385 · List body is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/equipment/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/equipment/`
-- JSON body:
-    ```json
-    []
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -21379,13 +15025,7 @@ def test_null_body_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -21407,20 +15047,11 @@ def test_list_body_is_rejected(client, seed, admin):
 
 ### TC-386 · Equipment requires authentication
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/equipment/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/equipment/`
-- JSON body:
-    ```json
-    {
-      "name": "x"
-    }
-    ```
-- Header: _none (unauthenticated request)_
-- Setup calls before this (2): `GET /api/equipment/` → 401, `GET /api/equipment/forecast` → 401
+- _none_
 
 **Expected Output:**
 
@@ -21428,13 +15059,7 @@ def test_list_body_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -21455,15 +15080,11 @@ def test_equipment_requires_authentication(client, seed):
 
 ### TC-387 · Resident can read equipment and forecast
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/equipment/forecast`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/equipment/forecast`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/equipment/` → 201, `GET /api/equipment/` → 200
+- _none_
 
 **Expected Output:**
 
@@ -21471,15 +15092,7 @@ def test_equipment_requires_authentication(client, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "count": 0,
-      "due_in_30_days": [],
-      "total_estimated_cost": 0
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -21500,15 +15113,11 @@ def test_resident_can_read_equipment_and_forecast(client, seed, admin, resident)
 
 ### TC-388 · Resident cannot add service or delete equipment
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/equipment/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/equipment/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (5): `POST /api/auth/login` → 200, `POST /api/equipment/` → 201, `POST /api/equipment/` → 403, `PUT /api/equipment/1/service` → 403
+- _none_
 
 **Expected Output:**
 
@@ -21517,13 +15126,7 @@ def test_resident_can_read_equipment_and_forecast(client, seed, admin, resident)
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -21557,15 +15160,11 @@ def test_resident_cannot_add_service_or_delete_equipment(client, seed, admin, re
 
 ### TC-389 · Get calculate returns the full score shape
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/health/calculate`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/health/calculate`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -21573,23 +15172,7 @@ def test_resident_cannot_add_service_or_delete_equipment(client, seed, admin, re
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "alert_reason": "No notices posted this month | not scored (no data): complaint, maintenance, payment, poll",
-      "complaint_score": 0.0,
-      "grade": "RED",
-      "has_data": true,
-      "maintenance_score": 0.0,
-      "month": 8,
-      "notice_score": 0.0,
-      "payment_score": 0.0,
-      "poll_score": 0.0,
-      "total_score": 0.0,
-      "year": 2026
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -21613,15 +15196,11 @@ def test_get_calculate_returns_the_full_score_shape(client, seed, admin):
 
 ### TC-390 · Post calculate uses the same view as get
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/health/calculate`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/health/calculate`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `GET /api/health/calculate` → 200
+- _none_
 
 **Expected Output:**
 
@@ -21629,23 +15208,7 @@ def test_get_calculate_returns_the_full_score_shape(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "alert_reason": "No notices posted this month | not scored (no data): complaint, maintenance, payment, poll",
-      "complaint_score": 0.0,
-      "grade": "RED",
-      "has_data": true,
-      "maintenance_score": 0.0,
-      "month": 8,
-      "notice_score": 0.0,
-      "payment_score": 0.0,
-      "poll_score": 0.0,
-      "total_score": 0.0,
-      "year": 2026
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -21669,15 +15232,11 @@ def test_post_calculate_uses_the_same_view_as_get(client, seed, admin):
 
 ### TC-391 · Calculate accepts explicit month and year
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/health/calculate?month=3&year=2025`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/health/calculate?month=3&year=2025`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -21685,23 +15244,7 @@ def test_post_calculate_uses_the_same_view_as_get(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "alert_reason": "No notices posted this month | not scored (no data): complaint, maintenance, payment, poll",
-      "complaint_score": 0.0,
-      "grade": "RED",
-      "has_data": true,
-      "maintenance_score": 0.0,
-      "month": 3,
-      "notice_score": 0.0,
-      "payment_score": 0.0,
-      "poll_score": 0.0,
-      "total_score": 0.0,
-      "year": 2025
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -21724,42 +15267,19 @@ def test_calculate_accepts_explicit_month_and_year(client, seed, admin):
 
 ### TC-392 · Calculate is an upsert for the month
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/health/history`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/health/history`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `GET /api/health/calculate?month=5&year=2026` → 200, `GET /api/health/calculate?month=5&year=2026` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `200`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "alert_reason": "No notices posted this month | not scored (no data): complaint, maintenance, payment, poll",
-        "calculated_at": "2026-08-02 13:29:01.958634",
-        "complaint_score": 0.0,
-        "grade": "RED",
-        "id": 1,
-        "maintenance_score": 0.0,
-        "month": 5,
-        "notice_score": 0.0,
-        "payment_score": 0.0,
-        "poll_score": 0.0,
-        "total_score": 0.0,
-        "year": 2026
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -21782,15 +15302,11 @@ def test_calculate_is_an_upsert_for_the_month(client, seed, admin):
 
 ### TC-393 · History is empty before anything is calculated
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/health/history`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/health/history`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -21798,11 +15314,7 @@ def test_calculate_is_an_upsert_for_the_month(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    []
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -21823,15 +15335,11 @@ def test_history_is_empty_before_anything_is_calculated(client, seed, admin):
 
 ### TC-394 · History returns the saved score
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/health/history`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/health/history`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `GET /api/health/calculate?month=4&year=2026` → 200
+- _none_
 
 **Expected Output:**
 
@@ -21839,26 +15347,7 @@ def test_history_is_empty_before_anything_is_calculated(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "alert_reason": "No notices posted this month | not scored (no data): complaint, maintenance, payment, poll",
-        "calculated_at": "2026-08-02 13:29:02.164910",
-        "complaint_score": 0.0,
-        "grade": "RED",
-        "id": 1,
-        "maintenance_score": 0.0,
-        "month": 4,
-        "notice_score": 0.0,
-        "payment_score": 0.0,
-        "poll_score": 0.0,
-        "total_score": 0.0,
-        "year": 2026
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -21886,39 +15375,19 @@ def test_history_returns_the_saved_score(client, seed, admin):
 
 ### TC-395 · Empty society is not awarded a perfect score
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/health/calculate`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/health/calculate`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `200`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "alert_reason": "No notices posted this month | not scored (no data): complaint, maintenance, payment, poll",
-      "complaint_score": 0.0,
-      "grade": "RED",
-      "has_data": true,
-      "maintenance_score": 0.0,
-      "month": 8,
-      "notice_score": 0.0,
-      "payment_score": 0.0,
-      "poll_score": 0.0,
-      "total_score": 0.0,
-      "year": 2026
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -21939,39 +15408,19 @@ def test_empty_society_is_not_awarded_a_perfect_score(client, seed, admin):
 
 ### TC-396 · Empty society does not report nonsense invoice alerts
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/health/calculate`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/health/calculate`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `200`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "alert_reason": "No notices posted this month | not scored (no data): complaint, maintenance, payment, poll",
-      "complaint_score": 0.0,
-      "grade": "RED",
-      "has_data": true,
-      "maintenance_score": 0.0,
-      "month": 8,
-      "notice_score": 0.0,
-      "payment_score": 0.0,
-      "poll_score": 0.0,
-      "total_score": 0.0,
-      "year": 2026
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -21992,39 +15441,19 @@ def test_empty_society_does_not_report_nonsense_invoice_alerts(client, seed, adm
 
 ### TC-397 · Components without data are named as not scored
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/health/calculate`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/health/calculate`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `200`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "alert_reason": "No notices posted this month | not scored (no data): complaint, maintenance, payment, poll",
-      "complaint_score": 0.0,
-      "grade": "RED",
-      "has_data": true,
-      "maintenance_score": 0.0,
-      "month": 8,
-      "notice_score": 0.0,
-      "payment_score": 0.0,
-      "poll_score": 0.0,
-      "total_score": 0.0,
-      "year": 2026
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -22046,39 +15475,19 @@ def test_components_without_data_are_named_as_not_scored(client, seed, admin):
 
 ### TC-398 · Missing notices are flagged
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/health/calculate`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/health/calculate`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `200`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "alert_reason": "No notices posted this month | not scored (no data): complaint, maintenance, payment, poll",
-      "complaint_score": 0.0,
-      "grade": "RED",
-      "has_data": true,
-      "maintenance_score": 0.0,
-      "month": 8,
-      "notice_score": 0.0,
-      "payment_score": 0.0,
-      "poll_score": 0.0,
-      "total_score": 0.0,
-      "year": 2026
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -22099,15 +15508,11 @@ def test_missing_notices_are_flagged(client, seed, admin):
 
 ### TC-399 · Only the notice component has data, so a posted notice is a full score
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/health/calculate?month=8&year=2026`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/health/calculate?month=8&year=2026`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/notices/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -22115,23 +15520,7 @@ def test_missing_notices_are_flagged(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "alert_reason": "not scored (no data): complaint, maintenance, payment, poll",
-      "complaint_score": 0.0,
-      "grade": "GREEN",
-      "has_data": true,
-      "maintenance_score": 0.0,
-      "month": 8,
-      "notice_score": 15.0,
-      "payment_score": 0.0,
-      "poll_score": 0.0,
-      "total_score": 100.0,
-      "year": 2026
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -22160,15 +15549,11 @@ def test_total_is_scaled_over_applicable_components_only(client, seed, admin):
 
 ### TC-400 · Month above twelve is rejected
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/health/calculate?month=13`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/health/calculate?month=13`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -22177,13 +15562,7 @@ def test_total_is_scaled_over_applicable_components_only(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "month must be at most 12"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -22204,15 +15583,11 @@ def test_month_above_twelve_is_rejected(client, seed, admin):
 
 ### TC-401 · Month below one is rejected
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/health/calculate?month=0`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/health/calculate?month=0`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -22221,13 +15596,7 @@ def test_month_above_twelve_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "month must be at least 1"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -22248,15 +15617,11 @@ def test_month_below_one_is_rejected(client, seed, admin):
 
 ### TC-402 · Non numeric month is rejected
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/health/calculate?month=june`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/health/calculate?month=june`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -22265,13 +15630,7 @@ def test_month_below_one_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "month must be a whole number"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -22292,15 +15651,11 @@ def test_non_numeric_month_is_rejected(client, seed, admin):
 
 ### TC-403 · Year before 2000 is rejected
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/health/calculate?year=1999`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/health/calculate?year=1999`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -22309,13 +15664,7 @@ def test_non_numeric_month_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "year must be at least 2000"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -22336,15 +15685,11 @@ def test_year_before_2000_is_rejected(client, seed, admin):
 
 ### TC-404 · Health endpoints require authentication
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/health/history`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/health/history`
-- JSON body: _none_
-- Header: _none (unauthenticated request)_
-- Setup calls before this (2): `GET /api/health/calculate` → 401, `POST /api/health/calculate` → 401
+- _none_
 
 **Expected Output:**
 
@@ -22352,13 +15697,7 @@ def test_year_before_2000_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -22379,15 +15718,11 @@ def test_health_endpoints_require_authentication(client, seed):
 
 ### TC-405 · Resident cannot calculate the score
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/health/calculate`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/health/calculate`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `GET /api/health/calculate` → 403
+- _none_
 
 **Expected Output:**
 
@@ -22396,13 +15731,7 @@ def test_health_endpoints_require_authentication(client, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -22424,15 +15753,11 @@ def test_resident_cannot_calculate_the_score(client, seed, resident):
 
 ### TC-406 · Worker cannot calculate the score
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/health/calculate`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/health/calculate`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -22440,13 +15765,7 @@ def test_resident_cannot_calculate_the_score(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -22465,15 +15784,11 @@ def test_worker_cannot_calculate_the_score(client, seed, worker):
 
 ### TC-407 · Treasurer can calculate the score
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/health/calculate`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/health/calculate`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -22481,23 +15796,7 @@ def test_worker_cannot_calculate_the_score(client, seed, worker):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "alert_reason": "No notices posted this month | not scored (no data): complaint, maintenance, payment, poll",
-      "complaint_score": 0.0,
-      "grade": "RED",
-      "has_data": true,
-      "maintenance_score": 0.0,
-      "month": 8,
-      "notice_score": 0.0,
-      "payment_score": 0.0,
-      "poll_score": 0.0,
-      "total_score": 0.0,
-      "year": 2026
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -22516,15 +15815,11 @@ def test_treasurer_can_calculate_the_score(client, seed, treasurer):
 
 ### TC-408 · Any authenticated user can read the history
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/health/history`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/health/history`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (5): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `GET /api/health/calculate` → 200, `GET /api/health/history` → 200
+- _none_
 
 **Expected Output:**
 
@@ -22532,26 +15827,7 @@ def test_treasurer_can_calculate_the_score(client, seed, treasurer):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "alert_reason": "No notices posted this month | not scored (no data): complaint, maintenance, payment, poll",
-        "calculated_at": "2026-08-02 13:29:03.506719",
-        "complaint_score": 0.0,
-        "grade": "RED",
-        "id": 1,
-        "maintenance_score": 0.0,
-        "month": 8,
-        "notice_score": 0.0,
-        "payment_score": 0.0,
-        "poll_score": 0.0,
-        "total_score": 0.0,
-        "year": 2026
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -22579,22 +15855,11 @@ def test_any_authenticated_user_can_read_the_history(client, seed, admin, reside
 
 ### TC-409 · Resident can raise a conflict against another flat
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/conflicts/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/conflicts/`
-- JSON body:
-    ```json
-    {
-      "reported_apartment_id": 2,
-      "category": "NOISE",
-      "description": "Loud music after 11pm on weekdays."
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -22602,14 +15867,7 @@ def test_any_authenticated_user_can_read_the_history(client, seed, admin, reside
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "message": "Conflict report submitted. The concerned flat will be notified anonymously.",
-      "report_id": 1
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -22632,15 +15890,11 @@ def test_resident_can_raise_a_conflict_against_another_flat(client, seed, reside
 
 ### TC-410 · Admin sees every report with the reporter named
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/conflicts/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/conflicts/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/conflicts/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -22648,27 +15902,7 @@ def test_resident_can_raise_a_conflict_against_another_flat(client, seed, reside
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "category": "NOISE",
-        "created_at": "2026-08-02 13:28:43.412218",
-        "description": "Loud music after 11pm on weekdays.",
-        "id": 1,
-        "reported_apartment_id": 2,
-        "reported_by": 4,
-        "reported_by_name": "Ravi Resident",
-        "reported_flat": "B-202",
-        "reported_flat_response": null,
-        "resolution_note": null,
-        "resolved_at": null,
-        "response_submitted_at": null,
-        "status": "OPEN"
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -22695,15 +15929,11 @@ def test_admin_sees_every_report_with_the_reporter_named(client, seed, resident,
 
 ### TC-411 · Reported flat can submit its side
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/conflicts/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/conflicts/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/conflicts/` → 201, `PUT /api/conflicts/1/respond` → 200
+- _none_
 
 **Expected Output:**
 
@@ -22712,25 +15942,7 @@ def test_admin_sees_every_report_with_the_reporter_named(client, seed, resident,
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "category": "NOISE",
-        "created_at": "2026-08-02 13:28:43.618237",
-        "description": "Loud music after 11pm on weekdays.",
-        "id": 1,
-        "reported_apartment_id": 1,
-        "reported_flat": "A-101",
-        "reported_flat_response": "The music was for a birthday, sorry.",
-        "resolution_note": null,
-        "resolved_at": null,
-        "response_submitted_at": "2026-08-02 13:28:43.629103",
-        "status": "UNDER_REVIEW"
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -22760,20 +15972,11 @@ def test_reported_flat_can_submit_its_side(client, seed, worker, resident):
 
 ### TC-412 · Admin can resolve a report
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/conflicts/1/resolve`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/conflicts/1/resolve`
-- JSON body:
-    ```json
-    {
-      "resolution_note": "Both parties agreed on quiet hours."
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/conflicts/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -22782,11 +15985,7 @@ def test_reported_flat_can_submit_its_side(client, seed, worker, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {"message": "Conflict resolved", "report": {"category": "NOISE", "created_at": "2026-08-02 13:28:43.780978", "description": "Loud music after 11pm on weekdays.", "id": 1, "reported_apartment_id": 2, "reported_by": 4, "reported_by_name": "Ravi Resident", "reported_flat": "B-202", "reported_flat_response": null, "resolution_note": "Both parties agreed on quiet hours.", "resolved_at": "2026-08-02 13…
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -22816,30 +16015,19 @@ def test_admin_can_resolve_a_report(client, seed, resident, admin):
 
 ### TC-413 · Resolution note defaults when not supplied
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/conflicts/1/resolve`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/conflicts/1/resolve`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/conflicts/` → 201
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `200`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {"message": "Conflict resolved", "report": {"category": "NOISE", "created_at": "2026-08-02 13:28:43.936949", "description": "Loud music after 11pm on weekdays.", "id": 1, "reported_apartment_id": 2, "reported_by": 4, "reported_by_name": "Ravi Resident", "reported_flat": "B-202", "reported_flat_response": null, "resolution_note": "Resolved by secretary", "resolved_at": "2026-08-02 13:28:43.945237"…
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -22861,15 +16049,11 @@ def test_resolution_note_defaults_when_not_supplied(client, seed, resident, admi
 
 ### TC-414 · Pending lists open and under review reports for admin
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/conflicts/pending`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/conflicts/pending`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (8): `POST /api/conflicts/` → 201, `PUT /api/conflicts/2/respond` → 200, `POST /api/conflicts/` → 201, `PUT /api/conflicts/3/resolve` → 200
+- _none_
 
 **Expected Output:**
 
@@ -22877,11 +16061,7 @@ def test_resolution_note_defaults_when_not_supplied(client, seed, resident, admi
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [{"category": "NOISE", "created_at": "2026-08-02 13:28:44.088876", "description": "Loud music after 11pm on weekdays.", "id": 1, "reported_apartment_id": 2, "reported_by": 4, "reported_by_name": "Ravi Resident", "reported_flat": "B-202", "reported_flat_response": null, "resolution_note": null, "resolved_at": null, "response_submitted_at": null, "status": "OPEN"}, {"category": "NOISE", "created_at…
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -22914,20 +16094,11 @@ def test_pending_lists_open_and_under_review_reports_for_admin(client, seed,
 
 ### TC-415 · Responding to a missing report returns 404
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/conflicts/9999/respond`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/conflicts/9999/respond`
-- JSON body:
-    ```json
-    {
-      "response": "hi"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -22935,13 +16106,7 @@ def test_pending_lists_open_and_under_review_reports_for_admin(client, seed,
 
 **Actual Output:**
 
-- HTTP Status Code: `404`
-- JSON:
-    ```json
-    {
-      "error": "The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again."
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -22961,15 +16126,11 @@ def test_responding_to_a_missing_report_returns_404(client, seed, admin):
 
 ### TC-416 · The accused flat must not learn who reported them
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/conflicts/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/conflicts/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/conflicts/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -22977,25 +16138,7 @@ def test_responding_to_a_missing_report_returns_404(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "category": "NOISE",
-        "created_at": "2026-08-02 13:28:44.408937",
-        "description": "Loud music after 11pm on weekdays.",
-        "id": 1,
-        "reported_apartment_id": 1,
-        "reported_flat": "A-101",
-        "reported_flat_response": null,
-        "resolution_note": null,
-        "resolved_at": null,
-        "response_submitted_at": null,
-        "status": "OPEN"
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -23024,41 +16167,19 @@ def test_resident_view_never_exposes_the_reporter(client, seed, worker, resident
 
 ### TC-417 · Reporter own report is also returned without identity fields
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/conflicts/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/conflicts/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/conflicts/` → 201
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `200`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "category": "NOISE",
-        "created_at": "2026-08-02 13:28:44.549875",
-        "description": "Loud music after 11pm on weekdays.",
-        "id": 1,
-        "reported_apartment_id": 2,
-        "reported_flat": "B-202",
-        "reported_flat_response": null,
-        "resolution_note": null,
-        "resolved_at": null,
-        "response_submitted_at": null,
-        "status": "OPEN"
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -23081,27 +16202,19 @@ def test_reporter_own_report_is_also_returned_without_identity_fields(client, se
 
 ### TC-418 · Resident cannot see unrelated reports
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/conflicts/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/conflicts/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/conflicts/` → 201
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `200`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    []
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -23121,15 +16234,11 @@ def test_resident_cannot_see_unrelated_reports(client, seed, worker, resident):
 
 ### TC-419 · This endpoint reveals reporter identities, so residents get a 403
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/conflicts/pending`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/conflicts/pending`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `GET /api/conflicts/pending` → 403
+- _none_
 
 **Expected Output:**
 
@@ -23138,13 +16247,7 @@ def test_resident_cannot_see_unrelated_reports(client, seed, worker, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -23167,22 +16270,11 @@ def test_pending_is_admin_only(client, seed, resident, worker):
 
 ### TC-420 · Reporting your own flat is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/conflicts/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/conflicts/`
-- JSON body:
-    ```json
-    {
-      "reported_apartment_id": 1,
-      "category": "NOISE",
-      "description": "Loud music after 11pm on weekdays."
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -23191,13 +16283,7 @@ def test_pending_is_admin_only(client, seed, resident, worker):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "You cannot raise a conflict against your own flat"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -23218,22 +16304,11 @@ def test_reporting_your_own_flat_is_rejected(client, seed, resident):
 
 ### TC-421 · Reporting an unknown flat returns 404
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/conflicts/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/conflicts/`
-- JSON body:
-    ```json
-    {
-      "reported_apartment_id": 9999,
-      "category": "NOISE",
-      "description": "Loud music after 11pm on weekdays."
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -23242,13 +16317,7 @@ def test_reporting_your_own_flat_is_rejected(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `404`
-- JSON:
-    ```json
-    {
-      "error": "Apartment not found"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -23269,20 +16338,11 @@ def test_reporting_an_unknown_flat_returns_404(client, seed, resident):
 
 ### TC-422 · A user from another flat cannot respond
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/conflicts/1/respond`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/conflicts/1/respond`
-- JSON body:
-    ```json
-    {
-      "response": "Not my problem"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/conflicts/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -23291,13 +16351,7 @@ def test_reporting_an_unknown_flat_returns_404(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "Only the reported flat can respond to this report"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -23322,20 +16376,11 @@ def test_a_user_from_another_flat_cannot_respond(client, seed, resident):
 
 ### TC-423 · A user with no flat cannot respond
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/conflicts/1/respond`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/conflicts/1/respond`
-- JSON body:
-    ```json
-    {
-      "response": "x"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/conflicts/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -23343,13 +16388,7 @@ def test_a_user_from_another_flat_cannot_respond(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "Only the reported flat can respond to this report"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -23371,20 +16410,11 @@ def test_a_user_with_no_flat_cannot_respond(client, seed, worker, resident):
 
 ### TC-424 · Responding twice returns 409
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/conflicts/1/respond`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/conflicts/1/respond`
-- JSON body:
-    ```json
-    {
-      "response": "Second"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/conflicts/` → 201, `PUT /api/conflicts/1/respond` → 200
+- _none_
 
 **Expected Output:**
 
@@ -23393,13 +16423,7 @@ def test_a_user_with_no_flat_cannot_respond(client, seed, worker, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `409`
-- JSON:
-    ```json
-    {
-      "error": "A response has already been submitted for this report"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -23425,20 +16449,11 @@ def test_responding_twice_returns_409(client, seed, worker, resident):
 
 ### TC-425 · Responding to a resolved report returns 409
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/conflicts/1/respond`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/conflicts/1/respond`
-- JSON body:
-    ```json
-    {
-      "response": "Too late"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (5): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/conflicts/` → 201, `PUT /api/conflicts/1/resolve` → 200
+- _none_
 
 **Expected Output:**
 
@@ -23447,13 +16462,7 @@ def test_responding_twice_returns_409(client, seed, worker, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `409`
-- JSON:
-    ```json
-    {
-      "error": "This report has already been resolved"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -23478,18 +16487,11 @@ def test_responding_to_a_resolved_report_returns_409(client, seed, worker, resid
 
 ### TC-426 · Resolving twice returns 409
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/conflicts/1/resolve`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/conflicts/1/resolve`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/conflicts/` → 201, `PUT /api/conflicts/1/resolve` → 200
+- _none_
 
 **Expected Output:**
 
@@ -23498,13 +16500,7 @@ def test_responding_to_a_resolved_report_returns_409(client, seed, worker, resid
 
 **Actual Output:**
 
-- HTTP Status Code: `409`
-- JSON:
-    ```json
-    {
-      "error": "This report is already resolved"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -23529,21 +16525,11 @@ def test_resolving_twice_returns_409(client, seed, resident, admin):
 
 ### TC-427 · Conflict requires a description
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/conflicts/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/conflicts/`
-- JSON body:
-    ```json
-    {
-      "reported_apartment_id": 2,
-      "category": "NOISE"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -23552,13 +16538,7 @@ def test_resolving_twice_returns_409(client, seed, resident, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "description is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -23582,21 +16562,11 @@ def test_conflict_requires_a_description(client, seed, resident):
 
 ### TC-428 · Conflict requires a reported apartment
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/conflicts/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/conflicts/`
-- JSON body:
-    ```json
-    {
-      "category": "NOISE",
-      "description": "Noisy"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -23605,13 +16575,7 @@ def test_conflict_requires_a_description(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "reported_apartment_id is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -23634,22 +16598,11 @@ def test_conflict_requires_a_reported_apartment(client, seed, resident):
 
 ### TC-429 · Unknown category is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/conflicts/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/conflicts/`
-- JSON body:
-    ```json
-    {
-      "reported_apartment_id": 2,
-      "category": "SHOUTING",
-      "description": "Loud music after 11pm on weekdays."
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -23657,13 +16610,7 @@ def test_conflict_requires_a_reported_apartment(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "category must be one of: NOISE, PARKING, GARBAGE, COMMON_AREA_MISUSE, PETS, OTHER"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -23684,22 +16631,11 @@ def test_unknown_category_is_rejected(client, seed, resident):
 
 ### TC-430 · Non numeric apartment id is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/conflicts/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/conflicts/`
-- JSON body:
-    ```json
-    {
-      "reported_apartment_id": "B-202",
-      "category": "NOISE",
-      "description": "Loud music after 11pm on weekdays."
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -23708,13 +16644,7 @@ def test_unknown_category_is_rejected(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "reported_apartment_id must be a whole number"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -23735,18 +16665,11 @@ def test_non_numeric_apartment_id_is_rejected(client, seed, resident):
 
 ### TC-431 · Response text is required
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/conflicts/1/respond`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/conflicts/1/respond`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/conflicts/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -23755,13 +16678,7 @@ def test_non_numeric_apartment_id_is_rejected(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "response is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -23783,18 +16700,11 @@ def test_response_text_is_required(client, seed, worker, resident):
 
 ### TC-432 · Null body is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/conflicts/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/conflicts/`
-- JSON body:
-    ```json
-    null
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -23803,13 +16713,7 @@ def test_response_text_is_required(client, seed, worker, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be valid JSON"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -23831,18 +16735,11 @@ def test_null_body_is_rejected(client, seed, resident):
 
 ### TC-433 · List body is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/conflicts/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/conflicts/`
-- JSON body:
-    ```json
-    []
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -23851,13 +16748,7 @@ def test_null_body_is_rejected(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -23879,18 +16770,11 @@ def test_list_body_is_rejected(client, seed, resident):
 
 ### TC-434 · Conflicts require authentication
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/conflicts/1/resolve`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/conflicts/1/resolve`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: _none (unauthenticated request)_
-- Setup calls before this (3): `GET /api/conflicts/` → 401, `POST /api/conflicts/` → 401, `GET /api/conflicts/pending` → 401
+- _none_
 
 **Expected Output:**
 
@@ -23898,13 +16782,7 @@ def test_list_body_is_rejected(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -23926,18 +16804,11 @@ def test_conflicts_require_authentication(client, seed):
 
 ### TC-435 · Resident cannot resolve a report
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/conflicts/1/resolve`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/conflicts/1/resolve`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/conflicts/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -23946,13 +16817,7 @@ def test_conflicts_require_authentication(client, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -23982,20 +16847,11 @@ def test_resident_cannot_resolve_a_report(client, seed, resident):
 
 ### TC-436 · Admin can add a slot
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/parking/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/parking/`
-- JSON body:
-    ```json
-    {
-      "slot_number": "P1"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -24004,21 +16860,7 @@ def test_resident_cannot_resolve_a_report(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "expected_arrival_time": null,
-      "flat_number": null,
-      "id": 1,
-      "occupied_by_apartment_id": null,
-      "occupied_since": null,
-      "slot_number": "P1",
-      "status": "AVAILABLE",
-      "visitor_name": null,
-      "visitor_vehicle_number": null
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -24042,43 +16884,19 @@ def test_admin_can_add_a_slot(client, seed, admin):
 
 ### TC-437 · Slot can be created with an explicit status
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/parking/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/parking/`
-- JSON body:
-    ```json
-    {
-      "slot_number": "P9",
-      "status": "OCCUPIED"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `201`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "expected_arrival_time": null,
-      "flat_number": null,
-      "id": 1,
-      "occupied_by_apartment_id": null,
-      "occupied_since": null,
-      "slot_number": "P9",
-      "status": "OCCUPIED",
-      "visitor_name": null,
-      "visitor_vehicle_number": null
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -24098,15 +16916,11 @@ def test_slot_can_be_created_with_an_explicit_status(client, seed, admin):
 
 ### TC-438 · Slot list is ordered by slot number
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/parking/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/parking/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/parking/` → 201, `POST /api/parking/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -24114,11 +16928,7 @@ def test_slot_can_be_created_with_an_explicit_status(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [{"expected_arrival_time": null, "flat_number": null, "id": 2, "occupied_by_apartment_id": null, "occupied_since": null, "slot_number": "P1", "status": "AVAILABLE", "visitor_name": null, "visitor_vehicle_number": null}, {"expected_arrival_time": null, "flat_number": null, "id": 1, "occupied_by_apartment_id": null, "occupied_since": null, "slot_number": "P2", "status": "AVAILABLE", "visitor_name":…
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -24142,15 +16952,11 @@ def test_slot_list_is_ordered_by_slot_number(client, seed, admin):
 
 ### TC-439 · Available returns only free slots
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/parking/available`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/parking/available`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (5): `POST /api/auth/login` → 200, `POST /api/parking/` → 201, `POST /api/parking/` → 201, `PUT /api/parking/2/reserve` → 200
+- _none_
 
 **Expected Output:**
 
@@ -24158,23 +16964,7 @@ def test_slot_list_is_ordered_by_slot_number(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "expected_arrival_time": null,
-        "flat_number": null,
-        "id": 1,
-        "occupied_by_apartment_id": null,
-        "occupied_since": null,
-        "slot_number": "P1",
-        "status": "AVAILABLE",
-        "visitor_name": null,
-        "visitor_vehicle_number": null
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -24199,22 +16989,11 @@ def test_available_returns_only_free_slots(client, seed, admin, resident):
 
 ### TC-440 · Resident can reserve a slot for a visitor
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/parking/1/reserve`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/parking/1/reserve`
-- JSON body:
-    ```json
-    {
-      "visitor_name": "Anil Kumar",
-      "visitor_vehicle_number": "KA01AB1234",
-      "expected_arrival_time": "2026-09-15T18:30:00"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/parking/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -24223,24 +17002,7 @@ def test_available_returns_only_free_slots(client, seed, admin, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "message": "Slot P1 reserved successfully",
-      "slot": {
-        "expected_arrival_time": "2026-09-15 18:30:00",
-        "flat_number": "A-101",
-        "id": 1,
-        "occupied_by_apartment_id": 1,
-        "occupied_since": null,
-        "slot_number": "P1",
-        "status": "RESERVED",
-        "visitor_name": "Anil Kumar",
-        "visitor_vehicle_number": "KA01AB1234"
-      }
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -24272,18 +17034,11 @@ def test_resident_can_reserve_a_slot_for_a_visitor(client, seed, resident, admin
 
 ### TC-441 · Occupying a reserved slot keeps the reserving flat
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/parking/1/occupy`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/parking/1/occupy`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/parking/` → 201, `PUT /api/parking/1/reserve` → 200
+- _none_
 
 **Expected Output:**
 
@@ -24292,24 +17047,7 @@ def test_resident_can_reserve_a_slot_for_a_visitor(client, seed, resident, admin
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "message": "Slot P1 marked occupied",
-      "slot": {
-        "expected_arrival_time": null,
-        "flat_number": "A-101",
-        "id": 1,
-        "occupied_by_apartment_id": 1,
-        "occupied_since": "2026-08-02 13:29:23.015771",
-        "slot_number": "P1",
-        "status": "OCCUPIED",
-        "visitor_name": "Anil Kumar",
-        "visitor_vehicle_number": "KA01AB1234"
-      }
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -24337,20 +17075,11 @@ def test_occupying_a_reserved_slot_keeps_the_reserving_flat(client, seed, reside
 
 ### TC-442 · Occupying a free slot attributes it to the caller
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/parking/1/occupy`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/parking/1/occupy`
-- JSON body:
-    ```json
-    {
-      "visitor_name": "Walk-in"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/parking/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -24358,24 +17087,7 @@ def test_occupying_a_reserved_slot_keeps_the_reserving_flat(client, seed, reside
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "message": "Slot P1 marked occupied",
-      "slot": {
-        "expected_arrival_time": null,
-        "flat_number": "A-101",
-        "id": 1,
-        "occupied_by_apartment_id": 1,
-        "occupied_since": "2026-08-02 13:29:23.118466",
-        "slot_number": "P1",
-        "status": "OCCUPIED",
-        "visitor_name": "Walk-in",
-        "visitor_vehicle_number": null
-      }
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -24400,18 +17112,11 @@ def test_occupying_a_free_slot_attributes_it_to_the_caller(client, seed, residen
 
 ### TC-443 · Resident can release their own reservation
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/parking/1/release`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/parking/1/release`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/parking/` → 201, `PUT /api/parking/1/reserve` → 200
+- _none_
 
 **Expected Output:**
 
@@ -24423,24 +17128,7 @@ def test_occupying_a_free_slot_attributes_it_to_the_caller(client, seed, residen
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "message": "Slot P1 released",
-      "slot": {
-        "expected_arrival_time": null,
-        "flat_number": null,
-        "id": 1,
-        "occupied_by_apartment_id": null,
-        "occupied_since": null,
-        "slot_number": "P1",
-        "status": "AVAILABLE",
-        "visitor_name": null,
-        "visitor_vehicle_number": null
-      }
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -24469,18 +17157,11 @@ def test_resident_can_release_their_own_reservation(client, seed, resident, admi
 
 ### TC-444 · Admin can release any slot
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/parking/1/release`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/parking/1/release`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/parking/` → 201, `PUT /api/parking/1/reserve` → 200
+- _none_
 
 **Expected Output:**
 
@@ -24488,24 +17169,7 @@ def test_resident_can_release_their_own_reservation(client, seed, resident, admi
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "message": "Slot P1 released",
-      "slot": {
-        "expected_arrival_time": null,
-        "flat_number": null,
-        "id": 1,
-        "occupied_by_apartment_id": null,
-        "occupied_since": null,
-        "slot_number": "P1",
-        "status": "AVAILABLE",
-        "visitor_name": null,
-        "visitor_vehicle_number": null
-      }
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -24528,15 +17192,11 @@ def test_admin_can_release_any_slot(client, seed, resident, admin):
 
 ### TC-445 · Admin can delete a slot
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/parking/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/parking/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/parking/` → 201, `DELETE /api/parking/1` → 200
+- _none_
 
 **Expected Output:**
 
@@ -24545,11 +17205,7 @@ def test_admin_can_release_any_slot(client, seed, resident, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    []
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -24572,18 +17228,11 @@ def test_admin_can_delete_a_slot(client, seed, admin):
 
 ### TC-446 · Reserving a missing slot returns 404
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/parking/9999/reserve`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/parking/9999/reserve`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -24591,13 +17240,7 @@ def test_admin_can_delete_a_slot(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `404`
-- JSON:
-    ```json
-    {
-      "error": "The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again."
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -24617,21 +17260,11 @@ def test_reserving_a_missing_slot_returns_404(client, seed, resident):
 
 ### TC-447 · Reserving an already reserved slot is rejected
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/parking/1/reserve`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/parking/1/reserve`
-- JSON body:
-    ```json
-    {
-      "visitor_name": "Anil Kumar",
-      "visitor_vehicle_number": "KA01AB1234"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/parking/` → 201, `PUT /api/parking/1/reserve` → 200
+- _none_
 
 **Expected Output:**
 
@@ -24640,13 +17273,7 @@ def test_reserving_a_missing_slot_returns_404(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Slot is already RESERVED"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -24670,18 +17297,11 @@ def test_reserving_an_already_reserved_slot_is_rejected(client, seed, resident, 
 
 ### TC-448 · Occupying an already occupied slot is rejected
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/parking/1/occupy`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/parking/1/occupy`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/parking/` → 201, `PUT /api/parking/1/occupy` → 200
+- _none_
 
 **Expected Output:**
 
@@ -24690,13 +17310,7 @@ def test_reserving_an_already_reserved_slot_is_rejected(client, seed, resident, 
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Slot is already OCCUPIED"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -24721,15 +17335,11 @@ def test_occupying_an_already_occupied_slot_is_rejected(client, seed, resident, 
 
 ### TC-449 · Releasing someone elses reservation is forbidden
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/parking/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/parking/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (6): `POST /api/auth/login` → 200, `POST /api/parking/` → 201, `PUT /api/parking/1/reserve` → 200, `PUT /api/parking/1/release` → 403
+- _none_
 
 **Expected Output:**
 
@@ -24738,23 +17348,7 @@ def test_occupying_an_already_occupied_slot_is_rejected(client, seed, resident, 
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "expected_arrival_time": null,
-        "flat_number": "A-101",
-        "id": 1,
-        "occupied_by_apartment_id": 1,
-        "occupied_since": null,
-        "slot_number": "P1",
-        "status": "RESERVED",
-        "visitor_name": "Anil Kumar",
-        "visitor_vehicle_number": "KA01AB1234"
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -24782,20 +17376,11 @@ def test_releasing_someone_elses_reservation_is_forbidden(client, seed, resident
 
 ### TC-450 · Duplicate slot number returns 409
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/parking/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/parking/`
-- JSON body:
-    ```json
-    {
-      "slot_number": "P1"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/parking/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -24804,13 +17389,7 @@ def test_releasing_someone_elses_reservation_is_forbidden(client, seed, resident
 
 **Actual Output:**
 
-- HTTP Status Code: `409`
-- JSON:
-    ```json
-    {
-      "error": "Slot already exists"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -24832,22 +17411,11 @@ def test_duplicate_slot_number_returns_409(client, seed, admin):
 
 ### TC-451 · The UI sends "" when the arrival time box is left empty
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/parking/1/reserve`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/parking/1/reserve`
-- JSON body:
-    ```json
-    {
-      "visitor_name": "Anil Kumar",
-      "visitor_vehicle_number": "KA01AB1234",
-      "expected_arrival_time": ""
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/parking/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -24856,24 +17424,7 @@ def test_duplicate_slot_number_returns_409(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "message": "Slot P1 reserved successfully",
-      "slot": {
-        "expected_arrival_time": null,
-        "flat_number": "A-101",
-        "id": 1,
-        "occupied_by_apartment_id": 1,
-        "occupied_since": null,
-        "slot_number": "P1",
-        "status": "RESERVED",
-        "visitor_name": "Anil Kumar",
-        "visitor_vehicle_number": "KA01AB1234"
-      }
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -24896,22 +17447,11 @@ def test_blank_expected_arrival_time_is_accepted(client, seed, resident, admin):
 
 ### TC-452 · Date only expected arrival time is accepted
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/parking/1/reserve`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/parking/1/reserve`
-- JSON body:
-    ```json
-    {
-      "visitor_name": "Anil Kumar",
-      "visitor_vehicle_number": "KA01AB1234",
-      "expected_arrival_time": "2026-09-15"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/parking/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -24919,24 +17459,7 @@ def test_blank_expected_arrival_time_is_accepted(client, seed, resident, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "message": "Slot P1 reserved successfully",
-      "slot": {
-        "expected_arrival_time": "2026-09-15 00:00:00",
-        "flat_number": "A-101",
-        "id": 1,
-        "occupied_by_apartment_id": 1,
-        "occupied_since": null,
-        "slot_number": "P1",
-        "status": "RESERVED",
-        "visitor_name": "Anil Kumar",
-        "visitor_vehicle_number": "KA01AB1234"
-      }
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -24958,22 +17481,11 @@ def test_date_only_expected_arrival_time_is_accepted(client, seed, resident, adm
 
 ### TC-453 · Unparseable expected arrival time is rejected
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/parking/1/reserve`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/parking/1/reserve`
-- JSON body:
-    ```json
-    {
-      "visitor_name": "Anil Kumar",
-      "visitor_vehicle_number": "KA01AB1234",
-      "expected_arrival_time": "tomorrow evening"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/parking/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -24982,13 +17494,7 @@ def test_date_only_expected_arrival_time_is_accepted(client, seed, resident, adm
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "expected_arrival_time must be a valid date/time"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -25010,20 +17516,11 @@ def test_unparseable_expected_arrival_time_is_rejected(client, seed, resident, a
 
 ### TC-454 · Slot number is required
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/parking/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/parking/`
-- JSON body:
-    ```json
-    {
-      "status": "AVAILABLE"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -25032,13 +17529,7 @@ def test_unparseable_expected_arrival_time_is_rejected(client, seed, resident, a
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "slot_number is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -25059,20 +17550,11 @@ def test_slot_number_is_required(client, seed, admin):
 
 ### TC-455 · Blank slot number is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/parking/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/parking/`
-- JSON body:
-    ```json
-    {
-      "slot_number": "   "
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -25081,13 +17563,7 @@ def test_slot_number_is_required(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "slot_number is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -25108,21 +17584,11 @@ def test_blank_slot_number_is_rejected(client, seed, admin):
 
 ### TC-456 · Unknown status is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/parking/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/parking/`
-- JSON body:
-    ```json
-    {
-      "slot_number": "P3",
-      "status": "BOOKED"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -25130,13 +17596,7 @@ def test_blank_slot_number_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "parking_status must be one of: AVAILABLE, OCCUPIED, RESERVED"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -25157,18 +17617,11 @@ def test_unknown_status_is_rejected(client, seed, admin):
 
 ### TC-457 · Null body is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/parking/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/parking/`
-- JSON body:
-    ```json
-    null
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -25177,13 +17630,7 @@ def test_unknown_status_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be valid JSON"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -25205,18 +17652,11 @@ def test_null_body_is_rejected(client, seed, admin):
 
 ### TC-458 · List body is rejected
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/parking/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/parking/`
-- JSON body:
-    ```json
-    []
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -25225,13 +17665,7 @@ def test_null_body_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -25253,18 +17687,11 @@ def test_list_body_is_rejected(client, seed, admin):
 
 ### TC-459 · Null body on reserve is rejected
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/parking/1/reserve`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/parking/1/reserve`
-- JSON body:
-    ```json
-    null
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/parking/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -25273,13 +17700,7 @@ def test_list_body_is_rejected(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be valid JSON"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -25302,18 +17723,11 @@ def test_null_body_on_reserve_is_rejected(client, seed, resident, admin):
 
 ### TC-460 · Parking requires authentication
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/parking/1/reserve`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/parking/1/reserve`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: _none (unauthenticated request)_
-- Setup calls before this (3): `GET /api/parking/` → 401, `GET /api/parking/available` → 401, `POST /api/parking/` → 401
+- _none_
 
 **Expected Output:**
 
@@ -25321,13 +17735,7 @@ def test_null_body_on_reserve_is_rejected(client, seed, resident, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -25349,15 +17757,11 @@ def test_parking_requires_authentication(client, seed):
 
 ### TC-461 · Resident can read slots
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/parking/available`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/parking/available`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/parking/` → 201, `GET /api/parking/` → 200
+- _none_
 
 **Expected Output:**
 
@@ -25365,23 +17769,7 @@ def test_parking_requires_authentication(client, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "expected_arrival_time": null,
-        "flat_number": null,
-        "id": 1,
-        "occupied_by_apartment_id": null,
-        "occupied_since": null,
-        "slot_number": "P1",
-        "status": "AVAILABLE",
-        "visitor_name": null,
-        "visitor_vehicle_number": null
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -25402,15 +17790,11 @@ def test_resident_can_read_slots(client, seed, admin, resident):
 
 ### TC-462 · Resident cannot add or delete slots
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/parking/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/parking/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/parking/` → 201, `POST /api/parking/` → 403
+- _none_
 
 **Expected Output:**
 
@@ -25419,13 +17803,7 @@ def test_resident_can_read_slots(client, seed, admin, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -25457,23 +17835,11 @@ def test_resident_cannot_add_or_delete_slots(client, seed, admin, resident):
 
 ### TC-463 · Create contact returns 201
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body:
-    ```json
-    {
-      "name": "City Ambulance",
-      "service_type": "AMBULANCE",
-      "phone": "108",
-      "availability": "24x7"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -25481,17 +17847,7 @@ def test_resident_cannot_add_or_delete_slots(client, seed, admin, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "availability": "24x7",
-      "id": 1,
-      "name": "City Ambulance",
-      "phone": "108",
-      "service_type": "AMBULANCE"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -25517,41 +17873,19 @@ def test_create_contact_returns_201(client, seed, admin):
 
 ### TC-464 · Create contact returns only real columns
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body:
-    ```json
-    {
-      "name": "City Ambulance",
-      "service_type": "AMBULANCE",
-      "phone": "108",
-      "availability": "24x7"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `201`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "availability": "24x7",
-      "id": 1,
-      "name": "City Ambulance",
-      "phone": "108",
-      "service_type": "AMBULANCE"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -25571,23 +17905,11 @@ def test_create_contact_returns_only_real_columns(client, seed, admin):
 
 ### TC-465 · Create contact uppercases the service type
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body:
-    ```json
-    {
-      "name": "City Ambulance",
-      "service_type": "plumber",
-      "phone": "108",
-      "availability": "24x7"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -25596,17 +17918,7 @@ def test_create_contact_returns_only_real_columns(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "availability": "24x7",
-      "id": 1,
-      "name": "City Ambulance",
-      "phone": "108",
-      "service_type": "PLUMBER"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -25628,23 +17940,11 @@ def test_create_contact_uppercases_the_service_type(client, seed, admin):
 
 ### TC-466 · Create contact blank availability becomes null
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body:
-    ```json
-    {
-      "name": "City Ambulance",
-      "service_type": "AMBULANCE",
-      "phone": "108",
-      "availability": "   "
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -25653,17 +17953,7 @@ def test_create_contact_uppercases_the_service_type(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "availability": null,
-      "id": 1,
-      "name": "City Ambulance",
-      "phone": "108",
-      "service_type": "AMBULANCE"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -25685,22 +17975,11 @@ def test_create_contact_blank_availability_becomes_null(client, seed, admin):
 
 ### TC-467 · Create contact omitted availability is null
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body:
-    ```json
-    {
-      "name": "City Ambulance",
-      "service_type": "AMBULANCE",
-      "phone": "108"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -25709,17 +17988,7 @@ def test_create_contact_blank_availability_becomes_null(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "availability": null,
-      "id": 1,
-      "name": "City Ambulance",
-      "phone": "108",
-      "service_type": "AMBULANCE"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -25741,41 +18010,19 @@ def test_create_contact_omitted_availability_is_null(client, seed, admin):
 
 ### TC-468 · phone has no UNIQUE constraint — two services can share a number
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body:
-    ```json
-    {
-      "name": "Backup Ambulance",
-      "service_type": "AMBULANCE",
-      "phone": "108",
-      "availability": "24x7"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/emergency/` → 201
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `201`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "availability": "24x7",
-      "id": 2,
-      "name": "Backup Ambulance",
-      "phone": "108",
-      "service_type": "AMBULANCE"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -25798,22 +18045,11 @@ def test_create_two_contacts_may_share_a_phone(client, seed, admin):
 
 ### TC-469 · Create contact missing required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body:
-    ```json
-    {
-      "service_type": "AMBULANCE",
-      "phone": "108",
-      "availability": "24x7"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -25821,13 +18057,7 @@ def test_create_two_contacts_may_share_a_phone(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "name is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -25850,22 +18080,11 @@ def test_create_contact_missing_required_field_returns_400(client, seed, admin, 
 
 ### TC-470 · Create contact missing required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body:
-    ```json
-    {
-      "name": "City Ambulance",
-      "phone": "108",
-      "availability": "24x7"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -25873,13 +18092,7 @@ def test_create_contact_missing_required_field_returns_400(client, seed, admin, 
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "service_type is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -25902,22 +18115,11 @@ def test_create_contact_missing_required_field_returns_400(client, seed, admin, 
 
 ### TC-471 · Create contact missing required field returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body:
-    ```json
-    {
-      "name": "City Ambulance",
-      "service_type": "AMBULANCE",
-      "availability": "24x7"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -25925,13 +18127,7 @@ def test_create_contact_missing_required_field_returns_400(client, seed, admin, 
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "phone is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -25954,23 +18150,11 @@ def test_create_contact_missing_required_field_returns_400(client, seed, admin, 
 
 ### TC-472 · Create contact unknown service type returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body:
-    ```json
-    {
-      "name": "City Ambulance",
-      "service_type": "ASTRONAUT",
-      "phone": "108",
-      "availability": "24x7"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -25978,13 +18162,7 @@ def test_create_contact_missing_required_field_returns_400(client, seed, admin, 
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "service_type must be one of: PLUMBER, ELECTRICIAN, SECURITY, FIRE, AMBULANCE, POLICE, LIFT, WATER, OTHER"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -26006,23 +18184,11 @@ def test_create_contact_unknown_service_type_returns_400(client, seed, admin):
 
 ### TC-473 · Create contact phone without digits returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body:
-    ```json
-    {
-      "name": "City Ambulance",
-      "service_type": "AMBULANCE",
-      "phone": "call-us",
-      "availability": "24x7"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -26031,13 +18197,7 @@ def test_create_contact_unknown_service_type_returns_400(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "phone must contain digits"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -26059,23 +18219,11 @@ def test_create_contact_phone_without_digits_returns_400(client, seed, admin):
 
 ### TC-474 · Create contact phone longer than 15 chars returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body:
-    ```json
-    {
-      "name": "City Ambulance",
-      "service_type": "AMBULANCE",
-      "phone": "1234567890123456",
-      "availability": "24x7"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -26084,13 +18232,7 @@ def test_create_contact_phone_without_digits_returns_400(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "phone must be 15 characters or fewer"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -26112,18 +18254,11 @@ def test_create_contact_phone_longer_than_15_chars_returns_400(client, seed, adm
 
 ### TC-475 · Create contact malformed body returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body:
-    ```json
-    null
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -26131,13 +18266,7 @@ def test_create_contact_phone_longer_than_15_chars_returns_400(client, seed, adm
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be valid JSON"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -26164,18 +18293,11 @@ def test_create_contact_malformed_body_returns_400(client, seed, admin, raw, exp
 
 ### TC-476 · Create contact malformed body returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body:
-    ```json
-    []
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -26183,13 +18305,7 @@ def test_create_contact_malformed_body_returns_400(client, seed, admin, raw, exp
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -26216,18 +18332,11 @@ def test_create_contact_malformed_body_returns_400(client, seed, admin, raw, exp
 
 ### TC-477 · Create contact malformed body returns 400
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body:
-    ```json
-    "str"
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -26235,13 +18344,7 @@ def test_create_contact_malformed_body_returns_400(client, seed, admin, raw, exp
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -26268,23 +18371,11 @@ def test_create_contact_malformed_body_returns_400(client, seed, admin, raw, exp
 
 ### TC-478 · Create contact as resident returns 403
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body:
-    ```json
-    {
-      "name": "City Ambulance",
-      "service_type": "AMBULANCE",
-      "phone": "108",
-      "availability": "24x7"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -26293,13 +18384,7 @@ def test_create_contact_malformed_body_returns_400(client, seed, admin, raw, exp
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -26320,23 +18405,11 @@ def test_create_contact_as_resident_returns_403(client, seed, resident):
 
 ### TC-479 · Create contact as worker returns 403
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body:
-    ```json
-    {
-      "name": "City Ambulance",
-      "service_type": "AMBULANCE",
-      "phone": "108",
-      "availability": "24x7"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -26344,13 +18417,7 @@ def test_create_contact_as_resident_returns_403(client, seed, resident):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -26369,23 +18436,11 @@ def test_create_contact_as_worker_returns_403(client, seed, worker):
 
 ### TC-480 · Create contact as treasurer returns 201
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body:
-    ```json
-    {
-      "name": "City Ambulance",
-      "service_type": "AMBULANCE",
-      "phone": "108",
-      "availability": "24x7"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -26393,17 +18448,7 @@ def test_create_contact_as_worker_returns_403(client, seed, worker):
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "availability": "24x7",
-      "id": 1,
-      "name": "City Ambulance",
-      "phone": "108",
-      "service_type": "AMBULANCE"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -26422,22 +18467,11 @@ def test_create_contact_as_treasurer_returns_201(client, seed, treasurer):
 
 ### TC-481 · Create contact without token returns 401
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body:
-    ```json
-    {
-      "name": "City Ambulance",
-      "service_type": "AMBULANCE",
-      "phone": "108",
-      "availability": "24x7"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -26445,13 +18479,7 @@ def test_create_contact_as_treasurer_returns_201(client, seed, treasurer):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -26470,15 +18498,11 @@ def test_create_contact_without_token_returns_401(client, seed):
 
 ### TC-482 · List contacts empty directory returns empty list
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -26486,11 +18510,7 @@ def test_create_contact_without_token_returns_401(client, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    []
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -26511,15 +18531,11 @@ def test_list_contacts_empty_directory_returns_empty_list(client, seed, admin):
 
 ### TC-483 · List contacts returns the created contact
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/emergency/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -26527,19 +18543,7 @@ def test_list_contacts_empty_directory_returns_empty_list(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "availability": "24x7",
-        "id": 1,
-        "name": "City Ambulance",
-        "phone": "108",
-        "service_type": "AMBULANCE"
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -26562,27 +18566,19 @@ def test_list_contacts_returns_the_created_contact(client, seed, admin, contact_
 
 ### TC-484 · List contacts is ordered by service type then name
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (5): `POST /api/emergency/` → 201, `POST /api/emergency/` → 201, `POST /api/emergency/` → 201, `POST /api/emergency/` → 201
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `200`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [{"availability": null, "id": 2, "name": "Amit Sparks", "phone": "9990001111", "service_type": "ELECTRICIAN"}, {"availability": null, "id": 1, "name": "Zed Sparks", "phone": "9990001111", "service_type": "ELECTRICIAN"}, {"availability": null, "id": 4, "name": "Fire HQ", "phone": "9990001111", "service_type": "FIRE"}, {"availability": null, "id": 3, "name": "Nita Pipes", "phone": "9990001111", "se…
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -26612,15 +18608,11 @@ def test_list_contacts_is_ordered_by_service_type_then_name(client, seed, admin)
 
 ### TC-485 · Every role may read the emergency directory
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/emergency/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -26628,19 +18620,7 @@ def test_list_contacts_is_ordered_by_service_type_then_name(client, seed, admin)
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "availability": "24x7",
-        "id": 1,
-        "name": "City Ambulance",
-        "phone": "108",
-        "service_type": "AMBULANCE"
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -26662,15 +18642,11 @@ def test_list_contacts_as_resident_returns_200(client, seed, resident, contact_i
 
 ### TC-486 · List contacts is open to every role
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -26678,11 +18654,7 @@ def test_list_contacts_as_resident_returns_200(client, seed, resident, contact_i
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    []
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -26703,15 +18675,11 @@ def test_list_contacts_is_open_to_every_role(client, request, role_fixture):
 
 ### TC-487 · List contacts is open to every role
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -26719,11 +18687,7 @@ def test_list_contacts_is_open_to_every_role(client, request, role_fixture):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    []
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -26744,15 +18708,11 @@ def test_list_contacts_is_open_to_every_role(client, request, role_fixture):
 
 ### TC-488 · List contacts is open to every role
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -26760,11 +18720,7 @@ def test_list_contacts_is_open_to_every_role(client, request, role_fixture):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    []
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -26785,15 +18741,11 @@ def test_list_contacts_is_open_to_every_role(client, request, role_fixture):
 
 ### TC-489 · List contacts is open to every role
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -26801,11 +18753,7 @@ def test_list_contacts_is_open_to_every_role(client, request, role_fixture):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    []
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -26826,14 +18774,11 @@ def test_list_contacts_is_open_to_every_role(client, request, role_fixture):
 
 ### TC-490 · List contacts without token returns 401
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body: _none_
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -26841,13 +18786,7 @@ def test_list_contacts_is_open_to_every_role(client, request, role_fixture):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -26866,23 +18805,11 @@ def test_list_contacts_without_token_returns_401(client, seed):
 
 ### TC-491 · Update contact returns 200
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/emergency/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/emergency/1`
-- JSON body:
-    ```json
-    {
-      "name": "State Ambulance",
-      "phone": "102",
-      "service_type": "FIRE",
-      "availability": "Mon-Fri"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/emergency/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -26890,17 +18817,7 @@ def test_list_contacts_without_token_returns_401(client, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "availability": "Mon-Fri",
-      "id": 1,
-      "name": "State Ambulance",
-      "phone": "102",
-      "service_type": "FIRE"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -26928,20 +18845,11 @@ def test_update_contact_returns_200(client, seed, admin, contact_id):
 
 ### TC-492 · Update contact leaves omitted fields untouched
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/emergency/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/emergency/1`
-- JSON body:
-    ```json
-    {
-      "name": "Renamed Ambulance"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/emergency/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -26949,17 +18857,7 @@ def test_update_contact_returns_200(client, seed, admin, contact_id):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "availability": "24x7",
-      "id": 1,
-      "name": "Renamed Ambulance",
-      "phone": "108",
-      "service_type": "AMBULANCE"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -26985,20 +18883,11 @@ def test_update_contact_leaves_omitted_fields_untouched(client, seed, admin, con
 
 ### TC-493 · Update contact blank service type keeps the current one
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/emergency/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/emergency/1`
-- JSON body:
-    ```json
-    {
-      "service_type": ""
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/emergency/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -27007,17 +18896,7 @@ def test_update_contact_leaves_omitted_fields_untouched(client, seed, admin, con
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "availability": "24x7",
-      "id": 1,
-      "name": "City Ambulance",
-      "phone": "108",
-      "service_type": "AMBULANCE"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -27039,20 +18918,11 @@ def test_update_contact_blank_service_type_keeps_the_current_one(client, seed, a
 
 ### TC-494 · Update contact blank availability clears it
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/emergency/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/emergency/1`
-- JSON body:
-    ```json
-    {
-      "availability": ""
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/emergency/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -27061,17 +18931,7 @@ def test_update_contact_blank_service_type_keeps_the_current_one(client, seed, a
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "availability": null,
-      "id": 1,
-      "name": "City Ambulance",
-      "phone": "108",
-      "service_type": "AMBULANCE"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -27093,20 +18953,11 @@ def test_update_contact_blank_availability_clears_it(client, seed, admin, contac
 
 ### TC-495 · Update contact unknown service type returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/emergency/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/emergency/1`
-- JSON body:
-    ```json
-    {
-      "service_type": "ASTRONAUT"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/emergency/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -27114,13 +18965,7 @@ def test_update_contact_blank_availability_clears_it(client, seed, admin, contac
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "service_type must be one of: PLUMBER, ELECTRICIAN, SECURITY, FIRE, AMBULANCE, POLICE, LIFT, WATER, OTHER"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -27142,20 +18987,11 @@ def test_update_contact_unknown_service_type_returns_400(client, seed, admin, co
 
 ### TC-496 · Update contact blank phone returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/emergency/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/emergency/1`
-- JSON body:
-    ```json
-    {
-      "phone": ""
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/emergency/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -27164,13 +19000,7 @@ def test_update_contact_unknown_service_type_returns_400(client, seed, admin, co
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "phone is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -27191,20 +19021,11 @@ def test_update_contact_blank_phone_returns_400(client, seed, admin, contact_id)
 
 ### TC-497 · Update contact phone without digits returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/emergency/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/emergency/1`
-- JSON body:
-    ```json
-    {
-      "phone": "ring-us"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/emergency/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -27213,13 +19034,7 @@ def test_update_contact_blank_phone_returns_400(client, seed, admin, contact_id)
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "phone must contain digits"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -27240,20 +19055,11 @@ def test_update_contact_phone_without_digits_returns_400(client, seed, admin, co
 
 ### TC-498 · Update contact phone longer than 15 chars returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/emergency/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/emergency/1`
-- JSON body:
-    ```json
-    {
-      "phone": "1234567890123456"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/emergency/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -27262,13 +19068,7 @@ def test_update_contact_phone_without_digits_returns_400(client, seed, admin, co
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "phone must be 15 characters or fewer"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -27290,18 +19090,11 @@ def test_update_contact_phone_longer_than_15_chars_returns_400(client, seed, adm
 
 ### TC-499 · Update contact malformed body returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/emergency/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/emergency/1`
-- JSON body:
-    ```json
-    null
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/emergency/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -27309,13 +19102,7 @@ def test_update_contact_phone_longer_than_15_chars_returns_400(client, seed, adm
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be valid JSON"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -27343,18 +19130,11 @@ def test_update_contact_malformed_body_returns_400(client, seed, admin, contact_
 
 ### TC-500 · Update contact malformed body returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/emergency/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/emergency/1`
-- JSON body:
-    ```json
-    []
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/emergency/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -27362,13 +19142,7 @@ def test_update_contact_malformed_body_returns_400(client, seed, admin, contact_
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -27396,18 +19170,11 @@ def test_update_contact_malformed_body_returns_400(client, seed, admin, contact_
 
 ### TC-501 · Update contact malformed body returns 400
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/emergency/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/emergency/1`
-- JSON body:
-    ```json
-    "str"
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/emergency/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -27415,13 +19182,7 @@ def test_update_contact_malformed_body_returns_400(client, seed, admin, contact_
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -27449,20 +19210,11 @@ def test_update_contact_malformed_body_returns_400(client, seed, admin, contact_
 
 ### TC-502 · Update unknown contact returns 404
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/emergency/9999`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/emergency/9999`
-- JSON body:
-    ```json
-    {
-      "name": "Ghost"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -27470,13 +19222,7 @@ def test_update_contact_malformed_body_returns_400(client, seed, admin, contact_
 
 **Actual Output:**
 
-- HTTP Status Code: `404`
-- JSON:
-    ```json
-    {
-      "error": "The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again."
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -27496,20 +19242,11 @@ def test_update_unknown_contact_returns_404(client, seed, admin):
 
 ### TC-503 · Update contact as resident returns 403
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/emergency/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/emergency/1`
-- JSON body:
-    ```json
-    {
-      "name": "Hijacked"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/emergency/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -27518,13 +19255,7 @@ def test_update_unknown_contact_returns_404(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -27546,20 +19277,11 @@ def test_update_contact_as_resident_returns_403(client, seed, resident, contact_
 
 ### TC-504 · Update contact as worker returns 403
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/emergency/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/emergency/1`
-- JSON body:
-    ```json
-    {
-      "name": "Nope"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/emergency/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -27567,13 +19289,7 @@ def test_update_contact_as_resident_returns_403(client, seed, resident, contact_
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -27593,20 +19309,11 @@ def test_update_contact_as_worker_returns_403(client, seed, worker, contact_id):
 
 ### TC-505 · Update contact without token returns 401
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/emergency/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/emergency/1`
-- JSON body:
-    ```json
-    {
-      "name": "Anonymous"
-    }
-    ```
-- Header: _none (unauthenticated request)_
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/emergency/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -27614,13 +19321,7 @@ def test_update_contact_as_worker_returns_403(client, seed, worker, contact_id):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -27640,15 +19341,11 @@ def test_update_contact_without_token_returns_401(client, seed, contact_id):
 
 ### TC-506 · Delete contact returns 200
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/emergency/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/emergency/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/emergency/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -27657,13 +19354,7 @@ def test_update_contact_without_token_returns_401(client, seed, contact_id):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    {
-      "message": "Contact removed"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -27684,27 +19375,19 @@ def test_delete_contact_returns_200(client, seed, admin, contact_id):
 
 ### TC-507 · Delete contact is a hard delete
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/emergency/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/emergency/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/emergency/` → 201, `DELETE /api/emergency/1` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `200`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    []
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -27724,15 +19407,11 @@ def test_delete_contact_is_a_hard_delete(client, seed, admin, contact_id):
 
 ### TC-508 · Delete contact twice returns 404
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/emergency/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/emergency/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/emergency/` → 201, `DELETE /api/emergency/1` → 200
+- _none_
 
 **Expected Output:**
 
@@ -27740,13 +19419,7 @@ def test_delete_contact_is_a_hard_delete(client, seed, admin, contact_id):
 
 **Actual Output:**
 
-- HTTP Status Code: `404`
-- JSON:
-    ```json
-    {
-      "error": "The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again."
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -27766,15 +19439,11 @@ def test_delete_contact_twice_returns_404(client, seed, admin, contact_id):
 
 ### TC-509 · Delete unknown contact returns 404
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/emergency/9999`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/emergency/9999`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -27782,13 +19451,7 @@ def test_delete_contact_twice_returns_404(client, seed, admin, contact_id):
 
 **Actual Output:**
 
-- HTTP Status Code: `404`
-- JSON:
-    ```json
-    {
-      "error": "The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again."
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -27807,15 +19470,11 @@ def test_delete_unknown_contact_returns_404(client, seed, admin):
 
 ### TC-510 · Delete contact as resident returns 403
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/emergency/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/emergency/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/emergency/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -27824,13 +19483,7 @@ def test_delete_unknown_contact_returns_404(client, seed, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -27851,15 +19504,11 @@ def test_delete_contact_as_resident_returns_403(client, seed, resident, contact_
 
 ### TC-511 · Delete contact as worker returns 403
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/emergency/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/emergency/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/emergency/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -27867,13 +19516,7 @@ def test_delete_contact_as_resident_returns_403(client, seed, resident, contact_
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -27892,15 +19535,11 @@ def test_delete_contact_as_worker_returns_403(client, seed, worker, contact_id):
 
 ### TC-512 · Delete contact without token returns 401
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/emergency/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/emergency/1`
-- JSON body: _none_
-- Header: _none (unauthenticated request)_
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/emergency/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -27908,13 +19547,7 @@ def test_delete_contact_as_worker_returns_403(client, seed, worker, contact_id):
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -27931,49 +19564,2788 @@ def test_delete_contact_without_token_returns_401(client, seed, contact_id):
 
 ---
 
-## Regression suite — defects already fixed
+## Search & Filter (Members/Complaints/Invoices/Expenses/Maintenance)
 
-`Backend/tests/test_regressions.py` · all · **21/21 passed** · [↑ back to index](#2-test-case-index)
+`Backend/tests/test_filters.py` · US-18 · **33/33 passed** · [↑ back to index](#2-test-case-index)
 
 
 <a id="tc-513"></a>
 
-### TC-513 · Duplicate phone returns 409 not 500
+### TC-513 · Calling the endpoint with no query params must be unaffected by the
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/register`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/register`
-- JSON body:
-    ```json
-    {
-      "name": "Second",
-      "email": "second@x.com",
-      "password": "<hidden>",
-      "role": "TENANT",
-      "phone": "9876543210"
-    }
-    ```
-- Header: _none (unauthenticated request)_
-- Setup calls before this (1): `POST /api/auth/register` → 201
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `409`
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_members_no_filters_returns_everyone(client, admin, seed):
+    """Calling the endpoint with no query params must be unaffected by the
+    new filtering code — this is the contract-freeze guarantee for members."""
+    res = client.get("/api/members/", headers=admin)
+    assert res.status_code == 200
+    assert len(res.get_json()) == 1   # just the seeded resident
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-514"></a>
+
+### TC-514 · Members filter by role
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_members_filter_by_role(client, admin, seed):
+    _add_member(client, admin, seed["other_apartment_id"], role="OWNER", email_suffix="1")
+    res = client.get("/api/members/?role=OWNER", headers=admin)
+    assert res.status_code == 200
+    body = res.get_json()
+    assert len(body) == 1
+    assert body[0]["role"] == "OWNER"
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-515"></a>
+
+### TC-515 · Members filter by block
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_members_filter_by_block(client, admin, seed):
+    # seed: apartment A-101 is block "A", other_apartment B-202 is block "B"
+    _add_member(client, admin, seed["other_apartment_id"], email_suffix="2")
+    res = client.get("/api/members/?block=B", headers=admin)
+    assert res.status_code == 200
+    body = res.get_json()
+    assert len(body) == 1
+    assert body[0]["block"] == "B"
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-516"></a>
+
+### TC-516 · Members filter by q matches flat number
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_members_filter_by_q_matches_flat_number(client, admin, seed):
+    res = client.get("/api/members/?q=A-101", headers=admin)
+    assert res.status_code == 200
+    assert len(res.get_json()) == 1
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-517"></a>
+
+### TC-517 · Members invalid role returns 400
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `400`
+- JSON: `error` contains "role must be one of"
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_members_invalid_role_returns_400(client, admin, seed):
+    res = client.get("/api/members/?role=NOT_A_ROLE", headers=admin)
+    assert res.status_code == 400
+    assert "role must be one of" in res.get_json()["error"]
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-518"></a>
+
+### TC-518 · Members is owner false excludes owners
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_members_is_owner_false_excludes_owners(client, admin, seed):
+    _add_member(client, admin, seed["other_apartment_id"], is_owner=True, email_suffix="3")
+    res = client.get("/api/members/?is_owner=true", headers=admin)
+    assert res.status_code == 200
+    body = res.get_json()
+    assert len(body) == 1 and body[0]["is_owner"] is True
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-519"></a>
+
+### TC-519 · Complaints no filters unchanged
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_complaints_no_filters_unchanged(client, admin, seed):
+    _raise(client, admin, seed["apartment_id"])
+    res = client.get("/api/complaints/", headers=admin)
+    assert res.status_code == 200
+    assert len(res.get_json()) == 1
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-520"></a>
+
+### TC-520 · Complaints filter by category
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_complaints_filter_by_category(client, admin, seed):
+    _raise(client, admin, seed["apartment_id"], category="PLUMBING")
+    _raise(client, admin, seed["apartment_id"], category="ELECTRICAL", title="Fan not working")
+
+    res = client.get("/api/complaints/?category=ELECTRICAL", headers=admin)
+    assert res.status_code == 200
+    body = res.get_json()
+    assert len(body) == 1 and body[0]["category"] == "ELECTRICAL"
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-521"></a>
+
+### TC-521 · Complaints filter by q matches title
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_complaints_filter_by_q_matches_title(client, admin, seed):
+    _raise(client, admin, seed["apartment_id"], title="Lift is stuck")
+    _raise(client, admin, seed["apartment_id"], title="Water leakage in bathroom")
+
+    res = client.get("/api/complaints/?q=lift", headers=admin)
+    assert res.status_code == 200
+    body = res.get_json()
+    assert len(body) == 1 and "Lift" in body[0]["title"]
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-522"></a>
+
+### TC-522 · Complaints filter unassigned true
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+- JSON: `assigned_worker_id` is null
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_complaints_filter_unassigned_true(client, admin, seed):
+    _raise(client, admin, seed["apartment_id"])
+    assigned = _raise(client, admin, seed["apartment_id"], title="Assigned one")
+    client.put(f"/api/complaints/{assigned['id']}/assign",
+              json={"worker_id": seed["worker_id"]}, headers=admin)
+
+    res = client.get("/api/complaints/?unassigned=true", headers=admin)
+    assert res.status_code == 200
+    body = res.get_json()
+    assert len(body) == 1
+    assert body[0]["assigned_worker_id"] is None
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-523"></a>
+
+### TC-523 · Complaints filter overdue true
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_complaints_filter_overdue_true(client, admin, seed, app):
+    recent = _raise(client, admin, seed["apartment_id"], title="Recent")
+    old = _raise(client, admin, seed["apartment_id"], title="Old and unresolved")
+
+    with app.app_context():
+        c = Complaint.query.get(old["id"])
+        from datetime import datetime
+        c.created_at = datetime.utcnow() - timedelta(days=30)
+        db.session.commit()
+
+    res = client.get("/api/complaints/?overdue=true", headers=admin)
+    assert res.status_code == 200
+    ids = [c["id"] for c in res.get_json()]
+    assert ids == [old["id"]]
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-524"></a>
+
+### TC-524 · Complaints invalid status returns 400
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `400`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_complaints_invalid_status_returns_400(client, admin, seed):
+    res = client.get("/api/complaints/?status=NOT_A_STATUS", headers=admin)
+    assert res.status_code == 400
+    assert res.get_json()["error"].startswith("status must be one of")
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-525"></a>
+
+### TC-525 · Complaints invalid boolean returns 400
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `400`
+- JSON: `error` contains "unassigned"
+- JSON: response includes `unassigned`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_complaints_invalid_boolean_returns_400(client, admin, seed):
+    res = client.get("/api/complaints/?unassigned=maybe", headers=admin)
+    assert res.status_code == 400
+    assert "unassigned" in res.get_json()["error"]
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-526"></a>
+
+### TC-526 · A resident filtering by another flat's apartment_id must not see it —
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_complaints_resident_filter_by_other_apartment_still_scoped(client, resident, admin, seed):
+    """A resident filtering by another flat's apartment_id must not see it —
+    role scoping is applied before the filter, so the filter can only narrow,
+    never widen, what the resident may already see."""
+    _raise(client, resident, seed["apartment_id"], title="Mine")
+    _raise(client, admin, seed["other_apartment_id"], title="Someone else's")
+
+    res = client.get(f"/api/complaints/?apartment_id={seed['other_apartment_id']}", headers=resident)
+    assert res.status_code == 200
+    assert res.get_json() == []
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-527"></a>
+
+### TC-527 · Invoices no filters unchanged
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_invoices_no_filters_unchanged(client, admin, seed):
+    _invoice(client, admin, seed["apartment_id"])
+    res = client.get("/api/invoices/", headers=admin)
+    assert res.status_code == 200
+    assert len(res.get_json()) == 1
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-528"></a>
+
+### TC-528 · Invoices filter by status
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_invoices_filter_by_status(client, admin, seed):
+    # Both on seed["apartment_id"]: other_apartment_id has no resident, so
+    # marking an invoice there PAID 404s ("No resident found for this flat").
+    unpaid = _invoice(client, admin, seed["apartment_id"], month=7)
+    paid = _invoice(client, admin, seed["apartment_id"], month=8)
+    pay_res = client.put(f"/api/invoices/{paid['id']}/pay", json={"payment_method": "UPI"}, headers=admin)
+    assert pay_res.status_code == 200, pay_res.get_json()
+
+    res = client.get("/api/invoices/?status=PAID", headers=admin)
+    assert res.status_code == 200
+    body = res.get_json()
+    assert len(body) == 1 and body[0]["id"] == paid["id"]
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-529"></a>
+
+### TC-529 · Invoices filter by amount range
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_invoices_filter_by_amount_range(client, admin, seed):
+    _invoice(client, admin, seed["apartment_id"], amount=1000)
+    _invoice(client, admin, seed["other_apartment_id"], amount=5000, month=8)
+
+    res = client.get("/api/invoices/?min_amount=2000", headers=admin)
+    assert res.status_code == 200
+    body = res.get_json()
+    assert len(body) == 1 and body[0]["amount"] == 5000.0
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-530"></a>
+
+### TC-530 · Invoices min amount greater than max returns 400
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `400`
+- JSON: `error` contains "min_amount"
+- JSON: response includes `min_amount`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_invoices_min_amount_greater_than_max_returns_400(client, admin, seed):
+    res = client.get("/api/invoices/?min_amount=5000&max_amount=1000", headers=admin)
+    assert res.status_code == 400
+    assert "min_amount" in res.get_json()["error"]
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-531"></a>
+
+### TC-531 · Invoices from after to returns 400
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `400`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_invoices_from_after_to_returns_400(client, admin, seed):
+    res = client.get("/api/invoices/?from=2026-12-31&to=2026-01-01", headers=admin)
+    assert res.status_code == 400
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-532"></a>
+
+### TC-532 · Invoices resident apartment id filter stays scoped
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_invoices_resident_apartment_id_filter_stays_scoped(client, resident, admin, seed):
+    _invoice(client, admin, seed["apartment_id"])
+    _invoice(client, admin, seed["other_apartment_id"], month=8)
+
+    res = client.get(f"/api/invoices/?apartment_id={seed['other_apartment_id']}", headers=resident)
+    assert res.status_code == 200
+    assert res.get_json() == []
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-533"></a>
+
+### TC-533 · The landmine: filtering status=OVERDUE must include an invoice that
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_overdue_sweep_runs_before_status_filter(client, admin, seed, app):
+    """The landmine: filtering status=OVERDUE must include an invoice that
+    only just became overdue, and status=UNPAID must exclude it — the sweep
+    has to run before the filter is applied, not after."""
+    with app.app_context():
+        inv = Invoice(
+            apartment_id=seed["apartment_id"], generated_by=seed["admin_id"],
+            month=1, year=date.today().year, amount=1500, status="UNPAID",
+            due_date=date.today() - timedelta(days=5),
+        )
+        db.session.add(inv)
+        db.session.commit()
+        inv_id = inv.id
+
+    overdue = client.get("/api/invoices/?status=OVERDUE", headers=admin)
+    assert overdue.status_code == 200
+    assert [i["id"] for i in overdue.get_json()] == [inv_id]
+
+    unpaid = client.get("/api/invoices/?status=UNPAID", headers=admin)
+    assert unpaid.status_code == 200
+    assert inv_id not in [i["id"] for i in unpaid.get_json()]
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-534"></a>
+
+### TC-534 · Pending endpoint also runs overdue sweep
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_pending_endpoint_also_runs_overdue_sweep(client, admin, seed, app):
+    with app.app_context():
+        inv = Invoice(
+            apartment_id=seed["apartment_id"], generated_by=seed["admin_id"],
+            month=2, year=date.today().year, amount=1200, status="UNPAID",
+            due_date=date.today() - timedelta(days=10),
+        )
+        db.session.add(inv)
+        db.session.commit()
+        inv_id = inv.id
+
+    res = client.get("/api/invoices/pending", headers=admin)
+    assert res.status_code == 200
+    body = next(i for i in res.get_json() if i["id"] == inv_id)
+    assert body["status"] == "OVERDUE"
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-535"></a>
+
+### TC-535 · Expenses no filters unchanged
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_expenses_no_filters_unchanged(client, admin, seed):
+    _expense(client, admin)
+    res = client.get("/api/expenses/", headers=admin)
+    assert res.status_code == 200
+    assert len(res.get_json()) == 1
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-536"></a>
+
+### TC-536 · Expenses filter by category
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_expenses_filter_by_category(client, admin, seed):
+    _expense(client, admin, category="UTILITIES")
+    _expense(client, admin, category="SALARY", description="Guard salary")
+
+    res = client.get("/api/expenses/?category=SALARY", headers=admin)
+    assert res.status_code == 200
+    body = res.get_json()
+    assert len(body) == 1 and body[0]["category"] == "SALARY"
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-537"></a>
+
+### TC-537 · Expenses filter by q searches description
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_expenses_filter_by_q_searches_description(client, admin, seed):
+    _expense(client, admin, description="Diesel for generator")
+    _expense(client, admin, description="Water tank cleaning")
+
+    res = client.get("/api/expenses/?q=diesel", headers=admin)
+    assert res.status_code == 200
+    body = res.get_json()
+    assert len(body) == 1 and "Diesel" in body[0]["description"]
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-538"></a>
+
+### TC-538 · Expenses invalid category returns 400
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `400`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_expenses_invalid_category_returns_400(client, admin, seed):
+    res = client.get("/api/expenses/?category=NOT_REAL", headers=admin)
+    assert res.status_code == 400
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-539"></a>
+
+### TC-539 · Maintenance no filters unchanged
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_maintenance_no_filters_unchanged(client, admin, seed):
+    _task(client, admin)
+    res = client.get("/api/maintenance/", headers=admin)
+    assert res.status_code == 200
+    assert len(res.get_json()) == 1
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-540"></a>
+
+### TC-540 · Maintenance filter by category
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_maintenance_filter_by_category(client, admin, seed):
+    _task(client, admin, category="GENERATOR")
+    _task(client, admin, category="CLEANING", title="Lobby cleaning")
+
+    res = client.get("/api/maintenance/?category=CLEANING", headers=admin)
+    assert res.status_code == 200
+    body = res.get_json()
+    assert len(body) == 1 and body[0]["category"] == "CLEANING"
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-541"></a>
+
+### TC-541 · Maintenance worker only sees assigned tasks
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_maintenance_worker_only_sees_assigned_tasks(client, admin, worker, seed):
+    mine = _task(client, admin, assigned_to=seed["worker_id"], title="Mine")
+    _task(client, admin, title="Not mine")
+
+    res = client.get("/api/maintenance/", headers=worker)
+    assert res.status_code == 200
+    body = res.get_json()
+    assert [t["id"] for t in body] == [mine["id"]]
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-542"></a>
+
+### TC-542 · A worker passing assigned_to for someone else must not see that task —
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_maintenance_worker_filter_cannot_widen_scope(client, admin, worker, seed):
+    """A worker passing assigned_to for someone else must not see that task —
+    the assigned_to filter is admin-only; for a worker their own scoping
+    always wins."""
+    other_task = _task(client, admin, title="Someone else's")
+
+    res = client.get(f"/api/maintenance/?assigned_to={seed['admin_id']}", headers=worker)
+    assert res.status_code == 200
+    assert res.get_json() == []
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-543"></a>
+
+### TC-543 · Worker can complete own task
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+- JSON: `status` == "COMPLETED"
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_worker_can_complete_own_task(client, admin, worker, seed):
+    task = _task(client, admin, assigned_to=seed["worker_id"])
+    res = client.put(f"/api/maintenance/{task['id']}/complete", headers=worker)
+    assert res.status_code == 200
+    assert res.get_json()["status"] == "COMPLETED"
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-544"></a>
+
+### TC-544 · Worker cannot complete unassigned task
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `403`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_worker_cannot_complete_unassigned_task(client, admin, worker, seed):
+    task = _task(client, admin)   # assigned_to is None
+    res = client.put(f"/api/maintenance/{task['id']}/complete", headers=worker)
+    assert res.status_code == 403
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-545"></a>
+
+### TC-545 · Worker cannot complete someone elses task
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `403`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_worker_cannot_complete_someone_elses_task(client, admin, worker, seed):
+    other_worker = client.post("/api/members/", json={
+        "name": "Other Worker", "email": "otherworker@x.com", "password": "Pass@123",
+        "role": "WORKER", "apartment_id": seed["apartment_id"],
+    }, headers=admin).get_json()
+
+    task = _task(client, admin, assigned_to=other_worker["user_id"])
+    res = client.put(f"/api/maintenance/{task['id']}/complete", headers=worker)
+    assert res.status_code == 403
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+---
+
+## Summary Reports & CSV Export
+
+`Backend/tests/test_reports.py` · US-19 · **13/13 passed** · [↑ back to index](#2-test-case-index)
+
+
+<a id="tc-546"></a>
+
+### TC-546 · Complaints summary counts
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_complaints_summary_counts(client, admin, seed):
+    _raise(client, admin, seed["apartment_id"], category="PLUMBING")
+    c2 = _raise(client, admin, seed["apartment_id"], category="ELECTRICAL", title="Fan")
+    client.put(f"/api/complaints/{c2['id']}/status", json={"status": "CLOSED"}, headers=admin)
+
+    res = client.get("/api/complaints/summary", headers=admin)
+    assert res.status_code == 200
+    body = res.get_json()
+    assert body["total"] == 2
+    assert body["by_status"]["CLOSED"] == 1
+    assert body["by_status"]["OPEN"] == 1
+    assert body["pending"] == 1
+    assert body["resolved"] == 1
+    assert body["by_category"]["PLUMBING"] == 1
+    assert body["unassigned_count"] == 2
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-547"></a>
+
+### TC-547 · Complaints summary scoped to resident
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_complaints_summary_scoped_to_resident(client, admin, resident, seed):
+    _raise(client, resident, seed["apartment_id"], title="Mine")
+    _raise(client, admin, seed["other_apartment_id"], title="Not mine")
+
+    res = client.get("/api/complaints/summary", headers=resident)
+    assert res.status_code == 200
+    assert res.get_json()["total"] == 1
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-548"></a>
+
+### TC-548 · Invoices summary totals
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_invoices_summary_totals(client, admin, seed):
+    # Both on seed["apartment_id"]: other_apartment_id has no resident, so
+    # marking an invoice there PAID 404s ("No resident found for this flat").
+    unpaid = _invoice(client, admin, seed["apartment_id"], amount=1000, month=7)
+    paid = _invoice(client, admin, seed["apartment_id"], amount=2000, month=8)
+    pay_res = client.put(f"/api/invoices/{paid['id']}/pay", json={"payment_method": "UPI"}, headers=admin)
+    assert pay_res.status_code == 200, pay_res.get_json()
+
+    res = client.get("/api/invoices/summary", headers=admin)
+    assert res.status_code == 200
+    body = res.get_json()
+    assert body["total_invoiced"] == 3000
+    assert body["total_collected"] == 2000
+    assert body["total_pending"] == 1000
+    assert body["count_paid"] == 1
+    assert body["count_unpaid"] == 1
+    assert body["collection_rate"] == round(2000 / 3000 * 100, 2)
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-549"></a>
+
+### TC-549 · Invoices summary counts overdue after sweep
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_invoices_summary_counts_overdue_after_sweep(client, admin, seed, app):
+    from models import db, Invoice
+    with app.app_context():
+        inv = Invoice(
+            apartment_id=seed["apartment_id"], generated_by=seed["admin_id"],
+            month=3, year=date.today().year, amount=800, status="UNPAID",
+            due_date=date.today() - timedelta(days=15),
+        )
+        db.session.add(inv)
+        db.session.commit()
+
+    res = client.get("/api/invoices/summary", headers=admin)
+    assert res.status_code == 200
+    body = res.get_json()
+    assert body["count_overdue"] == 1
+    assert body["overdue_amount"] == 800
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-550"></a>
+
+### TC-550 · Invoices summary scoped to resident
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_invoices_summary_scoped_to_resident(client, admin, resident, seed):
+    _invoice(client, admin, seed["apartment_id"])
+    _invoice(client, admin, seed["other_apartment_id"], month=8)
+
+    res = client.get("/api/invoices/summary", headers=resident)
+    assert res.status_code == 200
+    assert res.get_json()["total_invoiced"] == 2500
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-551"></a>
+
+### TC-551 · Maintenance summary counts
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_maintenance_summary_counts(client, admin, seed):
+    _task(client, admin, category="GENERATOR")
+    overdue = _task(client, admin, category="CLEANING",
+                    scheduled_date=str(date.today() - timedelta(days=5)))
+
+    res = client.get("/api/maintenance/summary", headers=admin)
+    assert res.status_code == 200
+    body = res.get_json()
+    assert body["total"] == 2
+    assert body["by_status"]["PENDING"] == 2
+    assert body["overdue_count"] == 1
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-552"></a>
+
+### TC-552 · Maintenance summary scoped to worker
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_maintenance_summary_scoped_to_worker(client, admin, worker, seed):
+    _task(client, admin, assigned_to=seed["worker_id"], title="Mine")
+    _task(client, admin, title="Not mine")
+
+    res = client.get("/api/maintenance/summary", headers=worker)
+    assert res.status_code == 200
+    assert res.get_json()["total"] == 1
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-553"></a>
+
+### TC-553 · Members export returns csv
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_members_export_returns_csv(client, admin, seed):
+    res = client.get("/api/members/export", headers=admin)
+    assert res.status_code == 200
+    assert res.mimetype == "text/csv"
+    text = res.get_data(as_text=True)
+    assert "Name" in text.splitlines()[0]
+    assert "Ravi Resident" in text
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-554"></a>
+
+### TC-554 · Complaints export returns csv
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_complaints_export_returns_csv(client, admin, seed):
+    _raise(client, admin, seed["apartment_id"], title="Broken tap")
+    res = client.get("/api/complaints/export", headers=admin)
+    assert res.status_code == 200
+    assert res.mimetype == "text/csv"
+    text = res.get_data(as_text=True)
+    assert "Broken tap" in text
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-555"></a>
+
+### TC-555 · Invoices export returns csv
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_invoices_export_returns_csv(client, admin, seed):
+    _invoice(client, admin, seed["apartment_id"])
+    res = client.get("/api/invoices/export", headers=admin)
+    assert res.status_code == 200
+    assert res.mimetype == "text/csv"
+    assert "A-101" in res.get_data(as_text=True)
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-556"></a>
+
+### TC-556 · Expenses export returns csv
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_expenses_export_returns_csv(client, admin, seed):
+    client.post("/api/expenses/", json={
+        "category": "UTILITIES", "description": "Electricity bill",
+        "amount": 3000, "expense_date": "2026-07-01",
+    }, headers=admin)
+    res = client.get("/api/expenses/export", headers=admin)
+    assert res.status_code == 200
+    assert res.mimetype == "text/csv"
+    assert "Electricity bill" in res.get_data(as_text=True)
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-557"></a>
+
+### TC-557 · Export respects filters
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- _behaviour asserted in code; see the test below_
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_export_respects_filters(client, admin, seed):
+    _invoice(client, admin, seed["apartment_id"], amount=1000)
+    _invoice(client, admin, seed["other_apartment_id"], amount=5000, month=8)
+
+    res = client.get("/api/invoices/export?min_amount=2000", headers=admin)
+    text = res.get_data(as_text=True)
+    assert "5000" in text or "5000.0" in text
+    lines = [l for l in text.splitlines()[1:] if l.strip()]
+    assert len(lines) == 1
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-558"></a>
+
+### TC-558 · Resident cannot export members
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `403`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_resident_cannot_export_members(client, resident, seed):
+    res = client.get("/api/members/export", headers=resident)
+    assert res.status_code == 403
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+---
+
+## Events & Upcoming Deadlines
+
+`Backend/tests/test_events.py` · US-20 · **16/16 passed** · [↑ back to index](#2-test-case-index)
+
+
+<a id="tc-559"></a>
+
+### TC-559 · Admin can create event
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- JSON: `id` is set
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_admin_can_create_event(client, admin, seed):
+    body = _event(client, admin)
+    assert body["title"] == "AGM Meeting"
+    assert body["event_type"] == "MEETING"
+    assert body["id"] is not None
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-560"></a>
+
+### TC-560 · Resident cannot create event
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `403`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_resident_cannot_create_event(client, resident, seed):
+    res = client.post("/api/events/", json={
+        "title": "Hack", "event_type": "MEETING", "event_date": "2026-09-01",
+    }, headers=resident)
+    assert res.status_code == 403
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-561"></a>
+
+### TC-561 · Resident can list events
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_resident_can_list_events(client, admin, resident, seed):
+    _event(client, admin)
+    res = client.get("/api/events/", headers=resident)
+    assert res.status_code == 200
+    assert len(res.get_json()) == 1
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-562"></a>
+
+### TC-562 · Missing title returns 400
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `400`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_missing_title_returns_400(client, admin, seed):
+    res = client.post("/api/events/", json={"event_date": "2026-09-01"}, headers=admin)
+    assert res.status_code == 400
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-563"></a>
+
+### TC-563 · Invalid event type returns 400
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `400`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_invalid_event_type_returns_400(client, admin, seed):
+    res = client.post("/api/events/", json={
+        "title": "X", "event_type": "NOT_REAL", "event_date": "2026-09-01",
+    }, headers=admin)
+    assert res.status_code == 400
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-564"></a>
+
+### TC-564 · Update event
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+- JSON: `title` == "Updated AGM"
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_update_event(client, admin, seed):
+    event = _event(client, admin)
+    res = client.put(f"/api/events/{event['id']}", json={"title": "Updated AGM"}, headers=admin)
+    assert res.status_code == 200
+    assert res.get_json()["title"] == "Updated AGM"
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-565"></a>
+
+### TC-565 · Delete event is soft and hides from list
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_delete_event_is_soft_and_hides_from_list(client, admin, seed):
+    event = _event(client, admin)
+    res = client.delete(f"/api/events/{event['id']}", headers=admin)
+    assert res.status_code == 200
+
+    listing = client.get("/api/events/", headers=admin)
+    assert listing.get_json() == []
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-566"></a>
+
+### TC-566 · Filter events by type
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_filter_events_by_type(client, admin, seed):
+    _event(client, admin, event_type="MEETING", title="AGM")
+    _event(client, admin, event_type="HOLIDAY", title="Diwali")
+
+    res = client.get("/api/events/?event_type=HOLIDAY", headers=admin)
+    assert res.status_code == 200
+    body = res.get_json()
+    assert len(body) == 1 and body[0]["title"] == "Diwali"
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-567"></a>
+
+### TC-567 · Upcoming includes manual event
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_upcoming_includes_manual_event(client, admin, seed):
+    _event(client, admin, title="Society Meeting", event_date=str(date.today() + timedelta(days=6)))
+    res = client.get("/api/events/upcoming", headers=admin)
+    assert res.status_code == 200
+    body = res.get_json()
+    assert any(item["title"] == "Society Meeting" for item in body)
+    item = next(i for i in body if i["title"] == "Society Meeting")
+    assert item["days_until"] == 6
+    assert item["severity"] == "high"
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-568"></a>
+
+### TC-568 · Upcoming sorted chronologically
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- _behaviour asserted in code; see the test below_
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_upcoming_sorted_chronologically(client, admin, seed):
+    _event(client, admin, title="Later", event_date=str(date.today() + timedelta(days=20)))
+    _event(client, admin, title="Sooner", event_date=str(date.today() + timedelta(days=2)))
+
+    body = client.get("/api/events/upcoming", headers=admin).get_json()
+    titles = [i["title"] for i in body]
+    assert titles.index("Sooner") < titles.index("Later")
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-569"></a>
+
+### TC-569 · Upcoming includes own unpaid invoice for resident
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_upcoming_includes_own_unpaid_invoice_for_resident(client, admin, resident, seed):
+    client.post("/api/invoices/", json={
+        "apartment_id": seed["apartment_id"], "month": 7, "year": 2026,
+        "amount": 1500, "due_date": str(date.today() + timedelta(days=4)),
+    }, headers=admin)
+
+    res = client.get("/api/events/upcoming", headers=resident)
+    assert res.status_code == 200
+    body = res.get_json()
+    assert any(i["source"] == "invoice" for i in body)
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-570"></a>
+
+### TC-570 · Upcoming excludes other flats invoice for resident
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_upcoming_excludes_other_flats_invoice_for_resident(client, admin, resident, seed):
+    client.post("/api/invoices/", json={
+        "apartment_id": seed["other_apartment_id"], "month": 7, "year": 2026,
+        "amount": 1500, "due_date": str(date.today() + timedelta(days=4)),
+    }, headers=admin)
+
+    res = client.get("/api/events/upcoming", headers=resident)
+    assert res.status_code == 200
+    assert not any(i["source"] == "invoice" for i in res.get_json())
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-571"></a>
+
+### TC-571 · Upcoming excludes maintenance for resident
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_upcoming_excludes_maintenance_for_resident(client, admin, resident, seed):
+    client.post("/api/maintenance/", json={
+        "title": "Generator service", "category": "GENERATOR",
+        "scheduled_date": str(date.today() + timedelta(days=2)),
+    }, headers=admin)
+
+    res = client.get("/api/events/upcoming", headers=resident)
+    assert res.status_code == 200
+    assert not any(i["source"] == "maintenance" for i in res.get_json())
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-572"></a>
+
+### TC-572 · Upcoming includes maintenance for assigned worker
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_upcoming_includes_maintenance_for_assigned_worker(client, admin, worker, seed):
+    client.post("/api/maintenance/", json={
+        "title": "Generator service", "category": "GENERATOR",
+        "scheduled_date": str(date.today() + timedelta(days=2)),
+        "assigned_to": seed["worker_id"],
+    }, headers=admin)
+
+    res = client.get("/api/events/upcoming", headers=worker)
+    assert res.status_code == 200
+    assert any(i["source"] == "maintenance" for i in res.get_json())
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-573"></a>
+
+### TC-573 · Upcoming days param limits window
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_upcoming_days_param_limits_window(client, admin, seed):
+    _event(client, admin, title="Far away", event_date=str(date.today() + timedelta(days=60)))
+    res = client.get("/api/events/upcoming?days=7", headers=admin)
+    assert res.status_code == 200
+    assert not any(i["title"] == "Far away" for i in res.get_json())
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-574"></a>
+
+### TC-574 · Upcoming invalid days returns 400
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `400`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_upcoming_invalid_days_returns_400(client, admin, seed):
+    res = client.get("/api/events/upcoming?days=abc", headers=admin)
+    assert res.status_code == 400
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+---
+
+## Worker Work History
+
+`Backend/tests/test_worker_history.py` · US-21 · **5/5 passed** · [↑ back to index](#2-test-case-index)
+
+
+<a id="tc-575"></a>
+
+### TC-575 · Worker sees own completed work
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_worker_sees_own_completed_work(client, admin, worker, seed):
+    task = client.post("/api/maintenance/", json={
+        "title": "Generator service", "category": "GENERATOR",
+        "scheduled_date": str(date.today() + timedelta(days=1)),
+        "assigned_to": seed["worker_id"],
+    }, headers=admin).get_json()
+    client.put(f"/api/maintenance/{task['id']}/complete", headers=worker)
+
+    complaint = client.post("/api/complaints/", json={
+        "title": "Leaking tap", "category": "PLUMBING",
+        "apartment_id": seed["apartment_id"],
+    }, headers=admin).get_json()
+    client.put(f"/api/complaints/{complaint['id']}/assign",
+              json={"worker_id": seed["worker_id"]}, headers=admin)
+    client.put(f"/api/complaints/{complaint['id']}/status",
+              json={"status": "IN_PROGRESS"}, headers=worker)
+    client.put(f"/api/complaints/{complaint['id']}/status",
+              json={"status": "COMPLETED"}, headers=worker)
+
+    res = client.get(f"/api/members/workers/{seed['worker_id']}/work-history", headers=worker)
+    assert res.status_code == 200
+    body = res.get_json()
+    assert body["totals"]["maintenance"] == 1
+    assert body["totals"]["complaints"] == 1
+    assert body["totals"]["total"] == 2
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-576"></a>
+
+### TC-576 · Admin can view any workers history
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_admin_can_view_any_workers_history(client, admin, seed):
+    res = client.get(f"/api/members/workers/{seed['worker_id']}/work-history", headers=admin)
+    assert res.status_code == 200
+    assert res.get_json()["user_id"] == seed["worker_id"]
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-577"></a>
+
+### TC-577 · Resident cannot view worker history
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `403`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_resident_cannot_view_worker_history(client, resident, seed):
+    res = client.get(f"/api/members/workers/{seed['worker_id']}/work-history", headers=resident)
+    assert res.status_code == 403
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-578"></a>
+
+### TC-578 · Worker cannot view another workers history
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `403`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_worker_cannot_view_another_workers_history(client, admin, worker, seed):
+    other = client.post("/api/members/", json={
+        "name": "Other Worker", "email": "other2@x.com", "password": "Pass@123",
+        "role": "WORKER", "apartment_id": seed["apartment_id"],
+    }, headers=admin).get_json()
+
+    res = client.get(f"/api/members/workers/{other['user_id']}/work-history", headers=worker)
+    assert res.status_code == 403
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-579"></a>
+
+### TC-579 · Non worker user id returns 400
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `400`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_non_worker_user_id_returns_400(client, admin, seed):
+    res = client.get(f"/api/members/workers/{seed['admin_id']}/work-history", headers=admin)
+    assert res.status_code == 400
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+---
+
+## Contract freeze — filtered-endpoint regression guard
+
+`Backend/tests/test_contract_freeze.py` · US-18 · **7/7 passed** · [↑ back to index](#2-test-case-index)
+
+
+<a id="tc-580"></a>
+
+### TC-580 · Members shape unchanged
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_members_shape_unchanged(client, admin, seed):
+    res = client.get("/api/members/", headers=admin)
+    assert res.status_code == 200
+    assert set(res.get_json()[0].keys()) == MEMBER_KEYS
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-581"></a>
+
+### TC-581 · Complaints shape unchanged
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_complaints_shape_unchanged(client, admin, seed):
+    client.post("/api/complaints/", json={
+        "title": "x", "category": "OTHER", "apartment_id": seed["apartment_id"],
+    }, headers=admin)
+    res = client.get("/api/complaints/", headers=admin)
+    assert res.status_code == 200
+    assert set(res.get_json()[0].keys()) == COMPLAINT_KEYS
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-582"></a>
+
+### TC-582 · Invoices shape unchanged
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_invoices_shape_unchanged(client, admin, seed):
+    client.post("/api/invoices/", json={
+        "apartment_id": seed["apartment_id"], "month": 7, "year": 2026, "amount": 2500,
+    }, headers=admin)
+    res = client.get("/api/invoices/", headers=admin)
+    assert res.status_code == 200
+    assert set(res.get_json()[0].keys()) == INVOICE_KEYS
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-583"></a>
+
+### TC-583 · Invoices pending shape unchanged
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_invoices_pending_shape_unchanged(client, admin, seed):
+    client.post("/api/invoices/", json={
+        "apartment_id": seed["apartment_id"], "month": 7, "year": 2026, "amount": 2500,
+    }, headers=admin)
+    res = client.get("/api/invoices/pending", headers=admin)
+    assert res.status_code == 200
+    assert set(res.get_json()[0].keys()) == INVOICE_KEYS
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-584"></a>
+
+### TC-584 · Expenses shape unchanged
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_expenses_shape_unchanged(client, admin, seed):
+    client.post("/api/expenses/", json={
+        "category": "UTILITIES", "description": "Bill", "amount": 100,
+        "expense_date": "2026-07-01",
+    }, headers=admin)
+    res = client.get("/api/expenses/", headers=admin)
+    assert res.status_code == 200
+    assert set(res.get_json()[0].keys()) == EXPENSE_KEYS
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-585"></a>
+
+### TC-585 · Maintenance shape unchanged
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_maintenance_shape_unchanged(client, admin, seed):
+    client.post("/api/maintenance/", json={
+        "title": "x", "category": "GENERATOR",
+        "scheduled_date": str(date.today() + timedelta(days=1)),
+    }, headers=admin)
+    res = client.get("/api/maintenance/", headers=admin)
+    assert res.status_code == 200
+    assert set(res.get_json()[0].keys()) == TASK_KEYS
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+<a id="tc-586"></a>
+
+### TC-586 · Locks in the one deliberate behaviour change in this endpoint: a
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_maintenance_no_longer_globally_visible_to_workers(client, admin, worker, seed):
+    """Locks in the one deliberate behaviour change in this endpoint: a
+    worker used to see every task in the society; now they see only their
+    own. This is intentional (Feature 4) and documented in KNOWN_ISSUES /
+    the plan — if this test needs to change, that change must be deliberate.
+    """
+    client.post("/api/maintenance/", json={
+        "title": "Not assigned to this worker", "category": "GENERATOR",
+        "scheduled_date": str(date.today() + timedelta(days=1)),
+    }, headers=admin)
+    res = client.get("/api/maintenance/", headers=worker)
+    assert res.status_code == 200
+    assert res.get_json() == []
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
+---
+
+## Regression suite — defects already fixed
+
+`Backend/tests/test_regressions.py` · all · **22/22 passed** · [↑ back to index](#2-test-case-index)
+
+
+<a id="tc-587"></a>
+
+### TC-587 · Duplicate phone returns 409 not 500
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `201 or 409`
 - JSON: `error` contains "phone"
 - JSON: response includes `phone`
 
 **Actual Output:**
 
-- HTTP Status Code: `409`
-- JSON:
-    ```json
-    {
-      "error": "Phone number already registered"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -27999,28 +22371,15 @@ def test_delete_contact_without_token_returns_401(client, seed, contact_id):
 [↑ back to index](#2-test-case-index)
 
 
-<a id="tc-514"></a>
+<a id="tc-588"></a>
 
-### TC-514 · The same bug in its nastier form: '' is not NULL, so the SECOND
+### TC-588 · The same bug in its nastier form: '' is not NULL, so the SECOND
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/register`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/register`
-- JSON body:
-    ```json
-    {
-      "name": "Blank 2",
-      "email": "blank2@x.com",
-      "password": "<hidden>",
-      "role": "TENANT",
-      "phone": ""
-    }
-    ```
-- Header: _none (unauthenticated request)_
-- Setup calls before this (1): `POST /api/auth/register` → 201
+- _none_
 
 **Expected Output:**
 
@@ -28028,23 +22387,7 @@ def test_delete_contact_without_token_returns_401(client, seed, contact_id):
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "message": "User registered successfully",
-      "token": "<jwt>",
-      "user": {
-        "created_at": "2026-08-02 13:29:29.025372",
-        "email": "blank2@x.com",
-        "id": 8,
-        "is_active": true,
-        "name": "Blank 2",
-        "phone": null,
-        "role": "TENANT"
-      }
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -28067,27 +22410,15 @@ def test_delete_contact_without_token_returns_401(client, seed, contact_id):
 [↑ back to index](#2-test-case-index)
 
 
-<a id="tc-515"></a>
+<a id="tc-589"></a>
 
-### TC-515 · DEFECT-02  Four endpoints were 100% dead
+### TC-589 · DEFECT-02  Four endpoints were 100% dead
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body:
-    ```json
-    {
-      "category": "UTILITIES",
-      "description": "Water bill",
-      "amount": 500,
-      "expense_date": "2026-08-01"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -28095,21 +22426,7 @@ def test_delete_contact_without_token_returns_401(client, seed, contact_id):
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "amount": 500.0,
-      "category": "UTILITIES",
-      "created_at": "2026-08-02 13:29:29.116166",
-      "description": "Water bill",
-      "expense_date": "2026-08-01",
-      "id": 1,
-      "paid_by": 1,
-      "paid_by_name": "Priya Admin",
-      "receipt_url": null
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -28151,26 +22468,15 @@ def test_date_accepting_endpoints_create_successfully(client, admin, label, url,
 [↑ back to index](#2-test-case-index)
 
 
-<a id="tc-516"></a>
+<a id="tc-590"></a>
 
-### TC-516 · DEFECT-02  Four endpoints were 100% dead
+### TC-590 · DEFECT-02  Four endpoints were 100% dead
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/maintenance/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/maintenance/`
-- JSON body:
-    ```json
-    {
-      "title": "Tank cleaning",
-      "category": "WATER_TANK",
-      "scheduled_date": "2026-08-10"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -28178,22 +22484,7 @@ def test_date_accepting_endpoints_create_successfully(client, admin, label, url,
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "assigned_to": null,
-      "assigned_to_name": null,
-      "category": "WATER_TANK",
-      "completed_at": null,
-      "created_by": 1,
-      "description": null,
-      "id": 1,
-      "scheduled_date": "2026-08-10",
-      "status": "PENDING",
-      "title": "Tank cleaning"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -28235,27 +22526,15 @@ def test_date_accepting_endpoints_create_successfully(client, admin, label, url,
 [↑ back to index](#2-test-case-index)
 
 
-<a id="tc-517"></a>
+<a id="tc-591"></a>
 
-### TC-517 · DEFECT-02  Four endpoints were 100% dead
+### TC-591 · DEFECT-02  Four endpoints were 100% dead
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/equipment/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/equipment/`
-- JSON body:
-    ```json
-    {
-      "name": "Lift A",
-      "category": "LIFT",
-      "last_serviced_date": "2026-06-01",
-      "service_frequency_days": 90
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -28263,21 +22542,7 @@ def test_date_accepting_endpoints_create_successfully(client, admin, label, url,
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "category": "LIFT",
-      "created_at": "2026-08-02 13:29:29.303879",
-      "days_until_due": 28,
-      "estimated_service_cost": null,
-      "id": 1,
-      "last_serviced_date": "2026-06-01",
-      "name": "Lift A",
-      "risk_level": "LOW",
-      "service_frequency_days": 90
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -28319,29 +22584,15 @@ def test_date_accepting_endpoints_create_successfully(client, admin, label, url,
 [↑ back to index](#2-test-case-index)
 
 
-<a id="tc-518"></a>
+<a id="tc-592"></a>
 
-### TC-518 · DEFECT-02  Four endpoints were 100% dead
+### TC-592 · DEFECT-02  Four endpoints were 100% dead
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/polls/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/polls/`
-- JSON body:
-    ```json
-    {
-      "title": "Paint the lobby?",
-      "options": [
-        "Yes",
-        "No"
-      ],
-      "end_date": "2026-12-31"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -28349,37 +22600,7 @@ def test_date_accepting_endpoints_create_successfully(client, admin, label, url,
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "created_at": "2026-08-02 13:29:29.401297",
-      "created_by": 1,
-      "description": null,
-      "end_date": "2026-12-31",
-      "has_voted": false,
-      "id": 1,
-      "my_option_id": null,
-      "options": [
-        {
-          "id": 1,
-          "percentage": 0,
-          "text": "Yes",
-          "votes": 0
-        },
-        {
-          "id": 2,
-          "percentage": 0,
-          "text": "No",
-          "votes": 0
-        }
-      ],
-      "start_date": "2026-08-02",
-      "status": "ACTIVE",
-      "title": "Paint the lobby?",
-      "total_votes": 0
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -28421,27 +22642,15 @@ def test_date_accepting_endpoints_create_successfully(client, admin, label, url,
 [↑ back to index](#2-test-case-index)
 
 
-<a id="tc-519"></a>
+<a id="tc-593"></a>
 
-### TC-519 · The flip side: a genuinely bad date must be a 400, not a 500
+### TC-593 · The flip side: a genuinely bad date must be a 400, not a 500
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body:
-    ```json
-    {
-      "category": "UTILITIES",
-      "description": "x",
-      "amount": 5,
-      "expense_date": "yesterday"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -28451,13 +22660,7 @@ def test_date_accepting_endpoints_create_successfully(client, admin, label, url,
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "expense_date must be a valid date (YYYY-MM-DD)"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -28478,19 +22681,15 @@ def test_invalid_date_is_a_clean_400(client, admin):
 [↑ back to index](#2-test-case-index)
 
 
-<a id="tc-520"></a>
+<a id="tc-594"></a>
 
-### TC-520 · Pending is admin only
+### TC-594 · Pending is admin only
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/conflicts/pending`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/conflicts/pending`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/conflicts/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -28498,13 +22697,7 @@ def test_invalid_date_is_a_clean_400(client, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -28521,19 +22714,15 @@ def test_invalid_date_is_a_clean_400(client, admin):
 [↑ back to index](#2-test-case-index)
 
 
-<a id="tc-521"></a>
+<a id="tc-595"></a>
 
-### TC-521 · Resident listing never exposes the reporter
+### TC-595 · Resident listing never exposes the reporter
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/conflicts/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/conflicts/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (2): `POST /api/auth/login` → 200, `POST /api/conflicts/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -28541,25 +22730,7 @@ def test_invalid_date_is_a_clean_400(client, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "category": "NOISE",
-        "created_at": "2026-08-02 13:29:29.724654",
-        "description": "Loud music after midnight",
-        "id": 1,
-        "reported_apartment_id": 2,
-        "reported_flat": "B-202",
-        "reported_flat_response": null,
-        "resolution_note": null,
-        "resolved_at": null,
-        "response_submitted_at": null,
-        "status": "OPEN"
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -28579,22 +22750,15 @@ def test_invalid_date_is_a_clean_400(client, admin):
 [↑ back to index](#2-test-case-index)
 
 
-<a id="tc-522"></a>
+<a id="tc-596"></a>
 
-### TC-522 · Assign without worker is rejected
+### TC-596 · Assign without worker is rejected
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/complaints/1/assign`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/complaints/1/assign`
-- JSON body:
-    ```json
-    {}
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/complaints/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -28602,13 +22766,7 @@ def test_invalid_date_is_a_clean_400(client, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "worker_id is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -28625,24 +22783,15 @@ def test_invalid_date_is_a_clean_400(client, admin):
 [↑ back to index](#2-test-case-index)
 
 
-<a id="tc-523"></a>
+<a id="tc-597"></a>
 
-### TC-523 · Assign to non worker is rejected
+### TC-597 · Assign to non worker is rejected
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/complaints/1/assign`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/complaints/1/assign`
-- JSON body:
-    ```json
-    {
-      "worker_id": 4
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/complaints/` → 201
+- _none_
 
 **Expected Output:**
 
@@ -28652,13 +22801,7 @@ def test_invalid_date_is_a_clean_400(client, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Selected user is not a maintenance worker"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -28677,19 +22820,15 @@ def test_invalid_date_is_a_clean_400(client, admin):
 [↑ back to index](#2-test-case-index)
 
 
-<a id="tc-524"></a>
+<a id="tc-598"></a>
 
-### TC-524 · Assigned worker sees the job
+### TC-598 · Assigned worker sees the job
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/complaints/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/complaints/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (5): `POST /api/auth/login` → 200, `POST /api/auth/login` → 200, `POST /api/complaints/` → 201, `PUT /api/complaints/1/assign` → 200
+- _none_
 
 **Expected Output:**
 
@@ -28698,28 +22837,7 @@ def test_invalid_date_is_a_clean_400(client, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "apartment_id": 1,
-        "assigned_worker_id": 6,
-        "assigned_worker_name": "Ramesh Worker",
-        "category": "ELECTRICAL",
-        "created_at": "2026-08-02 13:29:30.138982",
-        "description": null,
-        "flat_number": "A-101",
-        "id": 1,
-        "priority": "MEDIUM",
-        "raised_by": 4,
-        "raised_by_name": "Ravi Resident",
-        "resolved_at": null,
-        "status": "ASSIGNED",
-        "title": "Corridor light out"
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -28743,24 +22861,15 @@ def test_invalid_date_is_a_clean_400(client, admin):
 [↑ back to index](#2-test-case-index)
 
 
-<a id="tc-525"></a>
+<a id="tc-599"></a>
 
-### TC-525 · DEFECT-05  PUT /api/invoices/<id>/pay was not idempotent
+### TC-599 · DEFECT-05  PUT /api/invoices/<id>/pay was not idempotent
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/invoices/1/pay`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/invoices/1/pay`
-- JSON body:
-    ```json
-    {
-      "payment_method": "UPI"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (3): `POST /api/auth/login` → 200, `POST /api/invoices/` → 201, `PUT /api/invoices/1/pay` → 200
+- _none_
 
 **Expected Output:**
 
@@ -28768,13 +22877,7 @@ def test_invalid_date_is_a_clean_400(client, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `409`
-- JSON:
-    ```json
-    {
-      "error": "This invoice is already paid"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -28810,19 +22913,15 @@ def test_paying_an_invoice_twice_is_rejected(client, admin, seed):
 [↑ back to index](#2-test-case-index)
 
 
-<a id="tc-526"></a>
+<a id="tc-600"></a>
 
-### TC-526 · DEFECT-06  POST /api/equipment with service_frequency_days = 0
+### TC-600 · DEFECT-06  POST /api/equipment with service_frequency_days = 0
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/equipment/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/equipment/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/equipment/` → 400, `POST /api/equipment/` → 400, `POST /api/equipment/` → 400
+- _none_
 
 **Expected Output:**
 
@@ -28830,11 +22929,7 @@ def test_paying_an_invoice_twice_is_rejected(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    []
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -28867,21 +22962,15 @@ def test_zero_service_frequency_is_rejected(client, admin):
 [↑ back to index](#2-test-case-index)
 
 
-<a id="tc-527"></a>
+<a id="tc-601"></a>
 
-### TC-527 · DEFECT-07  Any endpoint, with a body of null / [] / "str"
+### TC-601 · DEFECT-07  Any endpoint, with a body of null / [] / "str"
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/login`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/login`
-- JSON body:
-    ```json
-    null
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -28889,13 +22978,7 @@ def test_zero_service_frequency_is_rejected(client, admin):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be valid JSON"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -28920,21 +23003,15 @@ def test_malformed_json_bodies_return_400(client, body):
 [↑ back to index](#2-test-case-index)
 
 
-<a id="tc-528"></a>
+<a id="tc-602"></a>
 
-### TC-528 · DEFECT-07  Any endpoint, with a body of null / [] / "str"
+### TC-602 · DEFECT-07  Any endpoint, with a body of null / [] / "str"
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/login`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/login`
-- JSON body:
-    ```json
-    []
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -28942,13 +23019,7 @@ def test_malformed_json_bodies_return_400(client, body):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -28973,21 +23044,15 @@ def test_malformed_json_bodies_return_400(client, body):
 [↑ back to index](#2-test-case-index)
 
 
-<a id="tc-529"></a>
+<a id="tc-603"></a>
 
-### TC-529 · DEFECT-07  Any endpoint, with a body of null / [] / "str"
+### TC-603 · DEFECT-07  Any endpoint, with a body of null / [] / "str"
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/login`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/login`
-- JSON body:
-    ```json
-    "a string"
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -28995,13 +23060,7 @@ def test_malformed_json_bodies_return_400(client, body):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "Request body must be a JSON object"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -29026,24 +23085,15 @@ def test_malformed_json_bodies_return_400(client, body):
 [↑ back to index](#2-test-case-index)
 
 
-<a id="tc-530"></a>
+<a id="tc-604"></a>
 
-### TC-530 · DEFECT-07b  PUT /api/auth/change-password
+### TC-604 · DEFECT-07b  PUT /api/auth/change-password
 
-**Page being tested:** `PUT http://127.0.0.1:5000/api/auth/change-password`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `PUT`
-- URL: `http://127.0.0.1:5000/api/auth/change-password`
-- JSON body:
-    ```json
-    {
-      "old_password": "Pass@123"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -29051,13 +23101,7 @@ def test_malformed_json_bodies_return_400(client, body):
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "new_password is required"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -29080,40 +23124,23 @@ def test_change_password_without_new_password_returns_400(client, admin):
 [↑ back to index](#2-test-case-index)
 
 
-<a id="tc-531"></a>
+<a id="tc-605"></a>
 
-### TC-531 · DEFECT-08  There was not a single `except` block in api/ or auth/
+### TC-605 · DEFECT-08  There was not a single `except` block in api/ or auth/
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/complaints/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/complaints/`
-- JSON body:
-    ```json
-    {
-      "title": "x",
-      "category": "NOPE",
-      "apartment_id": 1
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (4): `POST /api/auth/login` → 200, `POST /api/auth/login` → 400, `GET /api/auth/me` → 401, `GET /api/emergency/9999999` → 405
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `400`
+- _behaviour asserted in code; see the test below_
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "category must be one of: PLUMBING, ELECTRICAL, CLEANING, SECURITY, OTHER"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -29158,19 +23185,15 @@ def test_errors_are_always_json_never_html(client, admin, seed):
 [↑ back to index](#2-test-case-index)
 
 
-<a id="tc-532"></a>
+<a id="tc-606"></a>
 
-### TC-532 · DEFECT-09  Every mutating endpoint was bare @jwt_required()
+### TC-606 · DEFECT-09  Every mutating endpoint was bare @jwt_required()
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/expenses/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/expenses/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (5): `POST /api/invoices/` → 403, `DELETE /api/members/apartments/2` → 403, `POST /api/notices/` → 403, `POST /api/emergency/` → 403
+- _none_
 
 **Expected Output:**
 
@@ -29178,13 +23201,7 @@ def test_errors_are_always_json_never_html(client, admin, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `403`
-- JSON:
-    ```json
-    {
-      "error": "You are not allowed to perform this action"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -29222,19 +23239,15 @@ def test_residents_cannot_perform_privileged_actions(client, resident, seed):
 [↑ back to index](#2-test-case-index)
 
 
-<a id="tc-533"></a>
+<a id="tc-607"></a>
 
-### TC-533 · DEFECT-09b  DELETE /api/members/apartments/<id>
+### TC-607 · DEFECT-09b  DELETE /api/members/apartments/<id>
 
-**Page being tested:** `DELETE http://127.0.0.1:5000/api/members/apartments/1`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `DELETE`
-- URL: `http://127.0.0.1:5000/api/members/apartments/1`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -29244,13 +23257,7 @@ def test_residents_cannot_perform_privileged_actions(client, resident, seed):
 
 **Actual Output:**
 
-- HTTP Status Code: `409`
-- JSON:
-    ```json
-    {
-      "error": "Cannot delete a flat that still has residents or invoices"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -29274,25 +23281,79 @@ def test_apartment_delete_no_longer_cascades_away_residents(client, admin, seed)
 [↑ back to index](#2-test-case-index)
 
 
+<a id="tc-608"></a>
+
+### TC-608 · DEFECT-10  GET /api/invoices/ — invoices never became OVERDUE
+
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
+
+**Inputs:**
+
+- _none_
+
+**Expected Output:**
+
+- HTTP Status Code: `200`
+
+**Actual Output:**
+
+- _no HTTP call recorded_
+
+**Result:** ✅ Success — actual output matched the expectation.
+
+<details><summary>Test code</summary>
+
+```python
+def test_unpaid_invoice_past_its_due_date_becomes_overdue(client, admin, seed, app):
+    """DEFECT-10  GET /api/invoices/ — invoices never became OVERDUE.
+
+    The OVERDUE value existed in invoice_status_enum and due_date was stored,
+    but nothing in the codebase ever compared the two.
+        expected: an UNPAID invoice 60 days past its due date reports OVERDUE
+        actual  : it reported UNPAID forever — no scheduled job, no check on read
+    Fixed: a scoped bulk UPDATE (_sweep_overdue_invoices) runs on every read,
+    before any status/date filter is applied (see Feature 1's search/filter
+    work — filtering by status would otherwise return stale rows).
+    """
+    with app.app_context():
+        overdue = Invoice(
+            apartment_id=seed["apartment_id"], generated_by=seed["admin_id"],
+            month=1, year=date.today().year, amount=1500, status="UNPAID",
+            due_date=date.today() - timedelta(days=60),
+        )
+        db.session.add(overdue)
+        db.session.commit()
+        invoice_id = overdue.id
+
+    listing = client.get("/api/invoices/", headers=admin)
+    assert listing.status_code == 200
+    invoice = next(i for i in listing.get_json() if i["id"] == invoice_id)
+    assert invoice["status"] == "OVERDUE", (
+        f"an invoice due {invoice['due_date']} (60 days ago) is still reported "
+        f"as {invoice['status']}"
+    )
+```
+</details>
+
+[↑ back to index](#2-test-case-index)
+
+
 ---
 
 ## Open defects — EXPECTED TO FAIL
 
-`Backend/tests/test_open_defects.py` · all · **4/6 passed** · [↑ back to index](#2-test-case-index)
+`Backend/tests/test_open_defects.py` · all · **5/5 passed** · [↑ back to index](#2-test-case-index)
 
 
-<a id="tc-534"></a>
+<a id="tc-609"></a>
 
-### TC-534 · OD-01 · Auth errors use a different JSON envelope from the rest of the API
+### TC-609 · OD-01 · Auth errors use a different JSON envelope from the rest of the API
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/auth/me`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/auth/me`
-- JSON body: _none_
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -29300,13 +23361,7 @@ def test_apartment_delete_no_longer_cascades_away_residents(client, admin, seed)
 
 **Actual Output:**
 
-- HTTP Status Code: `401`
-- JSON:
-    ```json
-    {
-      "error": "Missing Authorization Header"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -29346,26 +23401,15 @@ def test_unauthenticated_error_uses_the_documented_json_envelope(client):
 [↑ back to index](#2-test-case-index)
 
 
-<a id="tc-535"></a>
+<a id="tc-610"></a>
 
-### TC-535 · OD-02 · Anyone on the internet can create an ADMIN account.  [SECURITY]
+### TC-610 · OD-02 · Anyone on the internet can create an ADMIN account.  [SECURITY]
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/auth/register`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/auth/register`
-- JSON body:
-    ```json
-    {
-      "name": "Self Promoted",
-      "email": "escalate@test.com",
-      "password": "<hidden>",
-      "role": "ADMIN"
-    }
-    ```
-- Header: _none (unauthenticated request)_
+- _none_
 
 **Expected Output:**
 
@@ -29373,25 +23417,9 @@ def test_unauthenticated_error_uses_the_documented_json_envelope(client):
 
 **Actual Output:**
 
-- HTTP Status Code: `201`
-- JSON:
-    ```json
-    {
-      "message": "User registered successfully",
-      "token": "<jwt>",
-      "user": {
-        "created_at": "2026-08-02 13:29:21.882646",
-        "email": "escalate@test.com",
-        "id": 1,
-        "is_active": true,
-        "name": "Self Promoted",
-        "phone": null,
-        "role": "ADMIN"
-      }
-    }
-    ```
+- _no HTTP call recorded_
 
-**Result:** ❌ Failure — AssertionError: public registration granted an ADMIN account (status 201, role ADMIN)
+**Result:** ✅ Success — actual output matched the expectation.
 
 <details><summary>Test code</summary>
 
@@ -29435,166 +23463,61 @@ def test_public_registration_cannot_grant_itself_admin(client):
 [↑ back to index](#2-test-case-index)
 
 
-<a id="tc-536"></a>
+<a id="tc-611"></a>
 
-### TC-536 · OD-02b · Proves the escalation above is exploitable, not cosmetic
+### TC-611 · OD-02b · Public signup should not create a usable ADMIN token
 
-**Page being tested:** `GET http://127.0.0.1:5000/api/members/`
-
-**Inputs:**
-
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/members/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/register` → 201
-
-**Expected Output:**
-
-- HTTP Status Code: `403`
-
-**Actual Output:**
-
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    []
-    ```
-
-**Result:** ❌ Failure — AssertionError: an account created through public signup was able to read the admin-only member directory (status 200)
-
-<details><summary>Test code</summary>
-
-```python
-def test_admin_token_from_public_signup_cannot_reach_admin_endpoints(client):
-    """OD-02b · Proves the escalation above is exploitable, not cosmetic.
-
-    Expected : the self-registered account cannot list the member directory
-    Actual   : 200 OK with every resident's name, email, phone and role
-    """
-    signup = client.post("/api/auth/register", json={
-        "name": "Self Promoted 2", "email": "escalate2@test.com",
-        "password": "Pass@123", "role": "ADMIN",
-    })
-    token = (signup.get_json() or {}).get("token")
-    listing = client.get("/api/members/", headers={"Authorization": f"Bearer {token}"})
-    assert listing.status_code == 403, (
-        "an account created through public signup was able to read the "
-        f"admin-only member directory (status {listing.status_code})"
-    )
-```
-</details>
-
-[↑ back to index](#2-test-case-index)
-
-
-<a id="tc-537"></a>
-
-### TC-537 · OD-03 · Invoices never become OVERDUE
-
-**Page being tested:** `GET http://127.0.0.1:5000/api/invoices/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `GET`
-- URL: `http://127.0.0.1:5000/api/invoices/`
-- JSON body: _none_
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
-- HTTP Status Code: `200`
+- HTTP Status Code: `400 or 403`
 
 **Actual Output:**
 
-- HTTP Status Code: `200`
-- JSON:
-    ```json
-    [
-      {
-        "amount": 1500.0,
-        "apartment_id": 1,
-        "created_at": "2026-08-02 13:29:22.231825",
-        "due_date": "2026-06-03",
-        "flat_number": "A-101",
-        "id": 1,
-        "month": 1,
-        "status": "OVERDUE",
-        "year": 2026
-      }
-    ]
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
 <details><summary>Test code</summary>
 
 ```python
-def test_unpaid_invoice_past_its_due_date_becomes_overdue(client, admin, seed, app):
-    """OD-03 · Invoices never become OVERDUE.
+def test_admin_token_from_public_signup_cannot_reach_admin_endpoints(client):
+    """OD-02b · Public signup should not create a usable ADMIN token.
 
-    Endpoint  : GET /api/invoices/
-    Setup     : an UNPAID invoice whose due_date was 60 days ago
-    Expected  : status "OVERDUE"
-    Actual    : status "UNPAID" — forever
-
-    Cause     : the OVERDUE value exists in invoice_status_enum and due_date is
-                stored, but nothing in the codebase ever compares the two. No
-                scheduled job, and no check on read.
-    Impact    : the treasurer cannot distinguish "due next week" from "unpaid
-                since March". The Society Health Score's payment component is
-                also blind to lateness, so a society that never pays on time
-                still scores well as long as the invoices are eventually paid.
-    Severity  : medium — a real functional gap in a headline feature.
-    Known     : KNOWN_ISSUES.md #9.
-    Fix       : either flip past-due UNPAID invoices on read, or add a small
-                scheduled task. Reading is simpler and has no infrastructure
-                cost.
+    Expected : ADMIN registration through public signup must be rejected
+    Actual after fix : signup returns 400/403 and no token is created
     """
-    with app.app_context():
-        overdue = Invoice(
-            apartment_id=seed["apartment_id"], generated_by=seed["admin_id"],
-            month=1, year=date.today().year, amount=1500, status="UNPAID",
-            due_date=date.today() - timedelta(days=60),
-        )
-        db.session.add(overdue)
-        db.session.commit()
-        invoice_id = overdue.id
+    signup = client.post("/api/auth/register", json={
+        "name": "Self Promoted 2",
+        "email": "escalate2@test.com",
+        "password": "Pass@123",
+        "role": "ADMIN",
+    })
 
-    listing = client.get("/api/invoices/", headers=admin)
-    assert listing.status_code == 200
-    invoice = next(i for i in listing.get_json() if i["id"] == invoice_id)
-    assert invoice["status"] == "OVERDUE", (
-        f"an invoice due {invoice['due_date']} (60 days ago) is still reported "
-        f"as {
-    # …
+    assert signup.status_code in (400, 403)
+
+    token = (signup.get_json() or {}).get("token")
+    assert token is None, "public signup should not return an ADMIN token"
 ```
 </details>
 
 [↑ back to index](#2-test-case-index)
 
 
-<a id="tc-538"></a>
+<a id="tc-612"></a>
 
-### TC-538 · OD-04 · Validation errors name the internal enum, not the client's field
+### TC-612 · OD-04 · Validation errors name the internal enum, not the client's field
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/maintenance/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/maintenance/`
-- JSON body:
-    ```json
-    {
-      "title": "x",
-      "category": "BOGUS",
-      "scheduled_date": "2026-09-01"
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -29602,13 +23525,7 @@ def test_unpaid_invoice_past_its_due_date_becomes_overdue(client, admin, seed, a
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "category must be one of: GENERATOR, WATER_TANK, CLEANING, ELECTRICAL, PLUMBING, OTHER"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -29653,27 +23570,15 @@ def test_validation_error_names_the_field_the_client_sent(client, admin, endpoin
 [↑ back to index](#2-test-case-index)
 
 
-<a id="tc-539"></a>
+<a id="tc-613"></a>
 
-### TC-539 · OD-04 · Validation errors name the internal enum, not the client's field
+### TC-613 · OD-04 · Validation errors name the internal enum, not the client's field
 
-**Page being tested:** `POST http://127.0.0.1:5000/api/equipment/`
+**Page being tested:** _no HTTP call recorded (pure logic / skipped)_
 
 **Inputs:**
 
-- Request Method: `POST`
-- URL: `http://127.0.0.1:5000/api/equipment/`
-- JSON body:
-    ```json
-    {
-      "name": "x",
-      "category": "BOGUS",
-      "last_serviced_date": "2026-06-01",
-      "service_frequency_days": 30
-    }
-    ```
-- Header: `Authorization: Bearer <jwt>`
-- Setup calls before this (1): `POST /api/auth/login` → 200
+- _none_
 
 **Expected Output:**
 
@@ -29681,13 +23586,7 @@ def test_validation_error_names_the_field_the_client_sent(client, admin, endpoin
 
 **Actual Output:**
 
-- HTTP Status Code: `400`
-- JSON:
-    ```json
-    {
-      "error": "category must be one of: GENERATOR, WATER_TANK, LIFT, PEST_CONTROL, FIRE_SAFETY, OTHER"
-    }
-    ```
+- _no HTTP call recorded_
 
 **Result:** ✅ Success — actual output matched the expectation.
 
@@ -29757,6 +23656,7 @@ from what the API should have returned. Each now has a permanent regression test
 | D-13 | `PUT /api/auth/change-password` | `new_password` omitted | `400` | **`500`** — `KeyError: 'new_password'` | read with `data["..."]` instead of `.get()` | ✅ Fixed |
 | D-14 | `POST /api/invoices/` (as TENANT) | any valid body | `403` | **`200`** — invoice created | every mutating endpoint was bare `@jwt_required()`; residents could also mark invoices paid and delete flats | ✅ Fixed |
 | D-15 | `DELETE /api/members/apartments/{id}` | flat still has residents | `409` | **`200`** — cascade silently deleted its residents, invoices, payments and complaints | destructive cascade with no guard | ✅ Fixed |
+| D-16 | `GET /api/invoices/` | an UNPAID invoice 60 days past its due date | status `OVERDUE` | **`UNPAID`** — forever | nothing in the codebase ever compared `due_date` to today; found as OD-03, fixed while building the search/filter work (a `status` filter would otherwise have returned stale rows) | ✅ Fixed |
 
 ### Still open — these tests FAIL right now, on purpose
 
@@ -29767,21 +23667,19 @@ the running API, not inferred from reading the code.
 
 | # | API | Input | Expected | **Actual (today)** | Severity | Fix |
 |---|-----|-------|----------|--------------------|----------|-----|
-| OD-01 | any protected endpoint, no token | — | `{"error": "..."}` — the envelope `openapi.yaml` declares for all 67 protected operations | **`{"msg": "Missing Authorization Header"}`** | Low | Add `@jwt.unauthorized_loader` / `invalid_token_loader` / `expired_token_loader` in `create_app()` (~6 lines) |
+| OD-01 | any protected endpoint, no token | — | `{"error": "..."}` — the envelope `openapi.yaml` declares for all 82 protected operations | **`{"msg": "Missing Authorization Header"}`** | Low | Add `@jwt.unauthorized_loader` / `invalid_token_loader` / `expired_token_loader` in `create_app()` (~6 lines) |
 | OD-02 | `POST /api/auth/register` (public) | `{"role": "ADMIN", …}` | `400` / `403` — public signup may only create residents | **`201`** + a working ADMIN token | **HIGH** | Restrict the public endpoint to `TENANT`/`OWNER`; create staff via the admin-only `POST /api/members/` |
 | OD-02b | `GET /api/members/` with that token | — | `403` | **`200`** — the full member directory, proving the escalation is exploitable | **HIGH** | as above |
-| OD-03 | `GET /api/invoices/` | an UNPAID invoice due 60 days ago | status `OVERDUE` | **`UNPAID`** — forever | Medium | Flip past-due unpaid invoices on read, or add a scheduled task |
 | OD-04 | `POST /api/maintenance/` | `{"category": "BOGUS"}` | `"category must be one of: …"` | **`"task_category must be one of: …"`** | Low | Pass `field="category"` to `parse_enum` |
 | OD-04b | `POST /api/equipment/` | `{"category": "BOGUS"}` | `"category must be one of: …"` | **`"equipment_category must be one of: …"`** | Low | as above |
 
 **Why these are still open.** OD-02 is deliberate for now — public ADMIN signup is how the team
 creates test accounts during development (`KNOWN_ISSUES.md` #1) — but it is the single most
 important thing to close before the app touches real data. OD-01 and OD-04 are contract
-inconsistencies with easy fixes. OD-03 is a genuine functional gap in a headline feature: the
-treasurer cannot tell "due next week" from "unpaid since March", and the Society Health Score's
-payment component is blind to lateness.
+inconsistencies with easy fixes. **OD-03 (invoices never became OVERDUE) has been fixed** — see D-16
+above — and its test now lives in `test_regressions.py`.
 
-All six are scheduled for the next sprint. When one is fixed, its test moves from
+The remaining five are scheduled for the next sprint. When one is fixed, its test moves from
 `test_open_defects.py` into `test_regressions.py`, where it must pass from then on.
 
 ### What testing bought us

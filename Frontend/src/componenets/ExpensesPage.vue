@@ -20,9 +20,14 @@
       </div>
     </div>
 
-    <div class="d-flex justify-content-end mb-3">
+    <div class="d-flex justify-content-end mb-3 gap-2">
+      <button class="btn btn-outline-secondary" @click="exportCsv" :disabled="exporting">
+        <i class="fas fa-file-csv me-2"></i>Export CSV
+      </button>
       <button class="btn-primary-custom" @click="openAdd"><i class="fas fa-plus me-2"></i>Log Expense</button>
     </div>
+
+    <FilterBar :fields="filterFields" :result-count="loading ? null : expenses.length" @change="onFilterChange" />
 
     <div v-if="loading" class="spinner"></div>
     <div v-else class="card">
@@ -77,8 +82,9 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { expensesAPI, errText } from '../api/index'
+import { expensesAPI, errText, errTextFromBlob, downloadBlob } from '../api/index'
 import { orNull, today } from '../utils/format'
+import FilterBar from './FilterBar.vue'
 
 const emptyForm = () => ({ category:'MAINTENANCE', description:'', amount:'', expense_date: today() })
 
@@ -86,17 +92,45 @@ const expenses = ref([])
 const summary = ref(null)
 const loading = ref(true)
 const saving = ref(false)
+const exporting = ref(false)
 const showAdd = ref(false)
 const msg = ref('')
 const form = ref(emptyForm())
+const activeFilters = ref({})
+
+const filterFields = [
+  { key: 'q', label: 'Search', placeholder: 'Description or vendor...' },
+  { key: 'category', label: 'Category', type: 'select', options: ['SALARY','MAINTENANCE','UTILITIES','CONSUMABLES','MISCELLANEOUS'] },
+  { key: 'min_amount', label: 'Min ₹', type: 'number' },
+  { key: 'max_amount', label: 'Max ₹', type: 'number' },
+]
 
 onMounted(async () => {
-  try {
-    expenses.value = (await expensesAPI.getAll()).data
-  } catch(e) { msg.value = errText(e) }
+  await loadExpenses()
   await loadSummary()
   loading.value = false
 })
+
+async function onFilterChange(params) {
+  activeFilters.value = params
+  await loadExpenses()
+}
+
+async function loadExpenses() {
+  try {
+    expenses.value = (await expensesAPI.getAll(activeFilters.value)).data
+  } catch(e) { msg.value = errText(e) }
+}
+
+async function exportCsv() {
+  exporting.value = true
+  msg.value = ''
+  try {
+    const res = await expensesAPI.export(activeFilters.value)
+    downloadBlob(res.data, 'expenses.csv')
+  } catch (e) { msg.value = await errTextFromBlob(e) }
+  exporting.value = false
+}
 
 // The totals cards are derived data — every mutation has to refresh them or
 // they keep showing a stale Net Balance.
@@ -125,14 +159,14 @@ async function addExpense() {
 
   saving.value = true
   try {
-    const res = await expensesAPI.add({
+    await expensesAPI.add({
       category: form.value.category,
       description,
       amount,
       // expense_date is a NOT NULL date column — never send ''.
       expense_date: orNull(form.value.expense_date) || today()
     })
-    expenses.value.unshift(res.data)
+    await loadExpenses()
     form.value = emptyForm()
     showAdd.value = false
   } catch(e) {
@@ -149,7 +183,7 @@ async function deleteExp(id) {
   msg.value = ''
   try {
     await expensesAPI.delete(id)
-    expenses.value = expenses.value.filter(e => e.id !== id)
+    await loadExpenses()
   } catch(e) { msg.value = errText(e); return }
   await loadSummary()
 }

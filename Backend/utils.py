@@ -5,7 +5,7 @@ The API previously assigned raw client strings straight into typed SQLAlchemy
 columns, which raised at flush time and surfaced as HTML 500s. Everything here
 raises ApiError, which app.py turns into a clean JSON 4xx response.
 """
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class ApiError(Exception):
@@ -124,6 +124,7 @@ ENUMS = {
     # keeps the stored values consistent without needing a schema migration.
     "service_type": ["PLUMBER", "ELECTRICIAN", "SECURITY", "FIRE",
                      "AMBULANCE", "POLICE", "LIFT", "WATER", "OTHER"],
+    "event_type": ["MEETING", "EVENT", "HOLIDAY", "DEADLINE", "OTHER"],
 }
 
 
@@ -147,3 +148,88 @@ def clean_phone(value):
         return None
     v = str(value).strip()
     return v or None
+
+
+# ── query-param filters ──────────────────────────────────────
+def parse_bool(value, field="value"):
+    """'true'/'1'/'yes' -> True, 'false'/'0'/'no' -> False. Blank/None -> None."""
+    if value is None or (isinstance(value, str) and not value.strip()):
+        return None
+    if isinstance(value, bool):
+        return value
+    v = str(value).strip().lower()
+    if v in ("true", "1", "yes"):
+        return True
+    if v in ("false", "0", "no"):
+        return False
+    raise ApiError(f"{field} must be true or false")
+
+
+def search_term(value):
+    """Trim a free-text search param; blank -> None. Escapes SQL LIKE wildcards
+    so a literal % or _ in a search box does not act as a wildcard."""
+    if value is None:
+        return None
+    v = str(value).strip()
+    if not v:
+        return None
+    return v.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+def ilike(column, term):
+    """column ILIKE %term% with wildcards escaped, using '\\' as the escape char."""
+    from sqlalchemy import func
+    return func.lower(column).like(f"%{term.lower()}%", escape="\\")
+
+
+def apply_date_range(query, column, args, from_field="from", to_field="to"):
+    """Filter `column` to [from, to] (inclusive) from request.args. Either bound
+    may be omitted. Raises if from > to.
+
+    The upper bound uses `column < end + 1 day` rather than `column <= end`:
+    `column` may be a DateTime (e.g. Complaint.created_at), and a `<=` compare
+    against a bare date would exclude anything created later that same day.
+    The `< next day` form is correct for both Date and DateTime columns.
+    """
+    start = parse_date(args.get(from_field), from_field)
+    end = parse_date(args.get(to_field), to_field)
+    if start and end and start > end:
+        raise ApiError(f"{from_field} must not be after {to_field}")
+    if start:
+        query = query.filter(column >= start)
+    if end:
+        query = query.filter(column < end + timedelta(days=1))
+    return query
+
+
+def parse_amount_range(args, min_field="min_amount", max_field="max_amount"):
+    """Return (min, max) decimals from request.args, or (None, None). Raises if
+    min > max."""
+    lo = parse_decimal(args.get(min_field), min_field, min_value=0)
+    hi = parse_decimal(args.get(max_field), max_field, min_value=0)
+    if lo is not None and hi is not None and lo > hi:
+        raise ApiError(f"{min_field} must not be greater than {max_field}")
+    return lo, hi
+
+
+def csv_response(rows, columns, filename):
+    """Build a Flask Response streaming `rows` (list of dicts) as CSV.
+
+    `columns` is an ordered list of (header, key) pairs so column order and
+    header text are explicit rather than dict-iteration order.
+    """
+    import csv
+    import io
+    from flask import Response
+
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow([header for header, _ in columns])
+    for row in rows:
+        writer.writerow([row.get(key, "") for _, key in columns])
+
+    return Response(
+        buf.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
