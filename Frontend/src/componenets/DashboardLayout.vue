@@ -34,7 +34,6 @@
           <router-link class="nav-item" to="/app/maintenance"><i class="fas fa-tools"></i> Maintenance</router-link>
           <router-link class="nav-item" to="/app/events"><i class="fas fa-calendar-alt"></i> Upcoming</router-link>
           <router-link class="nav-item" to="/app/notices"><i class="fas fa-bullhorn"></i> Notices</router-link>
-          <router-link class="nav-item" to="/app/parking"><i class="fas fa-parking"></i> Parking</router-link>
           <router-link class="nav-item" to="/app/emergency"><i class="fas fa-phone-alt"></i> Emergency</router-link>
         </template>
 
